@@ -72,7 +72,7 @@ export function formatListings(listings) {
 }
 
 /* Primary search function used by Map */
-export function filterListings(listings = {}, searchParams, search = "", hidden=[], { hideFaithBased = false } = {}) {
+export function filterListings(listings = {}, searchParams, search = "", hidden=[], { hideFaithBased = false, ageGroupFilter = 'all' } = {}) {
   // if URL includes the "saved" param, display saved listings ONLY
   if (searchParams.get('saved')) {
     let savedGuids = searchParams.getAll('saved')
@@ -85,6 +85,12 @@ export function filterListings(listings = {}, searchParams, search = "", hidden=
     if (isHidden) return false
 
     if (hideFaithBased && listing.keywords && listing.keywords.includes('Faith-Based')) return false
+
+    if (ageGroupFilter !== 'all') {
+      const group = listing.age_group || 'Youth and Adult'
+      if (ageGroupFilter === 'Youth' && group === 'Adult') return false
+      if (ageGroupFilter === 'Adult' && group === 'Youth') return false
+    }
 
     const listingEntries = Object.entries(listing).join(" ").toLowerCase()
 

@@ -110,12 +110,21 @@
       </div>
     </div>
 
-    <div class="field" style="margin-top: 1em;">
-      <div class="ui checkbox">
-        <input type="checkbox" name="faith_based" id="faith_based_add">
-        <label for="faith_based_add"><i class="church icon"></i> Faith-Based Organization</label>
+    <div class="two fields" style="margin-top: 1em;">
+      <div class="field">
+        <label>Age Group Served</label>
+        <select class="ui dropdown" name="age_group">
+          <option value="Youth and Adult">Youth and Adult</option>
+          <option value="Youth">Youth Only</option>
+          <option value="Adult">Adult Only</option>
+        </select>
       </div>
-      <small style="display: block; color: #888; margin-top: .3em;">Check this if the resource is affiliated with a religious organization. Users can filter these on the map.</small>
+      <div class="field" style="display: flex; align-items: flex-end; padding-bottom: .5em;">
+        <div class="ui checkbox">
+          <input type="checkbox" name="faith_based" id="faith_based_add">
+          <label for="faith_based_add"><i class="church icon"></i> Faith-Based Organization</label>
+        </div>
+      </div>
     </div>
 
     <h3 class="ui dividing header">Building Photo</h3>

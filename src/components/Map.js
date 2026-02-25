@@ -13,6 +13,7 @@ import { filterListings, getKeywordCount, getCostCount } from '../utils'
 import './Map.css'
 import { greenLMarker, blueLMarker } from '../resources/mapIcons'
 import { getCityCount, getColor, titleCaseKey } from '../utils'
+import siteConfig from '../siteConfig.json'
 
 function MapPage({ listings, metadata }) {
   const [ searchParams, ] = useSearchParams()
@@ -23,6 +24,7 @@ function MapPage({ listings, metadata }) {
   const [hidden, setHidden] = useState([])
   const [showSaved, setShowSaved] = useState(false)
   const [hideFaithBased, setHideFaithBased] = useState(false)
+  const [ageGroupFilter, setAgeGroupFilter] = useState('Youth')
 
   const handleSave = (id, reset=false) => {
     if (reset) { setSaved([]); return; }
@@ -54,7 +56,7 @@ function MapPage({ listings, metadata }) {
 
   const debouncedSearch = debounce((value) => { setSearch(value) }, 300);
 
-  let filteredListings = useMemo(() => filterListings(listings, searchParams, search, hidden, { hideFaithBased }), [listings, searchParams, search, hidden, hideFaithBased])
+  let filteredListings = useMemo(() => filterListings(listings, searchParams, search, hidden, { hideFaithBased, ageGroupFilter }), [listings, searchParams, search, hidden, hideFaithBased, ageGroupFilter])
   
   // If you don't want to recalculate the two lines below on every search, just use metadata.listingCities and metadata.listingKeywords, respectively. That would be faster, but also a less rich user experience
   let listingCities = useMemo(() => getCityCount(filteredListings ?? {}), [filteredListings])
@@ -65,7 +67,7 @@ function MapPage({ listings, metadata }) {
   const mapRef = createRef()
 
   return (<>
-    <MapSearch listingCategories={listingCategories} listingCategoryIcons={listingCategoryIcons} debouncedSearch={debouncedSearch} listingCities={listingCities} keywordCount={keywordCount} costCount={costCount} saved={saved} handleSave={handleSave} handleHide={handleHide} hidden={hidden} showSaved={showSaved} handleShowSaved={handleShowSaved} hideFaithBased={hideFaithBased} setHideFaithBased={setHideFaithBased} />
+    <MapSearch listingCategories={listingCategories} listingCategoryIcons={listingCategoryIcons} debouncedSearch={debouncedSearch} listingCities={listingCities} keywordCount={keywordCount} costCount={costCount} saved={saved} handleSave={handleSave} handleHide={handleHide} hidden={hidden} showSaved={showSaved} handleShowSaved={handleShowSaved} hideFaithBased={hideFaithBased} setHideFaithBased={setHideFaithBased} ageGroupFilter={ageGroupFilter} setAgeGroupFilter={setAgeGroupFilter} />
     <Container as="main" id="map-page">
       <MapCards listings={filteredListings} cardRefs={cardRefs} mapRef={mapRef} saved={saved} handleSave={handleSave} handleHide={handleHide} />
       <MapMap listings={filteredListings} cardRefs={cardRefs} ref={mapRef} />
@@ -73,7 +75,7 @@ function MapPage({ listings, metadata }) {
   </>)
 }
 
-function MapSearch({ listingCategories, listingCategoryIcons, debouncedSearch, listingCities, saved, handleShowSaved, keywordCount, costCount, hideFaithBased, setHideFaithBased }) {
+function MapSearch({ listingCategories, listingCategoryIcons, debouncedSearch, listingCities, saved, handleShowSaved, keywordCount, costCount, hideFaithBased, setHideFaithBased, ageGroupFilter, setAgeGroupFilter }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [ searchParams, setSearchParams ] = useSearchParams()
@@ -231,7 +233,22 @@ return (<>
             onChange={(e, {value}) => handleDropdownClick(e.type, value, 'cost')}
             />
           </Grid.Column>}
-          <Grid.Column width={3} verticalAlign="middle" style={{display: 'flex', alignItems: 'center'}}>
+          <Grid.Column width={2}>
+            <Dropdown id='age-group-input'
+              options={[
+                { key: 'all', text: 'All Ages', value: 'all' },
+                { key: 'Youth', text: 'Youth Only', value: 'Youth' },
+                { key: 'Adult', text: 'Adult Only', value: 'Adult' },
+              ]}
+              selection
+              button
+              fluid
+              value={ageGroupFilter}
+              onChange={(e, {value}) => setAgeGroupFilter(value)}
+              placeholder="Age Group"
+            />
+          </Grid.Column>
+          <Grid.Column width={2} verticalAlign="middle" style={{display: 'flex', alignItems: 'center'}}>
             <Form.Checkbox
               toggle
               checked={!hideFaithBased}
@@ -421,8 +438,8 @@ const ExpandableDescription = ({ label, value }) => <>
 const MapMap = forwardRef(({ listings, cardRefs }, ref) => {
   return (
     <Ref innerRef={ref}>
-      <Segment as={MapContainer} center={[42.8666,-106.3131]} zoom={7} minZoom={6} maxZoom={18} scrollWheelZoom={false} tap={true} dragging={true} touchZoom={true}>
-        <TileLayer attribution="Wyoming Youth Resource Map" url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+      <Segment as={MapContainer} center={siteConfig.mapCenter} zoom={siteConfig.mapZoom} minZoom={6} maxZoom={18} scrollWheelZoom={false} tap={true} dragging={true} touchZoom={true}>
+        <TileLayer attribution={siteConfig.siteName} url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
         <MapMarkers listings={listings} cardRefs={cardRefs} />
       </Segment>
     </Ref>

@@ -275,6 +275,9 @@ router.post('/add', imageUpload.single('building_image'), async (req, res) => {
     if (body.faith_based) kwParts.push('Faith-Based')
     listing.keywords = `{${kwParts.join(',')}}`
 
+    // Age group
+    listing.age_group = (body.age_group || 'Youth and Adult').trim()
+
     // Languages
     const langs = (body.languages_offered || '').trim()
     listing.languages_offered = langs ? `{${langs}}` : null
@@ -333,7 +336,7 @@ router.post('/add', imageUpload.single('building_image'), async (req, res) => {
 
 router.get('/manage', async (req, res) => {
   try {
-    const result = await pool.query('SELECT guid, full_name, parent_organization, category, city, latitude, longitude, keywords FROM listings ORDER BY category, full_name')
+    const result = await pool.query('SELECT guid, full_name, parent_organization, category, city, latitude, longitude, keywords, age_group FROM listings ORDER BY category, full_name')
     res.render('listings/manage', {
       props: { activeNavTab: 'manage', listings: result.rows, message: req.flash('message')[0] || null }
     })
@@ -396,6 +399,8 @@ router.post('/edit/:guid', imageUpload.single('building_image'), async (req, res
     const kwParts = (body.service_type || 'In-Person').trim().split(',')
     if (body.faith_based) kwParts.push('Faith-Based')
     updates.keywords = `{${kwParts.join(',')}}`
+
+    updates.age_group = (body.age_group || 'Youth and Adult').trim()
 
     const langs = (body.languages_offered || '').trim()
     updates.languages_offered = langs ? `{${langs}}` : null

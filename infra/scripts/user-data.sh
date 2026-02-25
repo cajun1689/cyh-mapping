@@ -118,7 +118,8 @@ CREATE TABLE IF NOT EXISTS listings (
   date_agency_verified TEXT,
   latitude NUMERIC,
   longitude NUMERIC,
-  image_url TEXT
+  image_url TEXT,
+  age_group TEXT DEFAULT 'Youth and Adult'
 );
 
 CREATE TABLE IF NOT EXISTS listing_backup (

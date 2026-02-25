@@ -1,8 +1,8 @@
-# Casper Youth Hub Resource Map
+# Wyoming Youth Resource Map
 
-A web application that displays youth-serving resources, organizations, and services on an interactive map for Wyoming youth ages 11-20.
+A web application that displays youth-serving resources, organizations, and services on an interactive map for Wyoming youth ages 11-20. Developed by [Casper Youth Hub](https://www.casperyouthhub.org/) in partnership with [Unicorn Solutions](https://www.unicornsolutions.org).
 
-Built on the [Oregon Youth Resource Map](https://github.com/mapping-action-collective/healthy-transitions-frontend) originally created by the Mapping Action Collective.
+Built on the [Oregon Youth Resource Map](https://github.com/mapping-action-collective/healthy-transitions-frontend) originally created by the Mapping Action Collective for the [Healthy Transitions](https://www.samhsa.gov/grants/grant-announcements/sm-18-010) program.
 
 ---
 
@@ -10,6 +10,7 @@ Built on the [Oregon Youth Resource Map](https://github.com/mapping-action-colle
 
 - [Overview](#overview)
 - [Architecture](#architecture)
+- [Embedding the Map](#embedding-the-map)
 - [Prerequisites](#prerequisites)
 - [Local Development](#local-development)
 - [Project Structure](#project-structure)
@@ -24,19 +25,22 @@ Built on the [Oregon Youth Resource Map](https://github.com/mapping-action-colle
 
 ## Overview
 
-The Casper Youth Hub Resource Map helps young people ages 11-20 find resources including mental health services, housing, education, food assistance, and more across Wyoming. The map allows users to:
+The Wyoming Youth Resource Map helps young people ages 11-20 find resources including mental health services, housing, education, food assistance, and more across Wyoming. The map allows users to:
 
 - Browse resources on an interactive map
 - Search by keyword, location, category, age, and cost
+- Filter by age group (Youth, Adult, or both)
+- Toggle faith-based organization visibility
 - Save listings for later reference
 - Share direct links to specific resources
-- View detailed information including contact details, eligibility, and directions
+- View detailed information including contact details, eligibility, directions, and building photos
+- Embed the map on any website
 
 ### How it works
 
 **For the public:** Visit the site, browse or search the map, find resources.
 
-**For administrators:** Log into the admin panel, upload a CSV of resource listings, preview changes on the map, then publish to the live site.
+**For administrators:** Log into the admin panel to add/edit/delete individual listings, upload a CSV of resource listings, preview changes on the map, then publish to the live site.
 
 ---
 
@@ -70,6 +74,73 @@ The project has three main components:
 | Infrastructure | Terraform, AWS (S3, CloudFront, EC2, RDS) |
 
 *React version will be upgraded to 18 as part of the modernization roadmap.
+
+---
+
+## Embedding the Map
+
+You can embed the Wyoming Youth Resource Map on any website. There are two methods:
+
+### Method 1: Script Tag (recommended)
+
+Paste this into your HTML wherever you want the map to appear:
+
+```html
+<div id="wyrm-map"></div>
+<script src="https://casperyouthhubmap.org/embed.js"></script>
+```
+
+The map will fill its container's width and render at 600px tall by default.
+
+#### Options
+
+Customize the embed with `data-` attributes on the `<div>`:
+
+| Attribute | Values | Default | Description |
+|-----------|--------|---------|-------------|
+| `data-filter` | `Youth`, `Adult`, _(omit for all)_ | All | Pre-filter by age group |
+| `data-height` | Any number | `600` | Height in pixels |
+
+**Examples:**
+
+```html
+<!-- Youth-only resources, 500px tall -->
+<div id="wyrm-map" data-filter="Youth" data-height="500"></div>
+<script src="https://casperyouthhubmap.org/embed.js"></script>
+
+<!-- Adult-only resources -->
+<div id="wyrm-map" data-filter="Adult"></div>
+<script src="https://casperyouthhubmap.org/embed.js"></script>
+
+<!-- All resources, 800px tall -->
+<div id="wyrm-map" data-height="800"></div>
+<script src="https://casperyouthhubmap.org/embed.js"></script>
+```
+
+### Method 2: Raw iframe
+
+If your platform doesn't allow external scripts (e.g., some CMS systems), use an iframe directly:
+
+```html
+<iframe
+  src="https://casperyouthhubmap.org/#/embed"
+  width="100%"
+  height="600px"
+  style="border:none; border-radius:8px;"
+  loading="lazy"
+  title="Wyoming Resource Map">
+</iframe>
+```
+
+To pre-filter, add `?age_group=Youth` or `?age_group=Adult` to the URL:
+
+```html
+<iframe src="https://casperyouthhubmap.org/#/embed?age_group=Youth" ...></iframe>
+```
+
+### Embed Code Generator
+
+Visit [casperyouthhubmap.org/#/embed-code](https://casperyouthhubmap.org/#/embed-code) for an interactive tool that lets you customize settings and copy the embed code with a live preview.
 
 ---
 
@@ -178,18 +249,22 @@ The frontend runs at `http://localhost:3000` and proxies API calls to the backen
 ```
 cyh-mapping/
 ├── public/                    # Static assets (favicon, images)
-│   └── index.html             # HTML entry point
+│   ├── index.html             # HTML entry point
+│   └── embed.js               # Embeddable map script (used by third-party sites)
 ├── src/                       # Frontend React source code
 │   ├── components/            # React components
 │   │   ├── Map.js             # Main map page (search, cards, map)
+│   │   ├── EmbedMap.js        # Embeddable map (no nav, compact UI)
+│   │   ├── EmbedCode.js       # Embed code generator page
 │   │   ├── Page.js            # Layout wrapper (nav bar)
-│   │   ├── About.js           # About page
+│   │   ├── About.js           # About page (with hyperlinked partners)
 │   │   ├── Resources.js       # External resources page
 │   │   └── SuggestUpdate.js   # Feedback/suggestion forms
 │   ├── hooks/                 # Custom React hooks
 │   │   ├── useSessionStorage.js
 │   │   └── usePosition.js     # Geolocation (not yet active)
 │   ├── resources/             # Map marker icons
+│   ├── siteConfig.json        # Centralized branding, map center, text config
 │   ├── App.js                 # Router and app shell
 │   ├── constants.js           # Site text, forms, contributors, resources
 │   ├── data.js                # API fetch functions
@@ -200,7 +275,7 @@ cyh-mapping/
 │   ├── routes/                # Express route handlers
 │   │   ├── api.js             # Public API (GET /listings, /meta)
 │   │   ├── api-preview.js     # Preview API (for staging data)
-│   │   ├── listings.js        # Admin: CSV upload/preview/publish
+│   │   ├── listings.js        # Admin: CSV upload, add/edit/delete, manage
 │   │   ├── index.js           # Admin: home, settings, user mgmt
 │   │   ├── loggedOutRoutes.js # Login, password reset
 │   │   ├── resourceRoutes.js  # Admin: resource link management
@@ -225,10 +300,12 @@ cyh-mapping/
 │   ├── middleware/             # Express middleware
 │   ├── apiData/               # Static data files
 │   │   └── categories.json    # Category names and icons
+│   ├── siteConfig.json        # Backend branding config (admin panel text)
 │   ├── server.js              # Express app entry point
 │   └── package.json
 ├── infra/                     # Terraform infrastructure-as-code
 │   ├── main.tf                # AWS provider config
+│   ├── iam.tf                 # IAM roles (EC2 S3 access for image uploads)
 │   ├── variables.tf           # All configurable inputs
 │   ├── ec2.tf                 # Backend server instance
 │   ├── s3.tf                  # Frontend hosting bucket
@@ -253,6 +330,29 @@ cyh-mapping/
 ---
 
 ## Configuration Reference
+
+### Site configuration (branding, map center, text)
+
+The files `src/siteConfig.json` (frontend) and `backend/siteConfig.json` (admin panel) centralize all branding and content. You can change the site name, map starting location, about text, logos, and more without editing code.
+
+Key settings in `src/siteConfig.json`:
+
+| Setting | Description | Example |
+|---------|-------------|---------|
+| `siteName` | Full site name (used in titles, attribution) | `"Wyoming Youth Resource Map"` |
+| `siteNameShort` | Short name (nav bar) | `"Wyoming Resource Map"` |
+| `organizationName` | Operating organization | `"Casper Youth Hub"` |
+| `mapCenter` | Starting lat/lon for the map | `[42.8666, -106.3131]` (Casper, WY) |
+| `mapZoom` | Starting zoom level (higher = closer) | `7` |
+| `aboutText` | Array of paragraphs for the About page | _(see file)_ |
+| `logos` | Logo images shown on the About page | _(see file)_ |
+
+To change the map's starting location (e.g., to center on Cheyenne):
+
+```json
+"mapCenter": [41.1400, -104.8202],
+"mapZoom": 8
+```
 
 ### Frontend environment variables
 
@@ -681,7 +781,9 @@ The admin panel accepts CSV files with the following columns. Only `guid`, `full
 | `website` | text | No | Website URL |
 | `program_email` | text | No | Contact email |
 | `min_age` / `max_age` | integer | No | Age range served |
-| `keywords` | text | No | Comma-separated tags (e.g., `LGBTQ+,Housing`) |
+| `keywords` | text | No | Comma-separated tags (e.g., `LGBTQ+,Housing,Faith-Based`) |
+| `age_group` | text | No | `Youth`, `Adult`, or `Youth and Adult` (default) |
+| `image_url` | text | No | URL of a building photo (uploaded via admin panel) |
 | `cost_keywords` | text | No | Comma-separated cost tags (e.g., `Free,OHP`) |
 | `eligibility_requirements` | text | No | Who can access this service |
 | `financial_information` | text | No | Cost details |
@@ -736,10 +838,14 @@ Categories are defined in `backend/apiData/categories.json`. Each listing's `cat
 
 | If you want to... | Edit this file |
 |-------------------|---------------|
+| Change site name, map center, branding | `src/siteConfig.json` |
+| Change admin panel branding | `backend/siteConfig.json` |
 | Change site text, disclaimer, or form links | `src/constants.js` |
 | Change the nav bar | `src/components/Page.js` |
 | Change the about page | `src/components/About.js` |
 | Change map behavior or card layout | `src/components/Map.js` |
+| Change the embeddable map | `src/components/EmbedMap.js` |
+| Change the embed script | `public/embed.js` |
 | Change listing categories or icons | `backend/apiData/categories.json` |
 | Change CSV validation rules | `backend/db/listings.schema.json` |
 | Change the admin panel UI | `backend/views/` |

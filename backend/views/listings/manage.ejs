@@ -31,6 +31,7 @@
         <th>Category</th>
         <th>City</th>
         <th style="width:60px">Map</th>
+        <th style="width:80px">Age</th>
         <th style="width:40px" title="Faith-Based"><i class="church icon"></i></th>
         <th style="width:120px">Actions</th>
       </tr>
@@ -51,6 +52,15 @@
             <i class="green map marker alternate icon" title="Has coordinates"></i>
           <% } else { %>
             <i class="grey minus icon" title="No coordinates"></i>
+          <% } %>
+        </td>
+        <td style="text-align:center; font-size:.85em">
+          <% if (listing.age_group === 'Youth') { %>
+            <span style="color:#2185d0" title="Youth Only">Youth</span>
+          <% } else if (listing.age_group === 'Adult') { %>
+            <span style="color:#a333c8" title="Adult Only">Adult</span>
+          <% } else { %>
+            <span style="color:#00b5ad" title="Youth and Adult">Both</span>
           <% } %>
         </td>
         <td style="text-align:center">
