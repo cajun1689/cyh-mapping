@@ -1,0 +1,32 @@
+{
+  "siteName": "Wyoming Youth Resource Map",
+  "siteNameShort": "WY Youth Map",
+  "organizationName": "Casper Youth Hub",
+  "partnerName": "Unicorn Solutions",
+  "adminTitle": "WYRM Admin",
+  "adminSubtitle": "Wyoming Youth Resource Map Admin Panel",
+
+  "aboutText": [
+    "The Wyoming Youth Resource Map, developed by Casper Youth Hub, in partnership with Unicorn Solutions, is designed to help young people ages 11-20 and their allies connect to youth-serving resources, organizations, and leadership opportunities across Wyoming.",
+    "The map centers youth needs and voices, and includes services for health and mental healthcare, housing, education, and more.",
+    "This tool was adapted from the Oregon Youth Resource Map, originally created by the Mapping Action Collective, in partnership with Youth and Young Adult Leaders from across the state of Oregon for the Healthy Transitions program, and customized for Wyoming youth by the Casper Youth Hub."
+  ],
+
+  "contributors": [
+    {
+      "name": "Casper Youth Hub",
+      "logo_url": "",
+      "description": "The Casper Youth Hub connects young people ages 11-20 with resources, services, and opportunities across Wyoming."
+    },
+    {
+      "name": "Unicorn Solutions",
+      "logo_url": "",
+      "description": "Unicorn Solutions partnered with Casper Youth Hub to develop and deploy the Wyoming Youth Resource Map."
+    },
+    {
+      "name": "Mapping Action Collective",
+      "logo_url": "https://i.postimg.cc/9M28z2Kv/mac-logo.png",
+      "description": "The Mapping Action Collective (MAC) uses mapping, data, and technology to support their community and beyond. MAC wrote the original code and organized the database that powers this resource map."
+    }
+  ]
+}

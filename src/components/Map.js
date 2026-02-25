@@ -409,7 +409,7 @@ const MapMap = forwardRef(({ listings, cardRefs }, ref) => {
   return (
     <Ref innerRef={ref}>
       <Segment as={MapContainer} center={[42.8666,-106.3131]} zoom={7} minZoom={6} maxZoom={18} scrollWheelZoom={false} tap={true} dragging={true} touchZoom={true}>
-        <TileLayer attribution="Casper Youth Hub" url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+        <TileLayer attribution="Wyoming Youth Resource Map" url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
         <MapMarkers listings={listings} cardRefs={cardRefs} />
       </Segment>
     </Ref>

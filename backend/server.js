@@ -31,6 +31,13 @@ app.use(cookieParser())
 require('./services/passport') 
 require('./services/expressSession')(app)
 
+/* Make site config available to all EJS templates as `site` */
+const siteConfig = require('./siteConfig.json')
+app.use((req, res, next) => {
+  res.locals.site = siteConfig
+  next()
+})
+
 /* Serve public assets */
 app.use(express.static('public'))
 

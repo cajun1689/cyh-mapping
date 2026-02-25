@@ -1,34 +1,27 @@
 {
   "title": "Additional Resources",
   "route": "/resources",
-  "disclaimer": "Inclusion on this list does not imply that CYH is affiliated with or endorses these organizations and/or resources.",
+  "disclaimer": "Inclusion on this list does not imply that the Wyoming Youth Resource Map is affiliated with or endorses these organizations and/or resources.",
   "resources": [
     {
-      "name": "Self Enhancement Inc BIPOC Resource Guide",
-      "link": "https://www.selfenhancement.org/resource",
-      "description": "The Self Enhancement Inc (SEI) guide includes a wide variety of resources, such as scholarships and internships, educational and job seeker services, and resources for basic needs and community building. The primary focus is resources for Black youth, but the guide also includes a variety of resources for outher BIPOC youth, including Indigenous, Latinx, Pacific Islander, Asian, Middle Eastern, and multiracial children, youth, and adults. Use the search bar in the upper right corner of the website to search for resources specific to your identity & needs."
+      "name": "211 — Wyoming",
+      "link": "https://www.211.org/",
+      "description": "Dial 2-1-1 or visit 211.org to find local resources for food, housing, health care, employment, and more."
     },
     {
       "name": "The Youth Alliance Help Hotlines",
       "link": "https://theyouthalliance.com/resources/help-hotlines",
-      "description": "A youth-oriented list of national hotlines that provide anonymous, confidential information to callers. \n These hotlines can answer questions, offer support, and make referrals to other helpful organizations in times of need.  If you are in danger and require immediate help, call 911."
+      "description": "A youth-oriented list of national hotlines that provide anonymous, confidential information to callers. \n These hotlines can answer questions, offer support, and make referrals to other helpful organizations in times of need. If you are in danger and require immediate help, call 911."
     },
     {
-      "name": "Douglas County Community Resource Guide",
-      "link": "https://guides.ucclibrary.com/communityresources",
-      "description": "A searchable website with services available in Douglas County."
+      "name": "National Crisis Resources (Crisis Text Line)",
+      "link": "https://www.crisistextline.org/resources/",
+      "description": "List of resources curated & vetted by a national crisis text line service. Resources are all free or low-cost, and available for viewing on mobile phones."
     },
     {
-      "name": "Brave Space Resource Website",
-      "link": "https://www.bravespacellc.com/resources",
-      "organization_location": "Portland, Oregon",
-      "description": "Brave Space creates community and facilitates access to expert and knowledgeable providers for transgender and non-binary children, youth, adults, and their families. \n Their online resource guide is a place to find information about Brave Space community services, gender-affirming service providers, free clothing, events, and more."
-    },
-    {
-      "name": "TransPonder Resource Directory",
-      "link": "https://transponder.community/resource-directory",
-      "organization_location": "Eugene, Oregon",
-      "description": "TransPonder is a trans-led organization. They provide a resource directory that is updated yearly. Resources include crisis resources, medical and mental health providers who serve the trans community, and more. Resources are personally verified by TransPonder staff."
+      "name": "Wyoming 988 Suicide & Crisis Lifeline",
+      "link": "https://988lifeline.org/",
+      "description": "Call or text 988 for free, confidential support 24/7 for anyone in suicidal crisis or emotional distress."
     }
   ]
 }

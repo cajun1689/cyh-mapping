@@ -16,7 +16,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   is_ipv6_enabled     = true
   default_root_object = "index.html"
   price_class         = "PriceClass_100"
-  comment             = "Casper Youth Hub Resource Map"
+  comment             = "Wyoming Youth Resource Map"
 
   aliases = local.use_custom_domain ? [var.domain_name] : []
 
