@@ -9,8 +9,7 @@ module.exports = {
     transformHeader: (header) => header.includes(" ") ? header.toLowerCase().split(" ").join("_") : header.toLowerCase(),
     transform: (value, column) =>
       value.trim() === "" ? undefined
-    // Note: line 12 below fixed one bug, but caused another. Will create an issue with details.
-    // : SCHEMA.items.properties[column]?.type === 'string' ? `${value}`
+    : SCHEMA.items.properties[column]?.type === 'string' ? `${value.trim()}`
     : SCHEMA.items.properties[column]?.type === 'array' ? value.trim().split(',')
     : value.trim(),
   },
