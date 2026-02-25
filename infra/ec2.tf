@@ -3,6 +3,7 @@ resource "aws_instance" "backend" {
   instance_type          = var.instance_type
   key_name               = var.ssh_key_name
   vpc_security_group_ids = [aws_security_group.backend.id]
+  iam_instance_profile   = aws_iam_instance_profile.backend.name
 
   root_block_device {
     volume_size = 30

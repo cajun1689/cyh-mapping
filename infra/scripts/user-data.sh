@@ -117,7 +117,8 @@ CREATE TABLE IF NOT EXISTS listings (
   agency_verified TEXT,
   date_agency_verified TEXT,
   latitude NUMERIC,
-  longitude NUMERIC
+  longitude NUMERIC,
+  image_url TEXT
 );
 
 CREATE TABLE IF NOT EXISTS listing_backup (

@@ -14,10 +14,31 @@ const wyoming = require('../utils/stateBoundaries.json').Wyoming
 const { TABLE_LISTINGS_COLUMNS, DROP_TABLE_PREVIEW_LISTINGS, CREATE_TABLE_PREVIEW_LISTINGS, INSERT_INTO_PREVIEW_LISTINGS, promotePreviewListingsToProd, createBackupListingTable, createMetaEntry, splitCategory, addCity } = require('../utils/listingUtils')
 const { geocodeFromExisting, recreateGeocodingTable } = require('../utils/geocodingUtils')
 const upload = multer()
+const imageUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: (req, file, cb) => {
+  const allowed = ['image/jpeg', 'image/png', 'image/webp']
+  cb(null, allowed.includes(file.mimetype))
+}})
+const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3')
+const s3 = new S3Client({ region: process.env.AWS_REGION || 'us-west-2' })
+const S3_BUCKET = 'cyh-mapping-frontend'
+const S3_PREFIX = 'listing-images'
 const { ensureLogin, checkRequirePasswordChange } = require('../middleware/routeProtection')
 const { geocodeListing } = require('../services/geocoding')
 const axios = require('axios')
 const API_KEY = process.env.GOOGLE_API_KEY
+
+async function uploadImageToS3(file, guid) {
+  const ext = file.originalname.split('.').pop().toLowerCase()
+  const key = `${S3_PREFIX}/${guid}-${Date.now()}.${ext}`
+  await s3.send(new PutObjectCommand({
+    Bucket: S3_BUCKET,
+    Key: key,
+    Body: file.buffer,
+    ContentType: file.mimetype,
+    CacheControl: 'public, max-age=31536000',
+  }))
+  return `/${key}`
+}
 
 const isInState = (lat, long) => ((lat >= wyoming.min_lat && lat <= wyoming.max_lat) && (long >= wyoming.min_long && long <= wyoming.max_long))
 
@@ -208,7 +229,7 @@ router.get('/add', async (req, res) => {
   })
 })
 
-router.post('/add', async (req, res) => {
+router.post('/add', imageUpload.single('building_image'), async (req, res) => {
   try {
     const body = req.body
     const existingCategories = await getExistingCategories()
@@ -265,6 +286,11 @@ router.post('/add', async (req, res) => {
         listing.latitude = coords.latitude
         listing.longitude = coords.longitude
       }
+    }
+
+    // Upload building image if provided
+    if (req.file) {
+      listing.image_url = await uploadImageToS3(req.file, listing.guid)
     }
 
     // Get existing column names from the listings table
@@ -338,7 +364,7 @@ router.get('/edit/:guid', async (req, res) => {
   }
 })
 
-router.post('/edit/:guid', async (req, res) => {
+router.post('/edit/:guid', imageUpload.single('building_image'), async (req, res) => {
   const guid = parseInt(req.params.guid, 10)
   try {
     const body = req.body
@@ -380,6 +406,15 @@ router.post('/edit/:guid', async (req, res) => {
         updates.latitude = coords.latitude
         updates.longitude = coords.longitude
       }
+    }
+
+    // Upload new building image if provided
+    if (req.file) {
+      updates.image_url = await uploadImageToS3(req.file, guid)
+    }
+    // Remove existing image if requested
+    if (body.remove_image === 'on' && !req.file) {
+      updates.image_url = null
     }
 
     // Build UPDATE query dynamically from columns that exist in the table

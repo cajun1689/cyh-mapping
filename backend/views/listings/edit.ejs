@@ -28,7 +28,7 @@
 
   <% var l = props.listing; %>
 
-  <form class="ui form" action="/listings/edit/<%= l.guid %>" method="POST">
+    <form class="ui form" action="/listings/edit/<%= l.guid %>" method="POST" enctype="multipart/form-data">
 
     <h3 class="ui dividing header">Required</h3>
 
@@ -131,6 +131,23 @@
         <input type="checkbox" name="re_geocode" id="re_geocode">
         <label for="re_geocode">Re-geocode address (check this if you changed the address)</label>
       </div>
+    </div>
+
+    <h3 class="ui dividing header">Building Photo</h3>
+
+    <div class="field">
+      <% if (l.image_url) { %>
+        <div style="margin-bottom: .75em;">
+          <img src="<%= l.image_url %>" alt="Building photo" style="max-width: 300px; max-height: 200px; border-radius: 6px; border: 1px solid #ddd;">
+        </div>
+        <div class="ui checkbox" style="margin-bottom: .5em;">
+          <input type="checkbox" name="remove_image" id="remove_image">
+          <label for="remove_image">Remove current photo</label>
+        </div>
+      <% } %>
+      <label><i class="camera icon"></i> <%= l.image_url ? 'Replace' : 'Upload' %> building photo</label>
+      <input type="file" name="building_image" accept="image/jpeg,image/png,image/webp">
+      <small style="color: #888;">Helps youth recognize where they're going. Max 5 MB. JPG, PNG, or WebP.</small>
     </div>
 
     <h3 class="ui dividing header">Details</h3>

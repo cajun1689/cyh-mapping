@@ -319,7 +319,7 @@ const blueCheckStyle = { color: 'grey', fontStyle: 'italic' }
 const socialLinkStyle = { display: 'flex' }
 
 const MapCard = forwardRef(({ mapRef, listing, saved, handleSave, handleHide, index}, ref) => {
-  const { guid, category, parent_organization, full_name, full_address, description, text_message_instructions, phone_1, phone_label_1, phone_1_ext, phone_2, phone_label_2, crisis_line_number, crisis_line_label, website, blog_link, twitter_link, facebook_link, youtube_link, instagram_link, program_email, languages_offered, services_provided, keywords, min_age, max_age, eligibility_requirements, covid_message, financial_information, intake_instructions, agency_verified, date_agency_verified, cost_keywords, tiktok_link } = listing
+  const { guid, category, parent_organization, full_name, full_address, description, text_message_instructions, phone_1, phone_label_1, phone_1_ext, phone_2, phone_label_2, crisis_line_number, crisis_line_label, website, blog_link, twitter_link, facebook_link, youtube_link, instagram_link, program_email, languages_offered, services_provided, keywords, min_age, max_age, eligibility_requirements, covid_message, financial_information, intake_instructions, agency_verified, date_agency_verified, cost_keywords, tiktok_link, image_url } = listing
 
   const navigate = useNavigate()
   const [ searchParams, setSearchParams ] = useSearchParams()
@@ -377,6 +377,10 @@ const MapCard = forwardRef(({ mapRef, listing, saved, handleSave, handleHide, in
             </div>
           </Segment>
           {(agency_verified && date_agency_verified) && <BlueCheck name={full_name} date={date_agency_verified} />}
+
+          {image_url && <div style={{margin: '.75em 0', textAlign: 'center'}}>
+            <img src={image_url} alt={`${full_name} building`} style={{maxWidth: '100%', maxHeight: '200px', borderRadius: '6px', objectFit: 'cover'}} />
+          </div>}
 
           <Segment basic vertical>
             <ExpandableDescription label="Description" value={description} />

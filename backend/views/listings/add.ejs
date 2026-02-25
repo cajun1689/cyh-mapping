@@ -26,7 +26,7 @@
   </div>
   <% } %>
 
-  <form class="ui form" action="/listings/add" method="POST">
+  <form class="ui form" action="/listings/add" method="POST" enctype="multipart/form-data">
 
     <h3 class="ui dividing header">Required</h3>
 
@@ -116,6 +116,14 @@
         <label for="faith_based_add"><i class="church icon"></i> Faith-Based Organization</label>
       </div>
       <small style="display: block; color: #888; margin-top: .3em;">Check this if the resource is affiliated with a religious organization. Users can filter these on the map.</small>
+    </div>
+
+    <h3 class="ui dividing header">Building Photo</h3>
+
+    <div class="field">
+      <label><i class="camera icon"></i> Photo of the building front</label>
+      <input type="file" name="building_image" accept="image/jpeg,image/png,image/webp">
+      <small style="color: #888;">Helps youth recognize where they're going. Max 5 MB. JPG, PNG, or WebP.</small>
     </div>
 
     <h3 class="ui dividing header">Details</h3>
