@@ -27,7 +27,7 @@ const initiatePasswordReset = async (email) => {
 
       const emailOptions = {
         subject: "Password Reset",
-        html: "<p>Hello,</p> <p>Someone requested a password reset for the Healthy Transitions Admin panel. If that was you, <a href=" + link + ">click this link to reset your password</a></p>",
+        html: "<p>Hello,</p> <p>Someone requested a password reset for the CYH Admin panel. If that was you, <a href=" + link + ">click this link to reset your password</a></p>",
         to: email,
         from: process.env.OWNER_EMAIL
       }

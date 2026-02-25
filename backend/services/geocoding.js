@@ -1,24 +1,18 @@
-// View Google Maps API documentation at: https://developers.google.com/maps/documentation/geocoding/start
 const API_KEY = process.env.GOOGLE_API_KEY
 const axios = require('axios')
-
-// Filters out outliers that will skew the map view. Running the function below filters out any listing east of Burns, Oregon. We only have 2, and it skews the entire map display, so this is the shortest solution.
-const westOregon = { "min_long": -124.566244,	"min_lat": 41.991794,	"max_long": -119.0541,	"max_lat": 46.292035 }
-const isInWestOregon = (lat, long) => ((lat >= westOregon.min_lat && lat <= westOregon.max_lat) && (long >= westOregon.min_long && long <= westOregon.max_long))
+const wyoming = require('../utils/stateBoundaries.json').Wyoming
+const isInState = (lat, long) => ((lat >= wyoming.min_lat && lat <= wyoming.max_lat) && (long >= wyoming.min_long && long <= wyoming.max_long))
 
 const geocodeListing = async (address) => {
   try {
-    // If there's no address, just skip
-    // Otherwise, URI encode the address, and send it to Google geocoding API to get lat/long coords
     const queryString = encodeURIComponent(address)
 
     axios.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${queryString}&key=${API_KEY}`).then(res => {
-      // The results object. See documentation link at top of file for schema 
       const results = res.data.results[0]
       const latitude = results.geometry?.location?.lat
       const longitude = results.geometry?.location?.lng
 
-      if (isInWestOregon(latitude, longitude)) return listing
+      if (isInState(latitude, longitude)) return listing
     }).catch(err => console.log(err))
 
   } catch (error) {

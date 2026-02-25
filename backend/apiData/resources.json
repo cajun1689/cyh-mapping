@@ -1,7 +1,7 @@
 {
   "title": "Additional Resources",
   "route": "/resources",
-  "disclaimer": "Inclusion on this list does not imply that OYRM is affiliated with or endorses these organizations and/or resources.",
+  "disclaimer": "Inclusion on this list does not imply that CYH is affiliated with or endorses these organizations and/or resources.",
   "resources": [
     {
       "name": "Self Enhancement Inc BIPOC Resource Guide",
@@ -16,7 +16,7 @@
     {
       "name": "Douglas County Community Resource Guide",
       "link": "https://guides.ucclibrary.com/communityresources",
-      "description": "A searchable website with services available in Douglas County, Oregon."
+      "description": "A searchable website with services available in Douglas County."
     },
     {
       "name": "Brave Space Resource Website",
@@ -28,7 +28,7 @@
       "name": "TransPonder Resource Directory",
       "link": "https://transponder.community/resource-directory",
       "organization_location": "Eugene, Oregon",
-      "description": "TransPonder is a trans-led organization in Eugene, Oregon. They provide a resource directory that is updated yearly. Resources include crisis resources, medical and mental health providers who serve the trans community, and more. Resources are personally verified by TransPonder staff."
+      "description": "TransPonder is a trans-led organization. They provide a resource directory that is updated yearly. Resources include crisis resources, medical and mental health providers who serve the trans community, and more. Resources are personally verified by TransPonder staff."
     }
   ]
 }
