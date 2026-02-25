@@ -10,6 +10,8 @@ resource "aws_instance" "backend" {
   }
 
   user_data = templatefile("${path.module}/scripts/user-data.sh", {
+    db_host         = aws_db_instance.main.address
+    db_port         = aws_db_instance.main.port
     db_name         = var.db_name
     db_password     = var.db_password
     admin_email     = var.admin_email
@@ -22,12 +24,16 @@ resource "aws_instance" "backend" {
     domain_name     = var.domain_name
   })
 
+  user_data_replace_on_change = true
+
   tags = {
     Name = "${var.project_name}-backend"
   }
 
+  depends_on = [aws_db_instance.main]
+
   lifecycle {
-    ignore_changes = [ami, user_data]
+    ignore_changes = [ami]
   }
 }
 

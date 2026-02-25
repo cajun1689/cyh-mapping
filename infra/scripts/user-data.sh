@@ -7,6 +7,8 @@ echo "=== CYH Mapping: EC2 bootstrap starting ==="
 # -------------------------------------------------------------------
 # Template variables injected by Terraform
 # -------------------------------------------------------------------
+DB_HOST="${db_host}"
+DB_PORT="${db_port}"
 DB_NAME="${db_name}"
 DB_PASSWORD="${db_password}"
 ADMIN_EMAIL="${admin_email}"
@@ -20,12 +22,13 @@ DOMAIN_NAME="${domain_name}"
 
 REPO_DIR="/home/ec2-user/repo"
 APP_DIR="/home/ec2-user/app"
+DATABASE_URL="postgresql://cyh_app:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME"
 
 # -------------------------------------------------------------------
 # 1. System packages
 # -------------------------------------------------------------------
 dnf update -y
-dnf install -y gcc-c++ make git nginx
+dnf install -y gcc-c++ make git nginx postgresql15
 
 # -------------------------------------------------------------------
 # 2. Node.js 20 LTS
@@ -35,28 +38,22 @@ dnf install -y nodejs
 npm install -g pm2
 
 # -------------------------------------------------------------------
-# 3. PostgreSQL 15
+# 3. Wait for RDS to accept connections
 # -------------------------------------------------------------------
-dnf install -y postgresql15-server postgresql15
-postgresql-setup --initdb
-
-PG_HBA="/var/lib/pgsql/data/pg_hba.conf"
-sed -i 's/^local\s\+all\s\+all\s\+peer/local   all             all                                     md5/' "$PG_HBA"
-sed -i 's/^host\s\+all\s\+all\s\+127.0.0.1\/32\s\+ident/host    all             all             127.0.0.1\/32            md5/' "$PG_HBA"
-
-systemctl enable postgresql
-systemctl start postgresql
-
-sudo -u postgres psql -c "CREATE USER cyh_app WITH PASSWORD '$DB_PASSWORD';"
-sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER cyh_app;"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO cyh_app;"
+echo "Waiting for RDS at $DB_HOST:$DB_PORT..."
+for i in $(seq 1 30); do
+  if PGPASSWORD="$DB_PASSWORD" psql -U cyh_app -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -c "SELECT 1;" >/dev/null 2>&1; then
+    echo "RDS is ready."
+    break
+  fi
+  echo "Attempt $i/30 — RDS not ready yet, waiting 10s..."
+  sleep 10
+done
 
 # -------------------------------------------------------------------
 # 4. Clone repo and install backend dependencies
 # -------------------------------------------------------------------
 sudo -u ec2-user git clone "$GITHUB_REPO_URL" "$REPO_DIR"
-
-# The backend lives in the backend/ subdirectory
 cp -r "$REPO_DIR/backend" "$APP_DIR"
 chown -R ec2-user:ec2-user "$APP_DIR"
 cd "$APP_DIR"
@@ -65,9 +62,7 @@ sudo -u ec2-user npm install --production
 # -------------------------------------------------------------------
 # 5. Set up database tables and seed admin user
 # -------------------------------------------------------------------
-DATABASE_URL="postgresql://cyh_app:$DB_PASSWORD@localhost:5432/$DB_NAME"
-
-PGPASSWORD="$DB_PASSWORD" psql -U cyh_app -h localhost -d "$DB_NAME" <<'EOSQL'
+PGPASSWORD="$DB_PASSWORD" psql -U cyh_app -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" <<'EOSQL'
 CREATE TABLE IF NOT EXISTS staging_meta (
   test_field character varying(256)
 );
@@ -171,10 +166,10 @@ EOSQL
 
 # Seed admin user (bcrypt hash via Node)
 HASHED_PW=$(node -e "const bcrypt = require('bcrypt'); bcrypt.hash('$ADMIN_PASSWORD', 10).then(h => process.stdout.write(h));")
-PGPASSWORD="$DB_PASSWORD" psql -U cyh_app -h localhost -d "$DB_NAME" \
+PGPASSWORD="$DB_PASSWORD" psql -U cyh_app -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" \
   -c "INSERT INTO staging_user (email, password, require_password_reset) VALUES ('$ADMIN_EMAIL', '$HASHED_PW', false) ON CONFLICT (email) DO NOTHING;"
 
-PGPASSWORD="$DB_PASSWORD" psql -U cyh_app -h localhost -d "$DB_NAME" \
+PGPASSWORD="$DB_PASSWORD" psql -U cyh_app -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" \
   -c "INSERT INTO meta (email, file_name, listing_count) VALUES ('$ADMIN_EMAIL', 'initial-setup', 0) ON CONFLICT DO NOTHING;"
 
 # -------------------------------------------------------------------
@@ -227,17 +222,5 @@ cd "$APP_DIR"
 sudo -u ec2-user pm2 start server.js --name "$PROJECT_NAME-backend"
 sudo -u ec2-user pm2 save
 env PATH=$PATH:/usr/bin pm2 startup systemd -u ec2-user --hp /home/ec2-user
-
-# -------------------------------------------------------------------
-# 9. Daily database backup cron
-# -------------------------------------------------------------------
-cat > /etc/cron.daily/pg-backup <<CRONEOF
-#!/bin/bash
-BACKUP_DIR="/home/ec2-user/backups"
-mkdir -p "\$BACKUP_DIR"
-PGPASSWORD="$DB_PASSWORD" pg_dump -U cyh_app -h localhost "$DB_NAME" | gzip > "\$BACKUP_DIR/\$(date +\%Y\%m\%d).sql.gz"
-find "\$BACKUP_DIR" -name "*.sql.gz" -mtime +30 -delete
-CRONEOF
-chmod +x /etc/cron.daily/pg-backup
 
 echo "=== CYH Mapping: EC2 bootstrap complete ==="

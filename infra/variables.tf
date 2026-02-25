@@ -69,6 +69,12 @@ variable "github_repo_url" {
   default     = "https://github.com/mapping-action-collective/healthy-transitions-backend.git"
 }
 
+variable "db_instance_class" {
+  description = "RDS instance class for the PostgreSQL database"
+  type        = string
+  default     = "db.t4g.micro"
+}
+
 variable "allowed_ssh_cidrs" {
   description = "CIDR blocks allowed to SSH into the EC2 instance"
   type        = list(string)

@@ -38,8 +38,11 @@ google_api_key = ""
 # Route 53 nameservers shown in `terraform output route53_nameservers`.
 domain_name = ""
 
+# RDS instance class (db.t4g.micro is the smallest/cheapest option)
+db_instance_class = "db.t4g.micro"
+
 # GitHub repo URL for the backend code (cloned onto EC2 during bootstrap)
-github_repo_url = "https://github.com/mapping-action-collective/healthy-transitions-backend.git"
+github_repo_url = "https://github.com/cajun1689/cyh-mapping.git"
 
 # CIDR blocks allowed to SSH into the EC2 instance
 # For better security, replace with your IP: ["1.2.3.4/32"]

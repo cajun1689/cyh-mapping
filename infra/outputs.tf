@@ -8,6 +8,11 @@ output "ec2_ssh" {
   value       = "ssh ec2-user@${aws_eip.backend.public_ip}"
 }
 
+output "rds_endpoint" {
+  description = "RDS PostgreSQL endpoint"
+  value       = aws_db_instance.main.endpoint
+}
+
 output "frontend_bucket" {
   description = "S3 bucket name for frontend deployment"
   value       = aws_s3_bucket.frontend.id

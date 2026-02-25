@@ -57,8 +57,8 @@ The project has three main components:
 └──────────────┬──────────────────┘
                │
 ┌──────────────▼──────────────────┐
-│       PostgreSQL Database       │  ← On the same EC2 instance
-│  Listings, users, resources     │
+│    PostgreSQL Database (RDS)    │  ← Managed AWS RDS instance
+│  Listings, users, resources     │  ← Auto backups, 7-day retention
 └─────────────────────────────────┘
 ```
 
@@ -66,8 +66,8 @@ The project has three main components:
 |-----------|-----------|
 | Frontend | React 17*, Leaflet, Semantic UI React, React Router |
 | Backend | Node.js, Express, EJS templates, Passport.js |
-| Database | PostgreSQL 15 |
-| Infrastructure | Terraform, AWS (S3, CloudFront, EC2) |
+| Database | PostgreSQL 15 (AWS RDS, managed) |
+| Infrastructure | Terraform, AWS (S3, CloudFront, EC2, RDS) |
 
 *React version will be upgraded to 18 as part of the modernization roadmap.
 
@@ -234,11 +234,12 @@ cyh-mapping/
 │   ├── s3.tf                  # Frontend hosting bucket
 │   ├── cloudfront.tf          # CDN distribution
 │   ├── network.tf             # Security groups
+│   ├── rds.tf                 # Managed PostgreSQL database
 │   ├── dns.tf                 # Domain + SSL (optional)
 │   ├── outputs.tf             # Deployment info outputs
 │   ├── terraform.tfvars.example # Example configuration
 │   └── scripts/
-│       ├── user-data.sh       # EC2 first-boot setup
+│       ├── user-data.sh       # EC2 first-boot setup (connects to RDS)
 │       └── setup-db.sh        # Database initialization
 ├── Makefile                   # Build, deploy, and infra commands
 ├── ROADMAP.md                 # Modernization plan and task tracker
@@ -291,7 +292,8 @@ See `infra/terraform.tfvars.example` for all available variables with descriptio
 | Variable | Description |
 |----------|-------------|
 | `ssh_key_name` | AWS key pair name (create in EC2 console first) |
-| `db_password` | PostgreSQL password for production |
+| `db_password` | PostgreSQL password for the RDS instance |
+| `db_instance_class` | RDS instance size (default: `db.t4g.micro`) |
 | `admin_email` / `admin_password` | Initial admin login credentials |
 | `session_secret` | Express session secret |
 | `domain_name` | Your domain (optional, leave empty for CloudFront URL) |
@@ -312,7 +314,7 @@ If you don't already have one:
 4. Select the **Basic Support (Free)** plan
 5. Sign in to the [AWS Management Console](https://console.aws.amazon.com)
 
-> **Cost note:** With free tier, expect ~$1.50/month. After the 12-month free tier expires, ~$8-20/month depending on traffic. You can tear everything down instantly with `make destroy`.
+> **Cost note:** Expect ~$18-25/month (mostly RDS at ~$13/mo + EC2 at ~$4/mo + small CloudFront/S3 costs). During the 12-month free tier period, EC2 and some RDS usage may be covered. You can tear everything down instantly with `make destroy`.
 
 ### Step 2: Create an IAM user for deployment
 
@@ -457,10 +459,11 @@ Do you want to perform these actions?
 ```
 
 Type `yes` and press Enter. This takes 2-5 minutes to create:
+- RDS PostgreSQL instance (managed database)
 - EC2 instance (backend server)
 - S3 bucket (frontend hosting)
 - CloudFront distribution (CDN)
-- Security group, Elastic IP
+- Security groups, Elastic IP
 - (If domain_name is set: Route 53 zone, ACM certificate)
 
 When it finishes, it prints your URLs:
@@ -634,20 +637,25 @@ make destroy    # Tear down ALL AWS resources (irreversible!)
 
 ### Database backups
 
-The EC2 instance automatically runs a daily `pg_dump` and stores compressed backups in `/home/ec2-user/backups/`. Backups older than 30 days are automatically deleted.
+AWS RDS automatically creates daily snapshots with **7-day retention**. Backups run during the configured window (03:00-04:00 UTC) with no downtime.
 
-To manually back up:
+**View backups in the AWS Console:**
+1. Go to [RDS Console](https://console.aws.amazon.com/rds/) > **Databases** > `cyh-mapping-db`
+2. Click the **Maintenance & backups** tab to see automated snapshots
 
+**Restore from a snapshot** (creates a new RDS instance):
 ```bash
-make ssh
-pg_dump -U cyh_app cyh_mapping | gzip > ~/backups/manual-$(date +%Y%m%d).sql.gz
+aws rds restore-db-instance-from-db-snapshot \
+  --db-instance-identifier cyh-mapping-db-restored \
+  --db-snapshot-identifier <snapshot-id>
 ```
 
-To restore from a backup:
-
+**Manual backup via pg_dump** (from EC2):
 ```bash
 make ssh
-gunzip -c ~/backups/20260225.sql.gz | psql -U cyh_app cyh_mapping
+PGPASSWORD='your-db-password' pg_dump -U cyh_app \
+  -h $(cd infra && terraform output -raw rds_endpoint | cut -d: -f1) \
+  cyh_mapping | gzip > ~/manual-backup-$(date +%Y%m%d).sql.gz
 ```
 
 ---
