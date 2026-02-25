@@ -23,14 +23,16 @@ router.get('/meta', async (req, res, next) => {
   try {
     const listings = await db.query(queryString)
     const resources = await getResources() ?? null
+    const sponsorResult = await db.query('SELECT name, logo_url, website_url FROM sponsors ORDER BY display_order, id')
+    const sponsors = sponsorResult?.rows ?? []
     if (listings?.rows) {
       const listingCities = getCityCount(listings.rows)
       const listingCategories = getCategoryCount(listings.rows)
       const listingKeywords = getKeywordCount(listings.rows)
-      return res.json({ listingCategoryIcons: categories, listingCategories, listingCities, listingKeywords, resources })
+      return res.json({ listingCategoryIcons: categories, listingCategories, listingCities, listingKeywords, resources, sponsors })
     }
     // If no metadata available
-    else return res.json({})
+    else return res.json({ sponsors })
   } catch (error) {
     console.log(error.message)
     next(error)

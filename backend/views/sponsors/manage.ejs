@@ -1,0 +1,132 @@
+<div class="ui segment" style="max-width: 900px; margin: 1.5em auto; padding: 1.5em;">
+  <header style="text-align: center; margin-bottom: 1em;">
+    <h1 class="ui header dark-teal-text">
+      <i class="ui icon handshake"></i>
+      <div class="content">
+        Sponsors &amp; Partners
+        <div class="sub header">Manage "Made Possible By" logos shown below the map</div>
+      </div>
+    </h1>
+  </header>
+
+  <% if (props.message) { %>
+  <div class="ui success icon message">
+    <i class="large check middle aligned icon"></i>
+    <div class="content"><div class="header"><%= props.message %></div></div>
+  </div>
+  <% } %>
+
+  <div class="ui segment">
+    <h3 class="ui header"><i class="plus icon"></i>Add Sponsor</h3>
+    <form class="ui form" method="POST" action="/sponsors/add" enctype="multipart/form-data">
+      <div class="three fields">
+        <div class="field required">
+          <label>Name</label>
+          <input type="text" name="name" placeholder="Organization name" required>
+        </div>
+        <div class="field">
+          <label>Website URL</label>
+          <input type="url" name="website_url" placeholder="https://...">
+        </div>
+        <div class="field required">
+          <label>Logo Image</label>
+          <input type="file" name="logo" accept="image/jpeg,image/png,image/webp,image/svg+xml" required>
+        </div>
+      </div>
+      <button type="submit" class="ui teal button"><i class="upload icon"></i>Add Sponsor</button>
+    </form>
+  </div>
+
+  <% if (props.sponsors.length > 0) { %>
+  <table class="ui celled striped compact table">
+    <thead>
+      <tr>
+        <th style="width:50px">Order</th>
+        <th style="width:80px">Logo</th>
+        <th>Name</th>
+        <th>Website</th>
+        <th style="width:160px">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% props.sponsors.forEach(function(sponsor, i) { %>
+      <tr>
+        <td style="text-align:center"><%= i + 1 %></td>
+        <td style="text-align:center">
+          <img src="<%= sponsor.logo_url %>" alt="<%= sponsor.name %>" style="max-height:40px; max-width:70px; object-fit:contain;">
+        </td>
+        <td><strong><%= sponsor.name %></strong></td>
+        <td>
+          <% if (sponsor.website_url) { %>
+            <a href="<%= sponsor.website_url %>" target="_blank" rel="noreferrer"><%= sponsor.website_url %></a>
+          <% } else { %>
+            —
+          <% } %>
+        </td>
+        <td style="white-space:nowrap">
+          <% if (i > 0) { %>
+          <form method="POST" action="/sponsors/reorder/<%= sponsor.id %>/up" style="display:inline">
+            <button type="submit" class="ui mini icon button" title="Move up"><i class="arrow up icon"></i></button>
+          </form>
+          <% } %>
+          <% if (i < props.sponsors.length - 1) { %>
+          <form method="POST" action="/sponsors/reorder/<%= sponsor.id %>/down" style="display:inline">
+            <button type="submit" class="ui mini icon button" title="Move down"><i class="arrow down icon"></i></button>
+          </form>
+          <% } %>
+          <button class="ui mini icon red button" onclick="confirmDelete(<%= sponsor.id %>, '<%= sponsor.name.replace(/'/g, "\\'") %>')" title="Delete">
+            <i class="trash icon"></i>
+          </button>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <h4 class="ui header" style="margin-top:1.5em">Preview</h4>
+  <div style="background:#f9f9f9; padding:1em; border-radius:6px; text-align:center;">
+    <div style="color:#888; font-size:.85em; text-transform:uppercase; letter-spacing:1px; margin-bottom:.75em;">Made Possible By</div>
+    <div style="display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:1.5em;">
+      <% props.sponsors.forEach(function(sponsor) { %>
+        <% if (sponsor.website_url) { %>
+          <a href="<%= sponsor.website_url %>" target="_blank" rel="noreferrer">
+            <img src="<%= sponsor.logo_url %>" alt="<%= sponsor.name %>" style="max-height:60px; width:auto; object-fit:contain;" title="<%= sponsor.name %>">
+          </a>
+        <% } else { %>
+          <img src="<%= sponsor.logo_url %>" alt="<%= sponsor.name %>" style="max-height:60px; width:auto; object-fit:contain;" title="<%= sponsor.name %>">
+        <% } %>
+      <% }) %>
+    </div>
+  </div>
+  <% } else { %>
+  <div class="ui placeholder segment">
+    <div class="ui icon header">
+      <i class="image outline icon"></i>
+      No sponsors yet. Add one above.
+    </div>
+  </div>
+  <% } %>
+</div>
+
+<div class="ui mini modal" id="delete-modal">
+  <div class="header">Delete Sponsor</div>
+  <div class="content">
+    <p>Are you sure you want to delete "<span id="delete-name"></span>"? This cannot be undone.</p>
+  </div>
+  <div class="actions">
+    <div class="ui cancel button">Cancel</div>
+    <form id="delete-form" method="POST" style="display:inline">
+      <button type="submit" class="ui red button">Delete</button>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+<script>
+  function confirmDelete(id, name) {
+    document.getElementById('delete-name').textContent = name;
+    document.getElementById('delete-form').action = '/sponsors/delete/' + id;
+    $('.ui.modal').modal('show');
+  }
+</script>

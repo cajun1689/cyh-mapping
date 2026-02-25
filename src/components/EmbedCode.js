@@ -11,6 +11,7 @@ const ageGroupOptions = [
 function EmbedCodePage() {
   const [height, setHeight] = useState('600')
   const [ageGroup, setAgeGroup] = useState('')
+  const [ageSelectable, setAgeSelectable] = useState(false)
   const [copied, setCopied] = useState(false)
 
   const baseUrl = window.location.origin
@@ -18,12 +19,14 @@ function EmbedCodePage() {
   const dataAttrs = [
     ageGroup ? `data-filter="${ageGroup}"` : '',
     height !== '600' ? `data-height="${height}"` : '',
+    ageSelectable ? 'data-age-select' : '',
   ].filter(Boolean).join(' ')
 
   const scriptSnippet = `<div id="wyrm-map"${dataAttrs ? ' ' + dataAttrs : ''}></div>\n<script src="${baseUrl}/embed.js"></script>`
 
   const params = new URLSearchParams()
   if (ageGroup) params.set('age_group', ageGroup)
+  if (ageSelectable) params.set('age_select', '1')
   const queryString = params.toString()
   const iframeSnippet = `<iframe src="${baseUrl}/#/embed${queryString ? '?' + queryString : ''}" width="100%" height="${height}px" style="border:none; border-radius:8px;" loading="lazy" title="${siteConfig.siteName}"></iframe>`
 
@@ -112,6 +115,13 @@ function EmbedCodePage() {
               placeholder="600"
             />
           </Form.Group>
+          <Form.Checkbox
+            toggle
+            checked={ageSelectable}
+            onChange={() => setAgeSelectable(!ageSelectable)}
+            label="Let visitors change the age group filter"
+            style={{ marginTop: '.5em' }}
+          />
         </Form>
       </Segment>
 
@@ -140,6 +150,7 @@ function EmbedCodePage() {
         <Message.Header>Options</Message.Header>
         <Message.List>
           <Message.Item><code>data-filter</code> &mdash; Set to <strong>Youth</strong>, <strong>Adult</strong>, or leave out for all.</Message.Item>
+          <Message.Item><code>data-age-select</code> &mdash; Add this attribute to let visitors change the age group themselves.</Message.Item>
           <Message.Item><code>data-height</code> &mdash; Height in pixels (default 600).</Message.Item>
           <Message.Item>The map updates automatically when new resources are added.</Message.Item>
         </Message.List>

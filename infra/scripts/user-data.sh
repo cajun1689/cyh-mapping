@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS staging_user (
   email VARCHAR(255) UNIQUE NOT NULL,
   password VARCHAR(255),
   refresh_token VARCHAR(255),
+  role VARCHAR(255) DEFAULT 'user',
   require_password_reset BOOLEAN DEFAULT false
 );
 
@@ -119,7 +120,11 @@ CREATE TABLE IF NOT EXISTS listings (
   latitude NUMERIC,
   longitude NUMERIC,
   image_url TEXT,
-  age_group TEXT DEFAULT 'Youth and Adult'
+  age_group TEXT DEFAULT 'Youth and Adult',
+  contact_name TEXT,
+  contact_email TEXT,
+  contact_phone TEXT,
+  managed_by INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS listing_backup (
@@ -163,6 +168,14 @@ CREATE TABLE IF NOT EXISTS meta (
   email VARCHAR(128) NOT NULL,
   file_name VARCHAR(255) NOT NULL,
   listing_count INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS sponsors (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  logo_url TEXT NOT NULL,
+  website_url TEXT,
+  display_order INT DEFAULT 0
 );
 EOSQL
 

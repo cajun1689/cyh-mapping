@@ -17,4 +17,4 @@ Promise
     getListings(API_URL),
     getMeta(API_URL)
   ])
-  .then(([ listings, metadata ]) => ReactDOM.render(<App listings={formatListings(listings)} metadata={metadata} />, window.app))
+  .then(([ listings, metadata ]) => ReactDOM.render(<App listings={formatListings(listings)} metadata={metadata} />, document.getElementById('app')))

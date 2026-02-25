@@ -1,6 +1,6 @@
-import React, { createRef, useEffect, useMemo, useState } from "react"
-import { Link, useSearchParams } from "react-router-dom"
-import { Segment, Card, Dropdown, Form, Input, Grid, Icon } from "semantic-ui-react"
+import React, { useEffect, useMemo, useState } from "react"
+import { useSearchParams } from "react-router-dom"
+import { Segment, Card, Dropdown, Form, Input, Icon } from "semantic-ui-react"
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from "react-leaflet"
 import MarkerClusterGroup from 'react-leaflet-markercluster'
 
@@ -8,7 +8,7 @@ import 'leaflet/dist/leaflet.css'
 import 'react-leaflet-markercluster/dist/styles.min.css'
 
 import { filterListings, getCityCount } from '../utils'
-import { greenLMarker, blueLMarker } from '../resources/mapIcons'
+import { blueLMarker } from '../resources/mapIcons'
 import siteConfig from '../siteConfig.json'
 import './Map.css'
 

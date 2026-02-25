@@ -79,7 +79,7 @@ export function filterListings(listings = {}, searchParams, search = "", hidden=
     return listings.filter(listing => savedGuids.includes(listing.guid.toString()))
   }
 
-  const { age, tag, ...filters } = Object.fromEntries(searchParams) 
+  const { age, tag, age_group, ...filters } = Object.fromEntries(searchParams) 
   const searchFunction = (listing) => {
     const isHidden = (hidden.includes(listing.guid)) 
     if (isHidden) return false

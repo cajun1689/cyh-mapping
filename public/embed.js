@@ -4,10 +4,14 @@
 
   var filter = container.getAttribute("data-filter") || "";
   var height = container.getAttribute("data-height") || "600";
+  var ageSelect = container.hasAttribute("data-age-select");
   var baseUrl = "https://casperyouthhubmap.org";
 
   var src = baseUrl + "/#/embed";
-  if (filter) src += "?age_group=" + encodeURIComponent(filter);
+  var params = [];
+  if (filter) params.push("age_group=" + encodeURIComponent(filter));
+  if (ageSelect) params.push("age_select=1");
+  if (params.length) src += "?" + params.join("&");
 
   var iframe = document.createElement("iframe");
   iframe.src = src;

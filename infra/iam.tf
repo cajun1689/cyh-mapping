@@ -26,7 +26,10 @@ resource "aws_iam_role_policy" "backend_s3" {
         "s3:PutObjectAcl",
         "s3:DeleteObject"
       ]
-      Resource = "${aws_s3_bucket.frontend.arn}/listing-images/*"
+      Resource = [
+        "${aws_s3_bucket.frontend.arn}/listing-images/*",
+        "${aws_s3_bucket.frontend.arn}/sponsor-logos/*"
+      ]
     }]
   })
 }

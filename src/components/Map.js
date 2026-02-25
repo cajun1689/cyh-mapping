@@ -1,4 +1,4 @@
-import React, { createRef, forwardRef, useEffect, useMemo, useState } from "react";
+import React, { createContext, createRef, forwardRef, useContext, useEffect, useMemo, useState } from "react";
 import { debounce } from "lodash"
 import { Link, useParams, useNavigate, useLocation, useSearchParams, NavLink } from "react-router-dom";
 import { Container, Segment, Card, Label, Grid, Ref, Form, Icon, Input, Dropdown, Button } from "semantic-ui-react";
@@ -15,7 +15,11 @@ import { greenLMarker, blueLMarker } from '../resources/mapIcons'
 import { getCityCount, getColor, titleCaseKey } from '../utils'
 import siteConfig from '../siteConfig.json'
 
-function MapPage({ listings, metadata }) {
+export const EmbedContext = createContext('')
+const useBasePath = () => useContext(EmbedContext)
+
+function MapPage({ listings, metadata, ageGroupFilter, setAgeGroupFilter }) {
+  const basePath = useBasePath()
   const [ searchParams, ] = useSearchParams()
   const [ search, setSearch ] = useState()
   const navigate = useNavigate()
@@ -24,7 +28,6 @@ function MapPage({ listings, metadata }) {
   const [hidden, setHidden] = useState([])
   const [showSaved, setShowSaved] = useState(false)
   const [hideFaithBased, setHideFaithBased] = useState(false)
-  const [ageGroupFilter, setAgeGroupFilter] = useState('Youth')
 
   const handleSave = (id, reset=false) => {
     if (reset) { setSaved([]); return; }
@@ -43,16 +46,16 @@ function MapPage({ listings, metadata }) {
     // If saved is already showing, clear the url bar
     if (searchParams.get('saved')) {
       setShowSaved(false)
-      navigate({ pathname: '/', search: ''})
+      navigate({ pathname: `${basePath}/`, search: ''})
     } else if (saved.length > 0) {
       // set state so that the UI components can update
       setShowSaved(true)
       const paramsString = saved.join("&saved=")
-      navigate({ pathname: '/', search: `?saved=${paramsString}` })
+      navigate({ pathname: `${basePath}/`, search: `?saved=${paramsString}` })
     } 
   }
 
-  const { listingCategoryIcons, listingCategories, listingCities: defaultListingCities, listingKeywords: defaultListingKeywords } = metadata
+  const { listingCategoryIcons, listingCategories } = metadata
 
   const debouncedSearch = debounce((value) => { setSearch(value) }, 300);
 
@@ -66,21 +69,64 @@ function MapPage({ listings, metadata }) {
   const cardRefs = listings.reduce((cardRefs, listing) => ({...cardRefs, [listing.guid]: createRef()}), {})
   const mapRef = createRef()
 
-  return (<>
+  const isEmbed = basePath !== ''
+
+  const sponsors = metadata.sponsors || []
+
+  const content = (<>
     <MapSearch listingCategories={listingCategories} listingCategoryIcons={listingCategoryIcons} debouncedSearch={debouncedSearch} listingCities={listingCities} keywordCount={keywordCount} costCount={costCount} saved={saved} handleSave={handleSave} handleHide={handleHide} hidden={hidden} showSaved={showSaved} handleShowSaved={handleShowSaved} hideFaithBased={hideFaithBased} setHideFaithBased={setHideFaithBased} ageGroupFilter={ageGroupFilter} setAgeGroupFilter={setAgeGroupFilter} />
     <Container as="main" id="map-page">
       <MapCards listings={filteredListings} cardRefs={cardRefs} mapRef={mapRef} saved={saved} handleSave={handleSave} handleHide={handleHide} />
       <MapMap listings={filteredListings} cardRefs={cardRefs} ref={mapRef} />
     </Container>
+    {sponsors.length > 0 && <SponsorBar sponsors={sponsors} />}
   </>)
+
+  if (isEmbed) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        <div style={{ flex: 1, overflow: 'auto' }}>{content}</div>
+        <div style={{ background: '#1B3A5C', padding: '.35em .75em', textAlign: 'center', flexShrink: 0 }}>
+          <a href={window.location.origin} target="_blank" rel="noreferrer" style={{ color: '#fff', fontSize: '.8em', textDecoration: 'none' }}>
+            <Icon name="map" size="small" /> {siteConfig.siteName}
+          </a>
+        </div>
+      </div>
+    )
+  }
+
+  return content
+}
+
+const sponsorBarStyle = { textAlign: 'center', padding: '1.5em 1em', marginTop: '1em' }
+const sponsorLabelStyle = { color: '#888', fontSize: '.85em', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '.75em' }
+const sponsorRowStyle = { display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: '1.5em' }
+const sponsorLogoStyle = { maxHeight: '60px', width: 'auto', objectFit: 'contain' }
+
+function SponsorBar({ sponsors }) {
+  return (
+    <Segment basic vertical style={sponsorBarStyle}>
+      <div style={sponsorLabelStyle}>Made Possible By</div>
+      <div style={sponsorRowStyle}>
+        {sponsors.map((s, i) =>
+          s.website_url
+            ? <a key={i} href={s.website_url} target="_blank" rel="noreferrer"><img src={s.logo_url} alt={s.name} title={s.name} style={sponsorLogoStyle} /></a>
+            : <img key={i} src={s.logo_url} alt={s.name} title={s.name} style={sponsorLogoStyle} />
+        )}
+      </div>
+    </Segment>
+  )
 }
 
 function MapSearch({ listingCategories, listingCategoryIcons, debouncedSearch, listingCities, saved, handleShowSaved, keywordCount, costCount, hideFaithBased, setHideFaithBased, ageGroupFilter, setAgeGroupFilter }) {
+  const basePath = useBasePath()
+  const isEmbed = basePath !== ''
   const navigate = useNavigate()
   const location = useLocation()
   const [ searchParams, setSearchParams ] = useSearchParams()
   const [ age, setAge ] = useState(searchParams.get('age') || ``)
   const [showFilters, setShowFilters] = useState(true)
+  const showAgeSelector = !isEmbed || searchParams.get('age_select') === '1'
 
   // When user clears the params, this clears the input value as well
   useEffect(() => {
@@ -100,7 +146,7 @@ function MapSearch({ listingCategories, listingCategoryIcons, debouncedSearch, l
         {Object.entries(subCategories).map(([subCategory, count]) =>
           <Dropdown.Item key={subCategory} as={NavLink} 
             text={`${subCategory} (${count})`} 
-            to={`/?${new URLSearchParams({...Object.fromEntries(searchParams), category: `${parentCategory}: ${subCategory}` }).toString()}`} />
+            to={`${basePath}/?${new URLSearchParams({...Object.fromEntries(searchParams), category: `${parentCategory}: ${subCategory}` }).toString()}`} />
         )}
         </Dropdown.Menu>
       </Dropdown>
@@ -166,7 +212,7 @@ return (<>
             icon='search'
             iconPosition="left"
             placeholder="Search..." 
-            onFocus={() => navigate(`/?${searchParams.toString()}`)} 
+            onFocus={() => navigate(`${basePath}/?${searchParams.toString()}`)} 
             onChange={(e, {value}) => debouncedSearch(value)} 
           />
           <Button 
@@ -185,7 +231,7 @@ return (<>
         <Input type="number" id='age-input' fluid
           placeholder='Age'
           value={age}
-          onFocus={() => navigate(`/?${searchParams.toString()}`)} 
+          onFocus={() => navigate(`${basePath}/?${searchParams.toString()}`)} 
           onChange={(e, {value}) => handleAge(value)} />
       </Grid.Column>
       {/* Location Dropdown  */}
@@ -199,7 +245,7 @@ return (<>
             selectOnBlur={false}  
             inverted fluid
             value={searchParams.get('city') || ``} 
-            onFocus={() => navigate(`/?${searchParams.toString()}`)} 
+            onFocus={() => navigate(`${basePath}/?${searchParams.toString()}`)} 
             onChange={(e, {value}) => handleDropdownClick(e.type, value, 'city')}
           />
           </Grid.Column>}
@@ -214,7 +260,7 @@ return (<>
             selectOnBlur={false}
             inverted fluid 
             value={searchParams.get('tag') || ``} 
-            onFocus={() => navigate(`/?${searchParams.toString()}`)} 
+            onFocus={() => navigate(`${basePath}/?${searchParams.toString()}`)} 
             onChange={(e, {value}) => handleDropdownClick(e.type, value, 'tag')}
           />
         </Grid.Column>}
@@ -229,11 +275,11 @@ return (<>
             selectOnBlur={false}
             inverted fluid 
             value={searchParams.get('cost') || ``} 
-            onFocus={() => navigate(`/?${searchParams.toString()}`)} 
+            onFocus={() => navigate(`${basePath}/?${searchParams.toString()}`)} 
             onChange={(e, {value}) => handleDropdownClick(e.type, value, 'cost')}
             />
           </Grid.Column>}
-          <Grid.Column width={2}>
+          {showAgeSelector && <Grid.Column width={2}>
             <Dropdown id='age-group-input'
               options={[
                 { key: 'all', text: 'All Ages', value: 'all' },
@@ -247,20 +293,20 @@ return (<>
               onChange={(e, {value}) => setAgeGroupFilter(value)}
               placeholder="Age Group"
             />
-          </Grid.Column>
-          <Grid.Column width={2} verticalAlign="middle" style={{display: 'flex', alignItems: 'center'}}>
+          </Grid.Column>}
+          <Grid.Column width={4} verticalAlign="middle" style={{display: 'flex', alignItems: 'center', padding: '.5em 1em'}}>
             <Form.Checkbox
               toggle
               checked={!hideFaithBased}
               onChange={() => setHideFaithBased(!hideFaithBased)}
-              label={<label style={{color: 'white', fontSize: '.85em', whiteSpace: 'nowrap'}}>Include faith-based</label>}
+              label={<label style={{color: 'white', fontSize: '.9em', fontWeight: 'bold', whiteSpace: 'nowrap', paddingLeft: '4.3em'}}>Include faith-based</label>}
             />
           </Grid.Column>
         </Grid>}
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '.25em'}}>
           <Label.Group columns={[...searchParams].length} className="doubling container">
             {!location.search.includes('saved') &&
-            [...searchParams].map(([key, value]) => value && <Label key={key} basic color="blue"><strong>{titleCaseKey(key.replace(/_/ig,` `))}:</strong> {value} <Icon name="delete" onClick={() => { searchParams.delete(key); setSearchParams(searchParams) }} /></Label> ) }
+            [...searchParams].filter(([key]) => key !== 'age_group').map(([key, value]) => value && <Label key={key} basic color="blue"><strong>{titleCaseKey(key.replace(/_/ig,` `))}:</strong> {value} <Icon name="delete" onClick={() => { searchParams.delete(key); setSearchParams(searchParams) }} /></Label> ) }
           </Label.Group>
         </div>
       </Form>
@@ -290,9 +336,11 @@ function MapCards({ listings, cardRefs, mapRef, saved, handleSave, handleHide })
   const CardsDisplay = ({numEntries}) => {
     if (markerId) {
       const cardsToShow = listings.slice(0, numEntries)
-      // Note: Leave this as a double equals to work around type coercion
+      // Note: Using == for type coercion between string and number
+      // eslint-disable-next-line eqeqeq
       if (cardsToShow.find(listing => listing.guid == markerId)) { return cardsToShow.map((listing, index) => <MapCard key={listing.guid} listing={listing} index={index} ref={cardRefs[listing.guid]} mapRef={mapRef} saved={saved?.includes(listing.guid)} handleSave={handleSave} handleHide={handleHide} />) } 
       else {
+        // eslint-disable-next-line eqeqeq
         const currentListing = listings.find(listing => listing.guid == markerId) 
         return cardsToShow.concat(currentListing).map((listing, index) => <MapCard key={listing.guid} listing={listing} index={index} ref={cardRefs[listing.guid]} mapRef={mapRef} saved={saved?.includes(listing.guid)} handleSave={handleSave} handleHide={handleHide} />) 
       } 
@@ -319,7 +367,7 @@ const CardCornerDropdown = ({ cardColor, guid, handleHide }) => {
         <Dropdown.Item text='Copy link'icon='share alternate' id={`share=${guid}`}
         onClick={() => navigator.clipboard.writeText(`${window.location.origin}/#/${guid}`)}
         />
-        <Dropdown.Item as="a" href='/suggest' target='_blank' text='Comment' icon={{ name: 'chat', color: cardColor}} />
+        <Dropdown.Item as="a" href='/#/suggest' target='_blank' text='Comment' icon={{ name: 'chat', color: cardColor}} />
         <Dropdown.Item onClick={() => handleHide(guid)}
           text='Hide listing' icon={{ name: 'eye slash outline', color: cardColor}} />
       </Dropdown.Menu>
@@ -336,8 +384,9 @@ const blueCheckStyle = { color: 'grey', fontStyle: 'italic' }
 const socialLinkStyle = { display: 'flex' }
 
 const MapCard = forwardRef(({ mapRef, listing, saved, handleSave, handleHide, index}, ref) => {
-  const { guid, category, parent_organization, full_name, full_address, description, text_message_instructions, phone_1, phone_label_1, phone_1_ext, phone_2, phone_label_2, crisis_line_number, crisis_line_label, website, blog_link, twitter_link, facebook_link, youtube_link, instagram_link, program_email, languages_offered, services_provided, keywords, min_age, max_age, eligibility_requirements, covid_message, financial_information, intake_instructions, agency_verified, date_agency_verified, cost_keywords, tiktok_link, image_url } = listing
+  const { guid, category, parent_organization, full_name, full_address, description, text_message_instructions, phone_1, phone_label_1, phone_1_ext, phone_2, phone_label_2, crisis_line_number, crisis_line_label, website, twitter_link, facebook_link, youtube_link, instagram_link, program_email, languages_offered, keywords, min_age, max_age, eligibility_requirements, covid_message, financial_information, intake_instructions, agency_verified, date_agency_verified, cost_keywords, image_url } = listing
 
+  const basePath = useBasePath()
   const navigate = useNavigate()
   const [ searchParams, setSearchParams ] = useSearchParams()
   const cardColor = getColor(index)
@@ -358,7 +407,7 @@ const MapCard = forwardRef(({ mapRef, listing, saved, handleSave, handleHide, in
   )
 
   const KeywordDisplay = ({arr}) => arr.map((keyword, i) => (
-    <NavLink to={`/?${new URLSearchParams({...Object.fromEntries(searchParams), tag: `${keyword}` }).toString()}`} key={keyword} onClick={() => updateSearchParams('tag', keyword)} style={tagStyle}> # {keyword}</NavLink> )
+    <NavLink to={`${basePath}/?${new URLSearchParams({...Object.fromEntries(searchParams), tag: `${keyword}` }).toString()}`} key={keyword} onClick={() => updateSearchParams('tag', keyword)} style={tagStyle}> # {keyword}</NavLink> )
   ) 
 
   return (
@@ -367,15 +416,15 @@ const MapCard = forwardRef(({ mapRef, listing, saved, handleSave, handleHide, in
         <Card.Content>
         {/* Extra divs are necessary for flex box spacing  */}
           <div style={labelDivStyle}>
-            <Label as={Link} to={parent_organization ? `/?parent_organization=${encodeURIComponent(parent_organization)}` : `/?full_name=${encodeURIComponent(full_name)}`} ribbon color={cardColor} style={{marginBottom: `1em`}}>{parent_organization || full_name}</Label>
+            <Label as={Link} to={parent_organization ? `${basePath}/?parent_organization=${encodeURIComponent(parent_organization)}` : `${basePath}/?full_name=${encodeURIComponent(full_name)}`} ribbon color={cardColor} style={{marginBottom: `1em`}}>{parent_organization || full_name}</Label>
             <div> 
               <Icon name={saved ? 'star' : 'star outline'} color={cardColor} style={starStyle} onClick={() => handleSave(guid)} />
               {CardCornerDropdown({cardColor, guid, full_address, mapRef, handleHide})}
             </div>
           </div>
           {/* Header  */}
-          <Card.Header><Link to={`/${guid}`}>{full_name}</Link></Card.Header>
-          { full_address && <Card.Meta style={{ cursor: 'pointer' }} onClick={() => { navigate(`/${guid}`, { state: { scrollToMap: true } }) }} title="View on map"><Icon name="map marker alternate" /> {full_address}</Card.Meta> }
+          <Card.Header><Link to={`${basePath}/${guid}`}>{full_name}</Link></Card.Header>
+          { full_address && <Card.Meta style={{ cursor: 'pointer' }} onClick={() => { navigate(`${basePath}/${guid}`, { state: { scrollToMap: true } }) }} title="View on map"><Icon name="map marker alternate" /> {full_address}</Card.Meta> }
           {/* Address & Contact Info  */}
           <Segment secondary>
             { full_address && <Card.Description><Icon name="map marker alternate" /><a target="_blank" rel="noreferrer" href={`https://www.google.com/maps/dir//${encodeURIComponent(full_address)}`}>Get Directions <sup><Icon size="small" name="external" /></sup></a></Card.Description> }
@@ -416,14 +465,14 @@ const MapCard = forwardRef(({ mapRef, listing, saved, handleSave, handleHide, in
             : (min_age && !max_age) ? <Card.Description><Card.Header as="strong">Minimum age served:</Card.Header> {min_age}</Card.Description>
             : (!min_age && max_age) ? <Card.Description><Card.Header as="strong">Maximum age served:</Card.Header> {max_age}</Card.Description>
             : null }
-          <Card.Description><Card.Header as="strong">{category.split(':')[0]}:</Card.Header>    <NavLink to={`/?category=${encodeURIComponent(category)}`}> {category.split(':')[1]}</NavLink>
+          <Card.Description><Card.Header as="strong">{category.split(':')[0]}:</Card.Header>    <NavLink to={`${basePath}/?category=${encodeURIComponent(category)}`}> {category.split(':')[1]}</NavLink>
             </Card.Description>
         </Card.Content>
         {/* Show keywords and/or cost_keywords if they exist. If not, show category so cards have consistent design */}
         <Card.Content extra>
           { (keywords && cost_keywords) ? <KeywordDisplay arr={[...keywords, ...cost_keywords]} /> 
           : keywords ? <KeywordDisplay arr={keywords} /> : cost_keywords ? <KeywordDisplay arr={cost_keywords} />
-          : <NavLink to={`/?category=${encodeURIComponent(category)}`}># {category.split(':')[1]}</NavLink>}
+          : <NavLink to={`${basePath}/?category=${encodeURIComponent(category)}`}># {category.split(':')[1]}</NavLink>}
         </Card.Content>
       </Card>
     </Ref>
@@ -447,6 +496,7 @@ const MapMap = forwardRef(({ listings, cardRefs }, ref) => {
 })
 
 function MapMarkers ({listings, cardRefs}) {
+  const basePath = useBasePath()
   const { markerId } = useParams()
   const map = useMap()
   const mappedListings = useMemo(() => listings.filter(({ coords: [ lat, lon ] }) => lat && lon), [listings])
@@ -463,14 +513,14 @@ function MapMarkers ({listings, cardRefs}) {
           <Popup>
             <Card style={{ border: `none`, boxShadow: `none` }}>
               <Card.Content>
-                <Card.Header><Link to={`/${listing.guid}`}>{listing.full_name}</Link></Card.Header>
+                <Card.Header><Link to={`${basePath}/${listing.guid}`}>{listing.full_name}</Link></Card.Header>
                 <Card.Meta>{listing.full_address}</Card.Meta>
                 <Segment basic vertical>
                   <Card.Content>
                     <div className="description">{listing.description}</div>
                   </Card.Content>
                 </Segment>
-                <Link to={`/${listing.guid}`} onClick={() => { cardRefs[listing.guid].current?.scrollIntoView({behavior: "smooth"}) }} className="listing-show-details">Show Details</Link>
+                <Link to={`${basePath}/${listing.guid}`} onClick={() => { cardRefs[listing.guid].current?.scrollIntoView({behavior: "smooth"}) }} className="listing-show-details">Show Details</Link>
                 </Card.Content>
             </Card>
           </Popup>
