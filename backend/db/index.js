@@ -10,7 +10,7 @@ require('dotenv').config()
 // PostgreSQL's treatment of Arrays is the literal worst.
 types.setTypeParser(types.builtins.TEXT, value => value.match(/^{.*}$/) ? unescape(value).replace(/[{"}]/g,'').split(',').filter(Boolean) : value)
 
-// Heroku free postgres allows up to 20 concurrent connections
+// AWS RDS PostgreSQL — pool max 20 connections
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: 20,
@@ -27,7 +27,7 @@ pool.on('error', (error, client) => {
 // Sanity check for devs that will alert you if you're missing the database connection string
 (() => {
   pool.query(`SELECT * FROM staging_meta`, (err, res) => {
-    if (res) console.log('Connected to Heroku Postgres')
+    if (res) console.log('Connected to AWS RDS PostgreSQL')
     if (err) { console.error('Error connnecting to the database!');
       if (process.env.DATABASE_URL === undefined || process.env.DATABASE_URL === null || process.env.DATABASE_URL === '') {
         console.error('Please check that the DATABASE_URL environment variable is correct')
