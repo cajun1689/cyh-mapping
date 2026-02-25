@@ -102,6 +102,43 @@ resource "aws_cloudfront_distribution" "frontend" {
     max_ttl     = 0
   }
 
+  # ---------- Admin panel routes → EC2 backend ----------
+  dynamic "ordered_cache_behavior" {
+    for_each = toset([
+      "/listings/*",
+      "/auth/*",
+      "/resource/*",
+      "/home",
+      "/login",
+      "/logout",
+      "/guide",
+      "/settings",
+      "/change-password*",
+      "/add-user*",
+      "/styles.css",
+      "/img/*",
+    ])
+    content {
+      path_pattern           = ordered_cache_behavior.value
+      allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+      cached_methods         = ["GET", "HEAD"]
+      target_origin_id       = local.backend_origin_id
+      viewer_protocol_policy = "redirect-to-https"
+
+      forwarded_values {
+        query_string = true
+        headers      = ["Host", "Origin", "Authorization"]
+        cookies {
+          forward = "all"
+        }
+      }
+
+      min_ttl     = 0
+      default_ttl = 0
+      max_ttl     = 0
+    }
+  }
+
   # SPA routing: return index.html for 403/404
   custom_error_response {
     error_code            = 403

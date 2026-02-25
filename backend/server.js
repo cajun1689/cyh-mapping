@@ -12,6 +12,8 @@ const { HELMET, URLENCODED, PORT } = require('./utils/constants')
 const { handleUndefinedRoutes } = require('./middleware/routeProtection')
 const app = express()
 
+app.set('trust proxy', 1)
+
 app.use(expressLayouts)
 app.set('view engine', 'ejs')
 app.set('layout', './layouts')
