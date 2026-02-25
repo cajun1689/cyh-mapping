@@ -556,14 +556,57 @@ make deploy       # Re-deploys the code
 
 ### Setting up a custom domain (optional)
 
-If you set `domain_name` in your terraform.tfvars:
+If you want to use a custom domain (e.g., `map.casperyouthhub.org`):
 
-1. Run `make status` to see the `route53_nameservers` output
-2. Go to your domain registrar (GoDaddy, Namecheap, etc.)
-3. Update the domain's nameservers to the 4 values shown
-4. Wait for DNS propagation (can take up to 48 hours, usually 15-30 minutes)
-5. The ACM certificate will auto-validate once DNS propagates
-6. Your site will then be accessible at `https://yourdomain.com`
+1. Set `domain_name` in your `terraform.tfvars`:
+   ```hcl
+   domain_name = "map.casperyouthhub.org"
+   ```
+2. Run `make infra` — Terraform will create a Route 53 hosted zone and an ACM certificate
+3. Run `make status` to see the `route53_nameservers` output (4 nameservers)
+4. Go to your domain registrar (GoDaddy, Namecheap, Cloudflare, etc.)
+
+**If using a subdomain** (like `map.casperyouthhub.org`):
+- Add 4 **NS records** for the subdomain, pointing to the Route 53 nameservers:
+
+  | Type | Name | Value |
+  |------|------|-------|
+  | NS | `map` | `ns-XXXX.awsdns-XX.org` |
+  | NS | `map` | `ns-XXXX.awsdns-XX.co.uk` |
+  | NS | `map` | `ns-XX.awsdns-XX.com` |
+  | NS | `map` | `ns-XXX.awsdns-XX.net` |
+
+**If using a root domain** (like `casperyouthhub.org`):
+- Update the domain's nameservers at your registrar to all 4 Route 53 nameservers
+
+5. Wait for DNS propagation (usually 15-30 minutes, up to 48 hours)
+6. The ACM certificate will auto-validate once DNS resolves
+7. Your site will then be accessible at `https://yourdomain.com`
+
+### Setting up GitHub secrets for CI/CD (optional)
+
+If you want GitHub Actions (or another collaborator) to deploy without sharing your local AWS credentials, store them as GitHub repository secrets.
+
+1. Go to your GitHub repository (e.g., `https://github.com/cajun1689/cyh-mapping`)
+2. Click **Settings** > **Secrets and variables** > **Actions**
+3. Click **New repository secret** and add each of the following:
+
+| Secret name | Value | Where to find it |
+|-------------|-------|-------------------|
+| `AWS_ACCESS_KEY_ID` | Your IAM access key ID | From [Step 2](#step-2-create-an-iam-user-for-deployment) |
+| `AWS_SECRET_ACCESS_KEY` | Your IAM secret access key | From [Step 2](#step-2-create-an-iam-user-for-deployment) |
+| `AWS_REGION` | `us-west-2` (or your chosen region) | Same region used in terraform.tfvars |
+| `SSH_PRIVATE_KEY` | Contents of your `~/.ssh/cyh-key.pem` file | From [Step 3](#step-3-create-an-ssh-key-pair) |
+
+To copy your SSH key into the clipboard (macOS):
+
+```bash
+pbcopy < ~/.ssh/cyh-key.pem
+```
+
+> **Security note:** Repository secrets are encrypted and only exposed to GitHub Actions workflows. They are not visible to collaborators, forks, or in logs. However, anyone with admin access to the repository can overwrite them. Consider creating a dedicated IAM user with limited permissions for CI/CD instead of reusing your admin credentials.
+
+These secrets can then be referenced in a GitHub Actions workflow (`.github/workflows/deploy.yml`) to automate deployments on push to `main`.
 
 ---
 
