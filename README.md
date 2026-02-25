@@ -11,6 +11,9 @@ Built on the [Oregon Youth Resource Map](https://github.com/mapping-action-colle
 - [Overview](#overview)
 - [Architecture](#architecture)
 - [Embedding the Map](#embedding-the-map)
+- [Sponsor Logos](#sponsor-logos)
+- [Organization User Accounts](#organization-user-accounts)
+- [Adding New Organizations (Google Form)](#adding-new-organizations-google-form)
 - [Prerequisites](#prerequisites)
 - [Local Development](#local-development)
 - [Project Structure](#project-structure)
@@ -141,6 +144,85 @@ To pre-filter, add `?age_group=Youth` or `?age_group=Adult` to the URL:
 ### Embed Code Generator
 
 Visit [casperyouthhubmap.org/#/embed-code](https://casperyouthhubmap.org/#/embed-code) for an interactive tool that lets you customize settings and copy the embed code with a live preview.
+
+---
+
+## Sponsor Logos
+
+A "Made Possible By" section appears below the map displaying sponsor/partner logos. Sponsors are managed entirely from the admin panel.
+
+### Managing sponsors
+
+1. Log into the admin panel and click **Sponsors** in the nav bar
+2. **Add a sponsor:** Fill in the name, optional website URL, and upload a logo image (JPEG, PNG, WebP, or SVG, max 5 MB)
+3. **Reorder:** Use the up/down arrow buttons to change display order
+4. **Delete:** Click the trash icon and confirm
+
+Logos are stored in S3 under the `sponsor-logos/` prefix and served through CloudFront. The sponsor data is included in the `/api/meta` response, so the frontend picks it up automatically with no extra API call.
+
+The section renders on both the main site and embedded maps, and is hidden automatically when no sponsors exist.
+
+---
+
+## Organization User Accounts
+
+The system supports three user roles:
+
+| Role | Access |
+|------|--------|
+| **Owner** | Full admin access, can create users and manage all listings |
+| **Admin** (`user`) | Full admin access to all listings, uploads, and sponsors |
+| **Organization** (`org`) | Can only view and edit listings assigned to them |
+
+### Creating an org user
+
+1. Log in as the owner and go to **Settings** > **Create New User**
+2. Enter the org user's email and a temporary password
+3. Select **Organization** from the Role dropdown
+4. Select one or more listings from the assignment dropdown to link to this user
+5. Click Submit -- share the credentials with the org contact
+
+### What org users see
+
+When an org user logs in, they are redirected to `/org/dashboard` which shows only their assigned listings. They see a simplified navbar with just their dashboard, change password, and logout. They can edit all standard listing fields (name, description, contact info, address, photos, etc.) but cannot:
+
+- Access the full admin listing management
+- Add or delete listings
+- Upload CSV files
+- Manage sponsors or other admin features
+
+### Point person fields
+
+Each listing has three internal-only fields for tracking the primary contact:
+
+- **Contact Name** -- the person responsible for this listing
+- **Contact Email** -- their email
+- **Contact Phone** -- their phone number
+
+These appear on the Add and Edit listing forms in the admin panel under "Point Person (Internal Only)" and are **not** displayed on the public map.
+
+---
+
+## Adding New Organizations (Google Form)
+
+A reference document for building a Google Form intake is available at [`docs/google-form-questions.md`](docs/google-form-questions.md). It contains 35 questions organized into 8 sections:
+
+1. **Point Person / Primary Contact** -- internal contact info (name, title, email, phone)
+2. **Organization Information** -- resource name, category, description, service type, age group, faith-based status
+3. **Location** -- address, city, building description
+4. **Public Contact Information** -- phone, email, website, crisis line
+5. **Services & Eligibility** -- age range, eligibility, cost, languages, intake instructions
+6. **Social Media** -- Facebook, Instagram, TikTok, YouTube, X, blog
+7. **Accessibility** -- ADA notes, transit instructions
+8. **Additional Information** -- anything else, opt-in for admin access
+
+### Workflow
+
+1. Organization fills out the Google Form
+2. Responses go to a linked Google Sheet
+3. Admin reviews the submission
+4. Admin creates the listing in the admin panel using the form data
+5. If the org requested admin access, admin creates an org user account and assigns the listing to them
 
 ---
 
@@ -849,6 +931,11 @@ Categories are defined in `backend/apiData/categories.json`. Each listing's `cat
 | Change listing categories or icons | `backend/apiData/categories.json` |
 | Change CSV validation rules | `backend/db/listings.schema.json` |
 | Change the admin panel UI | `backend/views/` |
+| Change sponsor management | `backend/routes/sponsors.js`, `backend/views/sponsors/` |
+| Change org user dashboard/edit | `backend/routes/org.js`, `backend/views/org/` |
+| Change user roles or route protection | `backend/middleware/routeProtection.js` |
+| Change user creation logic | `backend/utils/authUtils.js` |
+| Update the Google Form reference | `docs/google-form-questions.md` |
 | Change AWS infrastructure | `infra/*.tf` |
 
 ---
