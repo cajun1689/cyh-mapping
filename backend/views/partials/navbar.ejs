@@ -7,13 +7,15 @@
     <strong>CYH Admin Home</strong>
   </a>
   <div class="right menu">
+    <a href="/listings/add"
+      class="item right custom-right <%= props?.activeNavTab === 'add-listing' ? 'active' : '' %>">
+      <i class="ui icon plus"></i>Add Listing
+    </a>
     <a href="/listings/upload"
-      id="listings"
       class="item right custom-right <%= props?.activeNavTab === 'listings' ? 'active' : '' %>">
       <i class="ui icon map outline"></i>Update Map
     </a>
     <a href="/resource/upload"
-      id="listings"
       class="item right custom-right <%= props?.activeNavTab === 'resources' ? 'active' : '' %>">
       <i class="ui icon list"></i>Update Resources
     </a>

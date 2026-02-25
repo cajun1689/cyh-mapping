@@ -165,6 +165,143 @@ router.post('/update', async (req, res) => {
   }  
 })
 
+/* ----------- ADD SINGLE LISTING ----------- */
+
+const categories = require('../apiData/categories.json')
+
+const getExistingCategories = async () => {
+  try {
+    const result = await pool.query('SELECT DISTINCT category FROM listings ORDER BY category')
+    return result.rows.map(r => r.category)
+  } catch {
+    return []
+  }
+}
+
+const geocodeAddress = async (address) => {
+  try {
+    const query = encodeURIComponent(address)
+    const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`
+    const res = await axios.get(url, { headers: { 'User-Agent': 'CYH-Mapping/1.0' }, timeout: 10000 })
+    if (res.data && res.data.length > 0) {
+      return { latitude: res.data[0].lat, longitude: res.data[0].lon }
+    }
+    // Retry without suite numbers
+    const cleaned = address.replace(/\s+Suite\s+\S+/i, '').replace(/\s+Ste\s+\S+/i, '')
+    if (cleaned !== address) {
+      const q2 = encodeURIComponent(cleaned)
+      const res2 = await axios.get(`https://nominatim.openstreetmap.org/search?q=${q2}&format=json&limit=1`, { headers: { 'User-Agent': 'CYH-Mapping/1.0' }, timeout: 10000 })
+      if (res2.data && res2.data.length > 0) {
+        return { latitude: res2.data[0].lat, longitude: res2.data[0].lon }
+      }
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
+router.get('/add', async (req, res) => {
+  const existingCategories = await getExistingCategories()
+  res.render('listings/add', {
+    props: { activeNavTab: 'add-listing', categories: existingCategories, success: false, error: null }
+  })
+})
+
+router.post('/add', async (req, res) => {
+  try {
+    const body = req.body
+    const existingCategories = await getExistingCategories()
+
+    const full_name = (body.full_name || '').trim()
+    let category = (body.category || '').trim()
+    const description = (body.description || '').trim()
+
+    if (category === '__custom') {
+      category = (body.custom_category || '').trim()
+    }
+
+    if (!full_name || !category || !description) {
+      return res.render('listings/add', {
+        props: { activeNavTab: 'add-listing', categories: existingCategories, success: false, error: 'Name, category, and description are required.' }
+      })
+    }
+
+    // Get next guid
+    const maxGuid = await pool.query('SELECT COALESCE(MAX(guid), 0) + 1 AS next_guid FROM listings')
+    const guid = maxGuid.rows[0].next_guid
+
+    // Build the listing object
+    const listing = { guid }
+    listing.full_name = full_name
+    listing.category = category
+    listing.description = description
+    listing.parent_organization = (body.parent_organization || '').trim() || null
+    listing.phone_1 = (body.phone_1 || '').trim() || null
+    listing.crisis_line_number = (body.crisis_line_number || '').trim() || null
+    listing.website = (body.website || '').trim() || null
+    listing.program_email = (body.program_email || '').trim() || null
+    listing.full_address = (body.full_address || '').trim() || null
+    listing.city = (body.city || '').trim() || null
+    listing.min_age = body.min_age ? parseInt(body.min_age, 10) : null
+    listing.max_age = body.max_age ? parseInt(body.max_age, 10) : null
+    listing.eligibility_requirements = (body.eligibility_requirements || '').trim() || null
+    listing.financial_information = (body.financial_information || '').trim() || null
+    listing.intake_instructions = (body.intake_instructions || '').trim() || null
+
+    // Keywords from service type
+    const serviceType = (body.service_type || 'In-Person').trim()
+    listing.keywords = serviceType.includes(',') ? `{${serviceType}}` : `{${serviceType}}`
+
+    // Languages
+    const langs = (body.languages_offered || '').trim()
+    listing.languages_offered = langs ? `{${langs}}` : null
+
+    // Auto-geocode the address
+    if (listing.full_address) {
+      const coords = await geocodeAddress(listing.full_address)
+      if (coords) {
+        listing.latitude = coords.latitude
+        listing.longitude = coords.longitude
+      }
+    }
+
+    // Get existing column names from the listings table
+    const colInfo = await pool.query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'listings' ORDER BY ordinal_position`)
+    const tableColumns = colInfo.rows.map(r => r.column_name)
+
+    // Only insert columns that exist in the table
+    const insertColumns = []
+    const insertValues = []
+    const insertParams = []
+    let paramIdx = 1
+
+    for (const col of tableColumns) {
+      if (listing[col] !== undefined) {
+        insertColumns.push(col)
+        insertValues.push(listing[col])
+        insertParams.push(`$${paramIdx}`)
+        paramIdx++
+      }
+    }
+
+    const insertQuery = `INSERT INTO listings (${insertColumns.join(', ')}) VALUES (${insertParams.join(', ')})`
+    await pool.query(insertQuery, insertValues)
+
+    console.info(`Listing added: [${guid}] ${full_name} (${category})`)
+
+    return res.render('listings/add', {
+      props: { activeNavTab: 'add-listing', categories: await getExistingCategories(), success: true, addedName: full_name, error: null }
+    })
+  } catch (error) {
+    console.error('Error adding listing:', error.message)
+    const existingCategories = await getExistingCategories()
+    return res.render('listings/add', {
+      props: { activeNavTab: 'add-listing', categories: existingCategories, success: false, error: `Failed to add listing: ${error.message}` }
+    })
+  }
+})
+
 // Catch all for /listings
 router.get('/*', (req, res) => {
   if (req.isAuthenticated()) return res.redirect('/listings/upload')
