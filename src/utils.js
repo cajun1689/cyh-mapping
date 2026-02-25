@@ -18,11 +18,14 @@ export const getCityCount = listings => {
   return cityCount
 }
 
+const HIDDEN_KEYWORDS = ['Faith-Based']
+
 export const getKeywordCount = listings => {
   let keywordCount = {}
   listings.forEach((listing) => {
     if (listing.keywords) {
       listing.keywords.forEach((keyword) => {
+        if (HIDDEN_KEYWORDS.includes(keyword)) return
         if (!keywordCount[`${keyword}`]) keywordCount[`${keyword}`] = 1
         else keywordCount[`${keyword}`] ++
       })
@@ -69,7 +72,7 @@ export function formatListings(listings) {
 }
 
 /* Primary search function used by Map */
-export function filterListings(listings = {}, searchParams, search = "", hidden=[]) {
+export function filterListings(listings = {}, searchParams, search = "", hidden=[], { hideFaithBased = false } = {}) {
   // if URL includes the "saved" param, display saved listings ONLY
   if (searchParams.get('saved')) {
     let savedGuids = searchParams.getAll('saved')
@@ -80,6 +83,8 @@ export function filterListings(listings = {}, searchParams, search = "", hidden=
   const searchFunction = (listing) => {
     const isHidden = (hidden.includes(listing.guid)) 
     if (isHidden) return false
+
+    if (hideFaithBased && listing.keywords && listing.keywords.includes('Faith-Based')) return false
 
     const listingEntries = Object.entries(listing).join(" ").toLowerCase()
 

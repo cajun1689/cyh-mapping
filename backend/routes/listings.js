@@ -249,9 +249,10 @@ router.post('/add', async (req, res) => {
     listing.financial_information = (body.financial_information || '').trim() || null
     listing.intake_instructions = (body.intake_instructions || '').trim() || null
 
-    // Keywords from service type
-    const serviceType = (body.service_type || 'In-Person').trim()
-    listing.keywords = serviceType.includes(',') ? `{${serviceType}}` : `{${serviceType}}`
+    // Keywords from service type + faith-based flag
+    const kwParts = (body.service_type || 'In-Person').trim().split(',')
+    if (body.faith_based) kwParts.push('Faith-Based')
+    listing.keywords = `{${kwParts.join(',')}}`
 
     // Languages
     const langs = (body.languages_offered || '').trim()
@@ -306,7 +307,7 @@ router.post('/add', async (req, res) => {
 
 router.get('/manage', async (req, res) => {
   try {
-    const result = await pool.query('SELECT guid, full_name, parent_organization, category, city, latitude, longitude FROM listings ORDER BY category, full_name')
+    const result = await pool.query('SELECT guid, full_name, parent_organization, category, city, latitude, longitude, keywords FROM listings ORDER BY category, full_name')
     res.render('listings/manage', {
       props: { activeNavTab: 'manage', listings: result.rows, message: req.flash('message')[0] || null }
     })
@@ -366,8 +367,9 @@ router.post('/edit/:guid', async (req, res) => {
       intake_instructions: (body.intake_instructions || '').trim() || null,
     }
 
-    const serviceType = (body.service_type || 'In-Person').trim()
-    updates.keywords = `{${serviceType}}`
+    const kwParts = (body.service_type || 'In-Person').trim().split(',')
+    if (body.faith_based) kwParts.push('Faith-Based')
+    updates.keywords = `{${kwParts.join(',')}}`
 
     const langs = (body.languages_offered || '').trim()
     updates.languages_offered = langs ? `{${langs}}` : null

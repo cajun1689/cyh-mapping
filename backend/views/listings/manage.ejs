@@ -31,6 +31,7 @@
         <th>Category</th>
         <th>City</th>
         <th style="width:60px">Map</th>
+        <th style="width:40px" title="Faith-Based"><i class="church icon"></i></th>
         <th style="width:120px">Actions</th>
       </tr>
     </thead>
@@ -50,6 +51,12 @@
             <i class="green map marker alternate icon" title="Has coordinates"></i>
           <% } else { %>
             <i class="grey minus icon" title="No coordinates"></i>
+          <% } %>
+        </td>
+        <td style="text-align:center">
+          <% var kwStr = Array.isArray(listing.keywords) ? listing.keywords.join(',') : (listing.keywords || ''); %>
+          <% if (kwStr.includes('Faith-Based')) { %>
+            <i class="church icon" title="Faith-Based" style="color:#6435c9"></i>
           <% } %>
         </td>
         <td>

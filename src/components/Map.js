@@ -22,6 +22,7 @@ function MapPage({ listings, metadata }) {
   const [saved, setSaved] = useSessionStorage('saved', [])
   const [hidden, setHidden] = useState([])
   const [showSaved, setShowSaved] = useState(false)
+  const [hideFaithBased, setHideFaithBased] = useState(false)
 
   const handleSave = (id, reset=false) => {
     if (reset) { setSaved([]); return; }
@@ -53,7 +54,7 @@ function MapPage({ listings, metadata }) {
 
   const debouncedSearch = debounce((value) => { setSearch(value) }, 300);
 
-  let filteredListings = useMemo(() => filterListings(listings, searchParams, search, hidden), [listings, searchParams, search, hidden])
+  let filteredListings = useMemo(() => filterListings(listings, searchParams, search, hidden, { hideFaithBased }), [listings, searchParams, search, hidden, hideFaithBased])
   
   // If you don't want to recalculate the two lines below on every search, just use metadata.listingCities and metadata.listingKeywords, respectively. That would be faster, but also a less rich user experience
   let listingCities = useMemo(() => getCityCount(filteredListings ?? {}), [filteredListings])
@@ -64,7 +65,7 @@ function MapPage({ listings, metadata }) {
   const mapRef = createRef()
 
   return (<>
-    <MapSearch listingCategories={listingCategories} listingCategoryIcons={listingCategoryIcons} debouncedSearch={debouncedSearch} listingCities={listingCities} keywordCount={keywordCount} costCount={costCount} saved={saved} handleSave={handleSave} handleHide={handleHide} hidden={hidden} showSaved={showSaved} handleShowSaved={handleShowSaved} />
+    <MapSearch listingCategories={listingCategories} listingCategoryIcons={listingCategoryIcons} debouncedSearch={debouncedSearch} listingCities={listingCities} keywordCount={keywordCount} costCount={costCount} saved={saved} handleSave={handleSave} handleHide={handleHide} hidden={hidden} showSaved={showSaved} handleShowSaved={handleShowSaved} hideFaithBased={hideFaithBased} setHideFaithBased={setHideFaithBased} />
     <Container as="main" id="map-page">
       <MapCards listings={filteredListings} cardRefs={cardRefs} mapRef={mapRef} saved={saved} handleSave={handleSave} handleHide={handleHide} />
       <MapMap listings={filteredListings} cardRefs={cardRefs} ref={mapRef} />
@@ -72,7 +73,7 @@ function MapPage({ listings, metadata }) {
   </>)
 }
 
-function MapSearch({ listingCategories, listingCategoryIcons, debouncedSearch, listingCities, saved, handleShowSaved, keywordCount, costCount }) {
+function MapSearch({ listingCategories, listingCategoryIcons, debouncedSearch, listingCities, saved, handleShowSaved, keywordCount, costCount, hideFaithBased, setHideFaithBased }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [ searchParams, setSearchParams ] = useSearchParams()
@@ -230,6 +231,14 @@ return (<>
             onChange={(e, {value}) => handleDropdownClick(e.type, value, 'cost')}
             />
           </Grid.Column>}
+          <Grid.Column width={3} verticalAlign="middle" style={{display: 'flex', alignItems: 'center'}}>
+            <Form.Checkbox
+              toggle
+              checked={!hideFaithBased}
+              onChange={() => setHideFaithBased(!hideFaithBased)}
+              label={<label style={{color: 'white', fontSize: '.85em', whiteSpace: 'nowrap'}}>Include faith-based</label>}
+            />
+          </Grid.Column>
         </Grid>}
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '.25em'}}>
           <Label.Group columns={[...searchParams].length} className="doubling container">

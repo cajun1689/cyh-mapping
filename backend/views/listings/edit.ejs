@@ -120,6 +120,14 @@
 
     <div class="field">
       <div class="ui checkbox">
+        <input type="checkbox" name="faith_based" id="faith_based_edit" <%= kw.includes('Faith-Based') ? 'checked' : '' %>>
+        <label for="faith_based_edit"><i class="church icon"></i> Faith-Based Organization</label>
+      </div>
+      <small style="display: block; color: #888; margin-top: .3em;">Check this if the resource is affiliated with a religious organization. Users can filter these on the map.</small>
+    </div>
+
+    <div class="field">
+      <div class="ui checkbox">
         <input type="checkbox" name="re_geocode" id="re_geocode">
         <label for="re_geocode">Re-geocode address (check this if you changed the address)</label>
       </div>
