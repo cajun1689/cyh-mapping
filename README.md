@@ -300,69 +300,270 @@ See `infra/terraform.tfvars.example` for all available variables with descriptio
 
 ## Deploying to AWS
 
-### First-time setup
+This is a complete, step-by-step guide to go from a fresh AWS account to a running site. Budget about 30 minutes for the first deployment.
 
-1. **Create an AWS account** at [aws.amazon.com](https://aws.amazon.com)
+### Step 1: Create an AWS account
 
-2. **Create an IAM user** with programmatic access:
-   - Go to IAM > Users > Create User
-   - Attach the `AdministratorAccess` policy (or a more restricted custom policy)
-   - Create an access key under Security Credentials
+If you don't already have one:
 
-3. **Create an SSH key pair** in the EC2 console:
-   - Go to EC2 > Key Pairs > Create Key Pair
-   - Name it (e.g., `cyh-key`)
-   - Download the `.pem` file and save it: `chmod 400 ~/cyh-key.pem`
+1. Go to [https://aws.amazon.com](https://aws.amazon.com) and click **Create an AWS Account**
+2. Enter your email, choose an account name (e.g., "CYH Mapping")
+3. Complete the verification process (phone number, credit card)
+4. Select the **Basic Support (Free)** plan
+5. Sign in to the [AWS Management Console](https://console.aws.amazon.com)
 
-4. **Install tools and configure AWS:**
+> **Cost note:** With free tier, expect ~$1.50/month. After the 12-month free tier expires, ~$8-20/month depending on traffic. You can tear everything down instantly with `make destroy`.
+
+### Step 2: Create an IAM user for deployment
+
+You need an access key so the CLI tools can talk to AWS on your behalf.
+
+1. Go to the [IAM Console](https://console.aws.amazon.com/iam/)
+2. In the left sidebar, click **Users**
+3. Click **Create user**
+4. **User name:** `cyh-deploy`
+5. Click **Next**
+6. Select **Attach policies directly**
+7. Search for and check the box next to **AdministratorAccess**
+8. Click **Next**, then **Create user**
+9. Click on the user name `cyh-deploy` to open it
+10. Click the **Security credentials** tab
+11. Scroll to **Access keys** and click **Create access key**
+12. Select **Command Line Interface (CLI)**
+13. Check the confirmation box at the bottom, click **Next**, then **Create access key**
+14. **IMPORTANT:** Copy both values now — you won't see the secret again:
+    - **Access key ID** (looks like `AKIAIOSFODNN7EXAMPLE`)
+    - **Secret access key** (looks like `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`)
+
+> Keep these safe. Never commit them to Git or share them publicly.
+
+### Step 3: Create an SSH key pair
+
+This lets you SSH into the server for debugging and deployments.
+
+1. Go to the [EC2 Console](https://console.aws.amazon.com/ec2/)
+2. **IMPORTANT:** In the top-right corner, make sure your region is set to **US West (Oregon) us-west-2** (or whichever region you plan to use)
+3. In the left sidebar, under **Network & Security**, click **Key Pairs**
+4. Click **Create key pair**
+5. **Name:** `cyh-key`
+6. **Key pair type:** RSA
+7. **Private key file format:** `.pem`
+8. Click **Create key pair**
+9. Your browser will download `cyh-key.pem`. Move it to a safe location and set permissions:
 
 ```bash
-brew install terraform awscli
-aws configure
-# Enter: Access Key ID, Secret Access Key, region (us-west-2), output (json)
+mv ~/Downloads/cyh-key.pem ~/.ssh/cyh-key.pem
+chmod 400 ~/.ssh/cyh-key.pem
 ```
 
-5. **Configure Terraform variables:**
+### Step 4: Install command-line tools
+
+On macOS with Homebrew:
+
+```bash
+# Install Terraform (infrastructure provisioning) and AWS CLI (AWS commands)
+brew install terraform awscli
+```
+
+On Linux:
+
+```bash
+# AWS CLI
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip && sudo ./aws/install
+
+# Terraform
+sudo apt-get update && sudo apt-get install -y gnupg software-properties-common
+wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+sudo apt update && sudo apt-get install terraform
+```
+
+Verify both are installed:
+
+```bash
+aws --version       # Should show aws-cli/2.x.x
+terraform --version # Should show Terraform v1.5+
+```
+
+### Step 5: Configure the AWS CLI
+
+Run the configure command and enter your credentials from Step 2:
+
+```bash
+aws configure
+```
+
+It will prompt you for four values:
+
+```
+AWS Access Key ID [None]: AKIAIOSFODNN7EXAMPLE
+AWS Secret Access Key [None]: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+Default region name [None]: us-west-2
+Default output format [None]: json
+```
+
+Verify it works:
+
+```bash
+aws sts get-caller-identity
+```
+
+You should see your account ID and user ARN. If you get an error, double-check your access key.
+
+### Step 6: Configure Terraform variables
 
 ```bash
 cd infra
 cp terraform.tfvars.example terraform.tfvars
-# Edit terraform.tfvars with your values
 ```
 
-### Provision and deploy
+Open `terraform.tfvars` in your editor and fill in your values:
+
+```hcl
+aws_region       = "us-west-2"           # Must match the region from Step 3
+project_name     = "cyh-mapping"
+instance_type    = "t4g.micro"
+ssh_key_name     = "cyh-key"             # Name from Step 3 (without .pem)
+db_password      = "YourStrongPassword"  # Pick a strong password
+admin_email      = "you@example.com"     # Your admin login email
+admin_password   = "YourAdminPassword"   # Your admin login password
+session_secret   = "paste-a-random-string-here"
+google_api_key   = ""                    # Optional, for geocoding
+domain_name      = ""                    # Leave empty to use CloudFront URL
+```
+
+To generate a random session secret:
 
 ```bash
-# Provision all AWS infrastructure
-make infra
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
 
-# Build and deploy the application
+### Step 7: Provision the infrastructure
+
+From the project root:
+
+```bash
+make infra
+```
+
+This runs `terraform init` and `terraform apply`. Terraform will show you a plan of everything it will create and ask for confirmation:
+
+```
+Plan: 8 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Enter a value: yes
+```
+
+Type `yes` and press Enter. This takes 2-5 minutes to create:
+- EC2 instance (backend server)
+- S3 bucket (frontend hosting)
+- CloudFront distribution (CDN)
+- Security group, Elastic IP
+- (If domain_name is set: Route 53 zone, ACM certificate)
+
+When it finishes, it prints your URLs:
+
+```
+Outputs:
+
+cloudfront_url = "https://d1234567890.cloudfront.net"
+ec2_ip = "54.xxx.xxx.xxx"
+ec2_ssh = "ssh ec2-user@54.xxx.xxx.xxx"
+site_url = "https://d1234567890.cloudfront.net"
+backend_url = "http://54.xxx.xxx.xxx"
+```
+
+### Step 8: Wait for server bootstrap
+
+The EC2 instance needs 3-5 minutes after creation to finish installing Node.js, PostgreSQL, nginx, and the backend app. You can monitor progress:
+
+```bash
+# SSH into the server (use your key file)
+ssh -i ~/.ssh/cyh-key.pem ec2-user@$(cd infra && terraform output -raw ec2_ip)
+
+# Watch the bootstrap log
+sudo tail -f /var/log/user-data.log
+
+# You'll see "CYH Mapping: EC2 bootstrap complete" when it's done
+# Press Ctrl+C to stop tailing, then type 'exit' to disconnect
+```
+
+### Step 9: Deploy the application
+
+Once the server has finished bootstrapping:
+
+```bash
 make deploy
 ```
 
-Terraform will print the site URL when it finishes. The EC2 instance takes 3-5 minutes to fully bootstrap after creation.
+This builds the React frontend, uploads it to S3, invalidates the CloudFront cache, syncs the backend code to EC2, and restarts the server.
 
-### Check deployment status
+### Step 10: Verify everything works
 
 ```bash
-# View all outputs (IPs, URLs)
+# Show all URLs and IPs
 make status
-
-# SSH into the server to check logs
-make ssh
-# Once connected:
-pm2 logs                    # Application logs
-sudo cat /var/log/user-data.log  # Bootstrap log
 ```
 
-### Set up a custom domain (optional)
+Check each piece:
 
-If you set `domain_name` in your Terraform variables:
+1. **Frontend:** Open the `site_url` in your browser — you should see the map (empty, since there's no data yet)
+2. **Backend admin:** Open the `backend_url` in your browser — you should see the login page
+3. **Log in** with the `admin_email` and `admin_password` from your terraform.tfvars
+4. **Upload a test CSV** through the admin panel to populate the map
 
-1. Run `make status` to see the Route 53 nameservers
-2. Go to your domain registrar and update the nameservers to the ones shown
-3. Wait for DNS propagation (can take up to 48 hours)
-4. The ACM certificate will auto-validate once DNS propagates
+### Troubleshooting
+
+**"Connection refused" on backend URL:**
+The server may still be bootstrapping. Wait a few minutes and try again, or check the bootstrap log:
+
+```bash
+make ssh
+sudo cat /var/log/user-data.log
+```
+
+**"Permission denied" on SSH:**
+Make sure you're using the right key file:
+
+```bash
+ssh -i ~/.ssh/cyh-key.pem ec2-user@$(cd infra && terraform output -raw ec2_ip)
+```
+
+**Frontend shows blank page:**
+The API may be unreachable. Check that the backend is running:
+
+```bash
+make ssh
+pm2 status    # Should show the app as "online"
+pm2 logs      # Check for errors
+```
+
+**Terraform errors:**
+```bash
+cd infra
+terraform plan    # Shows what Terraform wants to do without applying
+terraform apply   # Re-run to retry
+```
+
+**Start over completely:**
+```bash
+make destroy      # Tears down ALL AWS resources
+make infra        # Re-provisions everything fresh
+make deploy       # Re-deploys the code
+```
+
+### Setting up a custom domain (optional)
+
+If you set `domain_name` in your terraform.tfvars:
+
+1. Run `make status` to see the `route53_nameservers` output
+2. Go to your domain registrar (GoDaddy, Namecheap, etc.)
+3. Update the domain's nameservers to the 4 values shown
+4. Wait for DNS propagation (can take up to 48 hours, usually 15-30 minutes)
+5. The ACM certificate will auto-validate once DNS propagates
+6. Your site will then be accessible at `https://yourdomain.com`
 
 ---
 
