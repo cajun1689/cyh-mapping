@@ -77,9 +77,11 @@ function MapPage({ listings, metadata, ageGroupFilter, setAgeGroupFilter }) {
     <MapSearch listingCategories={listingCategories} listingCategoryIcons={listingCategoryIcons} debouncedSearch={debouncedSearch} listingCities={listingCities} keywordCount={keywordCount} costCount={costCount} saved={saved} handleSave={handleSave} handleHide={handleHide} hidden={hidden} showSaved={showSaved} handleShowSaved={handleShowSaved} hideFaithBased={hideFaithBased} setHideFaithBased={setHideFaithBased} ageGroupFilter={ageGroupFilter} setAgeGroupFilter={setAgeGroupFilter} />
     <Container as="main" id="map-page">
       <MapCards listings={filteredListings} cardRefs={cardRefs} mapRef={mapRef} saved={saved} handleSave={handleSave} handleHide={handleHide} />
-      <MapMap listings={filteredListings} cardRefs={cardRefs} ref={mapRef} />
+      <div className="map-right-col">
+        <MapMap listings={filteredListings} cardRefs={cardRefs} ref={mapRef} />
+        {sponsors.length > 0 && <SponsorBar sponsors={sponsors} />}
+      </div>
     </Container>
-    {sponsors.length > 0 && <SponsorBar sponsors={sponsors} />}
   </>)
 
   if (isEmbed) {

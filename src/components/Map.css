@@ -6,11 +6,12 @@
 
 .leaflet-container { height: 68vh; }
 
-#map-page { display: grid; grid: 'cards leaflet-container' / 1fr 1fr; gap: 1em; }
+#map-page { display: grid; grid: 'cards map-right' / 1fr 1fr; gap: 1em; }
 #map-page > .cards { grid-area: cards; width: auto; margin-top: 1rem; }
 #map-page > .cards > .card:first-child { margin-top: 0; }
 #map-page > .cards > .card { scroll-snap-align: start; }
-#map-page > .leaflet-container { grid-area: leaflet-container; width: auto; position: sticky !important; top: 72px; z-index: 1; }
+#map-page > .map-right-col { grid-area: map-right; position: sticky; top: 72px; z-index: 1; align-self: start; }
+#map-page > .map-right-col > .leaflet-container { width: auto; }
 #map-page .leaflet-popup-content .description { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 
 #map-page nav.filters { position: sticky; top: 58px; z-index: 2; }
@@ -31,6 +32,6 @@
   #app > header > nav.menu { min-height: 0; }
   #app > header > nav.menu > .item { font-size: medium; line-height: 2.5; }
   #app > header > nav.menu > .item.mac-logo { display: none; }
-  #map-page { grid: 'leaflet-container' 'cards'; }
-  #map-page > div.leaflet-container { position: relative !important; top: 0px !important; z-index: 0; }
+  #map-page { grid: 'map-right' 'cards'; }
+  #map-page > .map-right-col { position: relative !important; top: 0px !important; z-index: 0; }
 }
