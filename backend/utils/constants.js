@@ -35,6 +35,7 @@ module.exports = {
           'http:',
           'https:',
         ],
+        'script-src': ["'self'", "'unsafe-inline'"],
       },
     },
   },
