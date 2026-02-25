@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Yanone+Kaffeesatz&display=swap');
 
-#map-nav { scroll-snap-align: start; }
+#map-nav { scroll-snap-align: start; background-color: #1B3A5C !important; }
 #map-nav > form > .labels { padding: 0; margin: 0; }
 #map-nav > form > .labels > .label { text-transform: capitalize; }
 

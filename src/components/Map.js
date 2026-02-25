@@ -141,13 +141,13 @@ function MapSearch({ listingCategories, listingCategoryIcons, debouncedSearch, l
   const cost = costDropdownOptions.length > 0
 
 return (<>
-    <Segment as="nav" id="map-nav" color="black" basic vertical inverted>
+    <Segment as="nav" id="map-nav" color="blue" basic vertical inverted>
       <MainIconMenu />
       <Form size="tiny" className="container">
       {/* Search Input & "Show Saved" Button  */}
       <Grid columns='equal' stackable style={showFilters ? {marginTop: '1.5em'} : { marginTop: '1.5em', marginBottom: '.25em'}}>
         <Grid.Column width={4}>
-          <Button basic floated='right' inverted color='teal' fluid size='small'
+          <Button basic floated='right' inverted color='yellow' fluid size='small'
               icon={searchParams.get('saved') ? 'list' : 'star outline'}
               content={(searchParams.get('saved')) ? 'Show All' : 'Show Saved'}
               disabled={saved.length === 0 && !searchParams.get('saved')} 
@@ -291,9 +291,9 @@ const CardCornerDropdown = ({ cardColor, guid, handleHide }) => {
     <Dropdown icon={<Icon name='ellipsis horizontal' color='grey' />} direction='left'>
       <Dropdown.Menu>
         <Dropdown.Item text='Copy link'icon='share alternate' id={`share=${guid}`}
-        onClick={() => navigator.clipboard.writeText(`oregonyouthresourcemap.com/#/${guid}`)}
+        onClick={() => navigator.clipboard.writeText(`${window.location.origin}/#/${guid}`)}
         />
-        <Dropdown.Item as="a" href='https://oregonyouthresourcemap.com/#/suggest' target='_blank' text='Comment' icon={{ name: 'chat', color: cardColor}} />
+        <Dropdown.Item as="a" href='/suggest' target='_blank' text='Comment' icon={{ name: 'chat', color: cardColor}} />
         <Dropdown.Item onClick={() => handleHide(guid)}
           text='Hide listing' icon={{ name: 'eye slash outline', color: cardColor}} />
       </Dropdown.Menu>
@@ -408,8 +408,8 @@ const ExpandableDescription = ({ label, value }) => <>
 const MapMap = forwardRef(({ listings, cardRefs }, ref) => {
   return (
     <Ref innerRef={ref}>
-      <Segment as={MapContainer} center={[44.0521,-123.0868]} zoom={7} minZoom={6.55} maxZoom={18} scrollWheelZoom={false} tap={true} dragging={true} touchZoom={true}>
-        <TileLayer attribution="Healthy Transitions" url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+      <Segment as={MapContainer} center={[42.8666,-106.3131]} zoom={7} minZoom={6} maxZoom={18} scrollWheelZoom={false} tap={true} dragging={true} touchZoom={true}>
+        <TileLayer attribution="Casper Youth Hub" url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
         <MapMarkers listings={listings} cardRefs={cardRefs} />
       </Segment>
     </Ref>
