@@ -37,13 +37,14 @@ router.get('/guide', (req, res) => {
 })
 
 router.get('/settings', (req, res) => {
-  req.user.role === 'owner' ? 
-  res.redirect('/add-user') : 
+  if (req.user.role === 'owner') return res.redirect('/add-user')
+  if (req.user.role === 'org') return res.redirect('/change-password')
   res.redirect('/change-password')
 })
 
 router.get('/change-password', (req, res) => {
-  res.render('changePassword', { props: { ownerEmail, email: req.user.email, message: req.flash('message') }})
+  const layout = req.user?.role === 'org' ? 'layouts/orgLayout' : 'layouts/index'
+  res.render('changePassword', { layout, props: { ownerEmail, email: req.user.email, message: req.flash('message') }})
 })
 
 router.get('/add-user', ensureOwner, async (req, res) => {
