@@ -5,13 +5,18 @@ module.exports = {
   URLENCODED: { extended: false },
   PAPA_PARSE: {
     header: true,
-    dynamicTyping: true,
+    dynamicTyping: false,
+    skipEmptyLines: true,
     transformHeader: (header) => header.includes(" ") ? header.toLowerCase().split(" ").join("_") : header.toLowerCase(),
-    transform: (value, column) =>
-      value.trim() === "" ? undefined
-    : SCHEMA.items.properties[column]?.type === 'string' ? `${value.trim()}`
-    : SCHEMA.items.properties[column]?.type === 'array' ? value.trim().split(',')
-    : value.trim(),
+    transform: (value, column) => {
+      const trimmed = value.trim()
+      if (trimmed === "") return undefined
+      const schemaType = SCHEMA.items.properties[column]?.type
+      if (schemaType === 'integer') return parseInt(trimmed, 10)
+      if (schemaType === 'number') return parseFloat(trimmed)
+      if (schemaType === 'array') return trimmed.split(',').map(s => s.trim())
+      return trimmed
+    },
   },
   PAPA_PARSE_SITE_TEXT: {
     header: true,
