@@ -1,0 +1,74 @@
+<div class="ui segment" style="max-width: 900px; margin: 1.5em auto; padding: 1.5em;">
+  <header style="text-align: center; margin-bottom: 1em;">
+    <h1 class="ui header dark-teal-text">
+      <i class="ui icon building"></i>
+      <div class="content">
+        My Listings
+        <div class="sub header">Edit information for your organization's resources on the map</div>
+      </div>
+    </h1>
+  </header>
+
+  <% if (props.message) { %>
+  <div class="ui success icon message">
+    <i class="large check middle aligned icon"></i>
+    <div class="content"><div class="header"><%= props.message %></div></div>
+  </div>
+  <% } %>
+
+  <% if (props.listings.length > 0) { %>
+  <table class="ui celled striped compact table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Category</th>
+        <th>City</th>
+        <th style="width:60px">Map</th>
+        <th style="width:80px">Age</th>
+        <th style="width:100px">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% props.listings.forEach(function(listing) { %>
+      <tr>
+        <td>
+          <strong><%= listing.full_name %></strong>
+          <% if (listing.parent_organization) { %>
+            <br><small style="color:#888"><%= listing.parent_organization %></small>
+          <% } %>
+        </td>
+        <td><%= listing.category %></td>
+        <td><%= listing.city || '—' %></td>
+        <td style="text-align:center">
+          <% if (listing.latitude && listing.longitude) { %>
+            <i class="green map marker alternate icon" title="Has coordinates"></i>
+          <% } else { %>
+            <i class="grey minus icon" title="No coordinates"></i>
+          <% } %>
+        </td>
+        <td style="text-align:center; font-size:.85em">
+          <% if (listing.age_group === 'Youth') { %>
+            <span style="color:#2185d0">Youth</span>
+          <% } else if (listing.age_group === 'Adult') { %>
+            <span style="color:#a333c8">Adult</span>
+          <% } else { %>
+            <span style="color:#00b5ad">Both</span>
+          <% } %>
+        </td>
+        <td>
+          <a href="/org/edit/<%= listing.guid %>" class="ui mini button blue"><i class="edit icon"></i>Edit</a>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } else { %>
+  <div class="ui placeholder segment">
+    <div class="ui icon header">
+      <i class="map outline icon"></i>
+      No listings assigned to your account yet.
+    </div>
+    <p style="text-align:center; color:#888;">Contact the admin team if you believe this is an error.</p>
+  </div>
+  <% } %>
+</div>

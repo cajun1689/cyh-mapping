@@ -1,7 +1,8 @@
 const router = require('express').Router()
 const { createUser, updatePassword } = require('../utils/authUtils')
-const { ensureLogin, ensureOwner, checkRequirePasswordChange } = require('../middleware/routeProtection')
+const { ensureLogin, ensureOwner, ensureNotOrg, checkRequirePasswordChange } = require('../middleware/routeProtection')
 const { getLastUpdate } = require('../utils/listingUtils')
+const { pool } = require('../db')
 const ownerEmail = process.env.OWNER_EMAIL
 
 const userFriendlyError = 'Something went wrong. Please try again or contact support.'
@@ -18,6 +19,8 @@ router.get('/logout', (req, res) => {
 router.use(checkRequirePasswordChange)
 
 router.get('/home', async (req, res) => {
+  if (req.user?.role === 'org') return res.redirect('/org/dashboard')
+
   const { date, email } = await getLastUpdate()
   
   res.render('home', { props: { 
@@ -43,8 +46,9 @@ router.get('/change-password', (req, res) => {
   res.render('changePassword', { props: { ownerEmail, email: req.user.email, message: req.flash('message') }})
 })
 
-router.get('/add-user', ensureOwner, (req, res) => {
-  res.render('addUser', { props: { ownerEmail, message: 'NOTE: This new user will have full access to this Admin App.' }}) 
+router.get('/add-user', ensureOwner, async (req, res) => {
+  const listings = await pool.query('SELECT guid, full_name, city FROM listings ORDER BY full_name')
+  res.render('addUser', { props: { ownerEmail, message: 'Create a new admin or organization user.', listings: listings.rows }}) 
 })
 
 router.post('/change-password', async (req, res, next) => {
@@ -73,18 +77,28 @@ router.post('/change-password', async (req, res, next) => {
 
 router.post('/add-user', ensureOwner, async (req, res) => {
   try {
-    const { email, password } = req.body
+    const { email, password, role } = req.body
+    const listingGuids = req.body.listing_guids || []
 
-    const query = await createUser({ email, password })
+    const query = await createUser({ email, password, role: role || 'user' })
+    const listings = await pool.query('SELECT guid, full_name, city FROM listings ORDER BY full_name')
 
     if (query.success === true) {
-      return res.render('addUser', { props: { message: `User created! Please give your new user their credentials. Email: ${email} | Password: ${password}`, ownerEmail }})
+      // If org role, assign selected listings to this user
+      if (role === 'org' && listingGuids.length > 0) {
+        const userId = query.user.id
+        const guids = Array.isArray(listingGuids) ? listingGuids : [listingGuids]
+        for (const guid of guids) {
+          await pool.query('UPDATE listings SET managed_by = $1 WHERE guid = $2', [userId, parseInt(guid, 10)])
+        }
+      }
+      return res.render('addUser', { props: { message: `User created! Email: ${email} | Password: ${password} | Role: ${role || 'user'}`, ownerEmail, listings: listings.rows }})
     } 
     if (query.success === false) {
-      return res.render('addUser', { props: { message: query.message, ownerEmail }})
+      return res.render('addUser', { props: { message: query.message, ownerEmail, listings: listings.rows }})
     }
     return res.render('addUser', { 
-      props: { message: 'Something went wrong. Please contact support.', ownerEmail }
+      props: { message: 'Something went wrong. Please contact support.', ownerEmail, listings: listings.rows }
     })
   } catch (error) {
     next(error)

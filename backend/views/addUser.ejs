@@ -18,7 +18,41 @@
           <input type="text" name="password" aria-label="password" placeholder="Password" required />
         </div>
       </div>
+      <h3 class="ui header centered">Role</h3>
+      <div class="ui field">
+        <select class="ui dropdown" name="role" id="role-select">
+          <option value="user">Admin (full access)</option>
+          <option value="org">Organization (edit own listings only)</option>
+        </select>
+      </div>
+
+      <div id="listing-assignment" style="display: none; margin-top: 1em;">
+        <h3 class="ui header centered">Assign Listings</h3>
+        <p style="text-align:center; color:#888; font-size:.9em;">Select the listing(s) this org user should manage.</p>
+        <div class="ui field">
+          <select class="ui dropdown search multiple" name="listing_guids" multiple id="listing-select">
+            <% if (props.listings) { %>
+              <% props.listings.forEach(function(l) { %>
+                <option value="<%= l.guid %>"><%= l.full_name %> (<%= l.city || 'No city' %>)</option>
+              <% }) %>
+            <% } %>
+          </select>
+        </div>
+      </div>
+
       <button class="ui button fluid violet" style="margin-top: 2em;">Submit</button>
     </form>
   </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+<script>
+  $(document).ready(function() {
+    $('.ui.dropdown').dropdown();
+    $('#role-select').on('change', function() {
+      var assignDiv = document.getElementById('listing-assignment');
+      assignDiv.style.display = this.value === 'org' ? 'block' : 'none';
+    });
+  });
+</script>

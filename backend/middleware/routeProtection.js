@@ -6,6 +6,16 @@ const ensureOwner = (req, res, next) => (req.user.role === 'owner') ? next() : r
 
 const ensureNotLoggedIn = (req, res, next) => req.isAuthenticated() ? res.redirect('back') : next()
 
+// Restrict org users to their own routes
+const ensureNotOrg = (req, res, next) => (req.user?.role === 'org') ? res.redirect('/org/dashboard') : next()
+
+// Only allow org-role users (and owners for testing)
+const ensureOrgRole = (req, res, next) => {
+  const role = req.user?.role
+  if (role === 'org' || role === 'owner') return next()
+  return res.redirect('/home')
+}
+
 // Keeps new users on password page until they change their password
 const checkRequirePasswordChange = (req, res, next) => {
   // Disabled on logout and POST routes
@@ -16,6 +26,10 @@ const checkRequirePasswordChange = (req, res, next) => {
 }
 
 // Handle wildcard routes based on login status
-const handleUndefinedRoutes = (req, res) => req.isAuthenticated() ? res.redirect('/home') : res.redirect('/auth/login')
+const handleUndefinedRoutes = (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect('/auth/login')
+  if (req.user?.role === 'org') return res.redirect('/org/dashboard')
+  return res.redirect('/home')
+}
 
-module.exports = { ensureLogin, ensureOwner, ensureNotLoggedIn, checkRequirePasswordChange, handleUndefinedRoutes }
+module.exports = { ensureLogin, ensureOwner, ensureNotLoggedIn, ensureNotOrg, ensureOrgRole, checkRequirePasswordChange, handleUndefinedRoutes }

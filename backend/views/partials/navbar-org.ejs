@@ -1,0 +1,18 @@
+<nav class="ui menu inverted" id="navbar-main">
+
+  <a href="/org/dashboard"
+    id="home"
+    class="header item teal-text <%= props?.activeNavTab === 'org-dashboard' ? 'active' : '' %>">
+    <i class="ui icon home large teal-text"></i>
+    <strong><%= site.adminTitle %> &mdash; My Listings</strong>
+  </a>
+  <div class="right menu">
+    <a href="/change-password"
+      class="item right custom-right">
+      <i class="ui icon lock"></i>Change Password
+    </a>
+    <a class="item" id="logout" href="/logout">
+      <i class="ui icon power off"></i> Logout
+    </a>
+  </div>
+</nav>

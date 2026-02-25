@@ -24,7 +24,7 @@ const hashPassword = async (str) => {
   return hashedPassword
 }
 
-const createUser = async ({ email, password }) => {
+const createUser = async ({ email, password, role = 'user' }) => {
   try {
     const existingUser = await getUserByEmail(email)
     if (existingUser) {
@@ -33,8 +33,8 @@ const createUser = async ({ email, password }) => {
 
     const hashedPassword = await hashPassword(password)
     const user = await db.query(
-      'INSERT INTO staging_user (email, password, require_password_reset) VALUES ($1, $2, true) RETURNING *', 
-      [email, hashedPassword]
+      'INSERT INTO staging_user (email, password, role, require_password_reset) VALUES ($1, $2, $3, true) RETURNING *', 
+      [email, hashedPassword, role]
     )
     if (user.rows.length > 0) {
       return { success: true, user: user.rows[0] }

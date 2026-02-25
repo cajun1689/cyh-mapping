@@ -22,7 +22,7 @@ const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/cl
 const s3 = new S3Client({ region: process.env.AWS_REGION || 'us-west-2' })
 const S3_BUCKET = 'cyh-mapping-frontend'
 const S3_PREFIX = 'listing-images'
-const { ensureLogin, checkRequirePasswordChange } = require('../middleware/routeProtection')
+const { ensureLogin, checkRequirePasswordChange, ensureNotOrg } = require('../middleware/routeProtection')
 const { geocodeListing } = require('../services/geocoding')
 const axios = require('axios')
 const API_KEY = process.env.GOOGLE_API_KEY
@@ -44,6 +44,7 @@ const isInState = (lat, long) => ((lat >= wyoming.min_lat && lat <= wyoming.max_
 
 router.use(ensureLogin)
 router.use(checkRequirePasswordChange)
+router.use(ensureNotOrg)
 
 /* ----------- GET ROUTES ----------- */
 
@@ -269,6 +270,9 @@ router.post('/add', imageUpload.single('building_image'), async (req, res) => {
     listing.eligibility_requirements = (body.eligibility_requirements || '').trim() || null
     listing.financial_information = (body.financial_information || '').trim() || null
     listing.intake_instructions = (body.intake_instructions || '').trim() || null
+    listing.contact_name = (body.contact_name || '').trim() || null
+    listing.contact_email = (body.contact_email || '').trim() || null
+    listing.contact_phone = (body.contact_phone || '').trim() || null
 
     // Keywords from service type + faith-based flag
     const kwParts = (body.service_type || 'In-Person').trim().split(',')
@@ -394,6 +398,9 @@ router.post('/edit/:guid', imageUpload.single('building_image'), async (req, res
       eligibility_requirements: (body.eligibility_requirements || '').trim() || null,
       financial_information: (body.financial_information || '').trim() || null,
       intake_instructions: (body.intake_instructions || '').trim() || null,
+      contact_name: (body.contact_name || '').trim() || null,
+      contact_email: (body.contact_email || '').trim() || null,
+      contact_phone: (body.contact_phone || '').trim() || null,
     }
 
     const kwParts = (body.service_type || 'In-Person').trim().split(',')
