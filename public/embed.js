@@ -6,6 +6,7 @@
   var height = container.getAttribute("data-height") || "600";
   var ageSelect = container.hasAttribute("data-age-select");
   var hideFaith = container.hasAttribute("data-hide-faith");
+  var noFaithToggle = container.hasAttribute("data-no-faith-toggle");
   var baseUrl = "https://casperyouthhubmap.org";
 
   var src = baseUrl + "/#/embed";
@@ -13,6 +14,7 @@
   if (filter) params.push("age_group=" + encodeURIComponent(filter));
   if (ageSelect) params.push("age_select=1");
   if (hideFaith) params.push("hide_faith=1");
+  if (noFaithToggle) params.push("no_faith_toggle=1");
   if (params.length) src += "?" + params.join("&");
 
   var iframe = document.createElement("iframe");

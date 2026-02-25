@@ -13,6 +13,7 @@ function EmbedCodePage() {
   const [ageGroup, setAgeGroup] = useState('')
   const [ageSelectable, setAgeSelectable] = useState(false)
   const [includeFaith, setIncludeFaith] = useState(true)
+  const [showFaithToggle, setShowFaithToggle] = useState(true)
   const [copied, setCopied] = useState(false)
 
   const baseUrl = window.location.origin
@@ -22,6 +23,7 @@ function EmbedCodePage() {
     height !== '600' ? `data-height="${height}"` : '',
     ageSelectable ? 'data-age-select' : '',
     !includeFaith ? 'data-hide-faith' : '',
+    !showFaithToggle ? 'data-no-faith-toggle' : '',
   ].filter(Boolean).join(' ')
 
   const scriptSnippet = `<div id="wyrm-map"${dataAttrs ? ' ' + dataAttrs : ''}></div>\n<script src="${baseUrl}/embed.js"></script>`
@@ -30,6 +32,7 @@ function EmbedCodePage() {
   if (ageGroup) params.set('age_group', ageGroup)
   if (ageSelectable) params.set('age_select', '1')
   if (!includeFaith) params.set('hide_faith', '1')
+  if (!showFaithToggle) params.set('no_faith_toggle', '1')
   const queryString = params.toString()
   const iframeSnippet = `<iframe src="${baseUrl}/#/embed${queryString ? '?' + queryString : ''}" width="100%" height="${height}px" style="border:none; border-radius:8px;" loading="lazy" title="${siteConfig.siteName}"></iframe>`
 
@@ -127,6 +130,13 @@ function EmbedCodePage() {
           />
           <Form.Checkbox
             toggle
+            checked={showFaithToggle}
+            onChange={() => setShowFaithToggle(!showFaithToggle)}
+            label="Show faith-based toggle to visitors"
+            style={{ marginTop: '.5em' }}
+          />
+          <Form.Checkbox
+            toggle
             checked={includeFaith}
             onChange={() => setIncludeFaith(!includeFaith)}
             label="Include faith-based organizations by default"
@@ -162,6 +172,7 @@ function EmbedCodePage() {
           <Message.Item><code>data-filter</code> &mdash; Set to <strong>Youth</strong>, <strong>Adult</strong>, or leave out for all.</Message.Item>
           <Message.Item><code>data-age-select</code> &mdash; Add this attribute to let visitors change the age group themselves.</Message.Item>
           <Message.Item><code>data-hide-faith</code> &mdash; Hide faith-based organizations by default.</Message.Item>
+          <Message.Item><code>data-no-faith-toggle</code> &mdash; Remove the faith-based toggle from the toolbar entirely.</Message.Item>
           <Message.Item><code>data-height</code> &mdash; Height in pixels (default 600).</Message.Item>
           <Message.Item>The map updates automatically when new resources are added.</Message.Item>
         </Message.List>

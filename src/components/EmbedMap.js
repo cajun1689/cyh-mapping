@@ -17,6 +17,7 @@ function EmbedMap({ listings, metadata }) {
   const [search, setSearch] = useState()
   const [hideFaithBased, setHideFaithBased] = useState(searchParams.get('hide_faith') === '1')
   const [ageGroupFilter, setAgeGroupFilter] = useState(searchParams.get('age_group') || 'Youth')
+  const showFaithToggle = searchParams.get('no_faith_toggle') !== '1'
 
   const filteredListings = useMemo(
     () => filterListings(listings, searchParams, search, [], { hideFaithBased, ageGroupFilter }),
@@ -58,13 +59,15 @@ function EmbedMap({ listings, metadata }) {
           onChange={(e, { value }) => setAgeGroupFilter(value)}
           style={{ minWidth: '100px' }}
         />
-        <Form.Checkbox
-          toggle
-          checked={!hideFaithBased}
-          onChange={() => setHideFaithBased(!hideFaithBased)}
-          label={<label style={{ color: 'white', fontSize: '.8em', whiteSpace: 'nowrap' }}>Faith-based</label>}
-          style={{ margin: 0 }}
-        />
+        {showFaithToggle && (
+          <Form.Checkbox
+            toggle
+            checked={!hideFaithBased}
+            onChange={() => setHideFaithBased(!hideFaithBased)}
+            label={<label style={{ color: 'white', fontSize: '.8em', whiteSpace: 'nowrap' }}>Faith-based</label>}
+            style={{ margin: 0 }}
+          />
+        )}
       </div>
       <div style={{ flex: 1, position: 'relative' }}>
         <EmbedMapContainer listings={filteredListings} />
