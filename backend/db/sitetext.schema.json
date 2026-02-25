@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://hto2020.com/schemas/sitetext",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "about_text": { "type": "string" },
+      "disclaimer_text": { "type": "string" },
+      "rubric_text": { "type": "string" },
+      "footer_text": { "type": "string" },
+      "video_tutorial_link": { "type": "string", "format": "uri" }
+    },
+    "required": ["about_text"],
+    "additionalProperties": true
+  }
+}

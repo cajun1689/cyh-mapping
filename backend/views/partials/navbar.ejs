@@ -1,0 +1,39 @@
+<nav class="ui menu inverted" id="navbar-main">
+
+  <a href="/home"
+    id="home"
+    class="header item teal-text <%= props?.activeNavTab === 'home' ? 'active' : '' %>">
+    <i class="ui icon home large teal-text"></i>
+    <strong>Healthy Transitions Home</strong>
+  </a>
+  <div class="right menu">
+    <a href="/listings/upload"
+      id="listings"
+      class="item right custom-right <%= props?.activeNavTab === 'listings' ? 'active' : '' %>">
+      <i class="ui icon map outline"></i>Update Map
+    </a>
+    <a href="/resource/upload"
+      id="listings"
+      class="item right custom-right <%= props?.activeNavTab === 'resources' ? 'active' : '' %>">
+      <i class="ui icon list"></i>Update Resources
+    </a>
+    <!-- dropdown -->
+    <div class="ui pointing dropdown link item" id="main-nav-dropdown" tabindex="0">
+     <span style="color: #ccc">More <i class="dropdown icon grey"></i></span> 
+      <div class="menu">
+        <a href="/settings"
+          id="settings"
+          class="item right custom-right <%= props?.ownerEmail ? 'active' : '' %>">
+          <i class="ui icon cog"></i>Settings
+        </a>
+        <a class="item" id="guide" href="/guide">
+          <i class="ui icon book"></i>
+          User Guide
+        </a>
+        <a class="item" id="logout" href="/logout">
+          <i class="ui icon power off"></i> Logout
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>

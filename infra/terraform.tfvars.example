@@ -1,0 +1,46 @@
+# ============================================================
+# CYH Mapping — Terraform Variables
+# ============================================================
+# Copy this file to terraform.tfvars and fill in your values.
+# NEVER commit terraform.tfvars to version control.
+# ============================================================
+
+# AWS region to deploy into
+aws_region = "us-west-2"
+
+# Project name (used for naming all AWS resources)
+project_name = "cyh-mapping"
+
+# EC2 instance type (t4g.micro is free-tier eligible for 12 months)
+instance_type = "t4g.micro"
+
+# Name of an existing AWS key pair for SSH access
+# Create one in AWS Console: EC2 > Key Pairs > Create key pair
+ssh_key_name = "my-key-pair"
+
+# PostgreSQL database password
+db_password = "change-me-to-a-strong-password"
+
+# Initial admin user for the backend admin panel
+admin_email    = "admin@example.com"
+admin_password = "change-me-to-a-strong-password"
+
+# Express session signing secret (random string, at least 32 characters)
+session_secret = "generate-a-random-string-here"
+
+# Google Maps Geocoding API key (optional — leave empty to skip geocoding)
+# Get one at: https://console.cloud.google.com/apis/credentials
+google_api_key = ""
+
+# Custom domain name (optional — leave empty to use CloudFront default URL)
+# If set, Terraform will create Route 53 zone + ACM certificate.
+# You will need to update your domain registrar's nameservers to the
+# Route 53 nameservers shown in `terraform output route53_nameservers`.
+domain_name = ""
+
+# GitHub repo URL for the backend code (cloned onto EC2 during bootstrap)
+github_repo_url = "https://github.com/mapping-action-collective/healthy-transitions-backend.git"
+
+# CIDR blocks allowed to SSH into the EC2 instance
+# For better security, replace with your IP: ["1.2.3.4/32"]
+allowed_ssh_cidrs = ["0.0.0.0/0"]

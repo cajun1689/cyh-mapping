@@ -1,0 +1,31 @@
+<div class='container centered-page' id="guide">
+  
+  <header>
+    <h1
+      class="ui header teal-text centered-header" style="margin: .5em; margin-bottom: 1em;">
+      <div class="content">
+        <i class="icon home teal-text"></i>
+        Healthy Transitions Home
+        <div class="sub header">
+          Welcome to the Oregon Youth Resource Map Admin Panel
+        </div>
+      </div>
+    </h1>
+  </header>
+
+  <div class='ui segment fluid' id='instructions-home' style="width: 65VW; padding: 2em">
+    <h2 class='ui header secondary centered-header' style='font-size: 1.5rem'>In the Admin Panel you can:</h2>
+    <div> 
+      <a class='ui button fluid teal' style="margin-bottom: 1em" href='/listings/upload'><i class="ui icon map outline"></i>Update Map Listings</a>
+      <a class='ui button fluid teal basic' style="margin-bottom: 1em" href='/resource/upload'><i class="ui icon edit"></i>Update "More Resources" Page</a>
+      <a class='ui button fluid teal basic' style="margin-bottom: 1em" href='/guide'><i class="ui icon book"></i>Read the User Guide</a>
+    </div>
+
+    <% if (props?.updated?.date && props?.updated?.email) { %> 
+      <h3 class='ui header secondary centered-header' style='font-size: 1.5rem'>Map Last Updated:</h3>
+      <div class='ui list' style='font-size: 1.25rem; text-align: center;' id='instruction-list'>
+        <li class='item'><%= props.updated.date %> by <%= props.updated.email %></li>
+      </div>
+    <% } %>
+
+</div>

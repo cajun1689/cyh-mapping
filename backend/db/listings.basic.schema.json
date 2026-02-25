@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://hto2020.com/schemas/listings1",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "guid": { "type": "integer" },
+      "full_name": { "type": "string" },
+      "category": { "type": "string" },
+      "description": { "type": "string" }
+    },
+    "required": ["guid", "full_name", "category", "description"],
+    "additionalProperties": true
+  }
+}

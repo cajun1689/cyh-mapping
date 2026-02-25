@@ -1,0 +1,24 @@
+<div class='container centered-page' id="settings">
+
+  <h1 class="ui header violet centered">  
+    Create New User
+  </h1>
+
+  <div class="ui segment raised">
+    <form class="ui form add-user" action="/add-user" method="POST">
+      <h3 class="ui header centered">New User's Email Address</h3>
+      <div class="email">
+        <div class="ui field">
+          <input type="email" name="email" placeholder="Email" aria-label="email" required />
+        </div>
+      </div>
+      <h3 class="ui header centered">Temporary Password</h3>
+      <div class="email">
+        <div class="ui field">
+          <input type="text" name="password" aria-label="password" placeholder="Password" required />
+        </div>
+      </div>
+      <button class="ui button fluid violet" style="margin-top: 2em;">Submit</button>
+    </form>
+  </div>
+</div>

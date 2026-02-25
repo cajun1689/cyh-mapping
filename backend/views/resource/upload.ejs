@@ -1,0 +1,39 @@
+<div class="ui segment attached" id="upload">
+  <header>
+    <h1 class="ui header violet" id="upload-header" style="text-align: center">
+      <div class="content">
+        <i class="upload icon"></i>
+        Upload "More Resources" CSV
+      </div>
+    </h1>
+  </header>
+  <div>
+  <form role="form" action="/resource/upload" method="POST" 
+    class="ui form <%= props.status.upload ? 'success' : '' %>" enctype="multipart/form-data">
+    <div class="field">
+      <input required <%= props.status.upload ? 'disabled' : null %> type="file" accept="text/csv" name="siteResources" aria-label="Upload CSV file with resource links">
+    </div>
+    <div class="field">
+      <input <%= props.status.upload ? 'disabled' : null %> type="submit" value="Step 1: Upload CSV" class="ui button fluid violet">
+    </div>
+    <% if (props.status.upload && props.status.upload === true) { %>
+      <div class="ui success icon message">
+        <i class="large check middle aligned icon"></i>
+        <div class="content">
+          <div class="header">CSV Successfully Uploaded</div>
+          <p>Please click the button below for the next step.</p>
+        </div>
+      </div>
+    <% } %>
+  </form>
+  <p></p>
+  <p></p>
+  <form role="form" action="/resource/preview" method="GET" >
+    <div class="field">
+      <button <%= props?.status.upload ? null : 'disabled' %> href='/resource/site-text-preview' value="Proceed to Next Step" class="ui button fluid violet">Proceed to Next Step</button>
+    </div>
+  </form>
+  </div>
+
+</div>
+</div>

@@ -1,0 +1,18 @@
+<div class="ui three ordered steps top attached" id="listings-nav">
+  <a href="/resource/upload"
+    class="<%= props?.activeTab=== 1 ? 'active' : null %> <%= props?.status?.upload ? 'completed' : 'fake-disabled' %> step">
+    <div class="content">
+      <div class="title">Upload</div>
+    </div>
+  </a>
+  <a href="/resource/preview" class="step <%= props?.activeTab=== 2 ? 'active' : 'fake-disabled' %> <%= props?.status?.preview ? 'completed' : null %>">
+    <div class="content">
+      <div class="title">Preview</div>
+    </div>
+  </a>
+  <a href="/resource/update" class="<%= props?.activeTab=== 3 ? 'active' : 'disabled' %> <%= props?.status?.update ? 'completed' : null %> step">
+    <div class="content">
+      <div class="title">Confirm</div>
+    </div>
+  </a>
+</div>

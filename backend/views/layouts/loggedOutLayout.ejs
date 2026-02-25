@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
+    <link rel="stylesheet" href="/styles.css" />
+    <title>Healthy Transitions Staff</title>
+  </head>
+<body id="login-page">
+  <span class="top-message">
+    <% if(error && error.length > 0) { %>
+      <div>
+        <%= error %>
+      </div>
+    <% } %>
+    <% if(props.message) { %>
+      <div>
+        <%= props.message %>
+      </div>
+    <% } %>
+  </span>
+  <%- body %> 
+</body>
+</html>

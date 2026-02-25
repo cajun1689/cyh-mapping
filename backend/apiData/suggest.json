@@ -1,0 +1,16 @@
+{
+  "page_title": "Comment On or Suggest a Resource",
+  "page_route": "/suggest",
+  "forms": [
+    {
+      "name": "General Feedback",
+      "url": "https://docs.google.com/forms/d/17yRn7H5-d38vrkBA3zg-JLsA1hjvHV-IMzoyJXN3_I4/edit?usp=drive_web&urp=gmail_link",
+      "description": "Give feedback on the site, comment on a specific listing, or report a bug."
+    },
+    {
+      "name": "Provider Form",
+      "url": "https://airtable.com/shrs930yggxthL5e4",
+      "description": "For social service providers to enter or update their agency's information shown on the Map."
+    }
+  ]
+}

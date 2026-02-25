@@ -1,0 +1,33 @@
+<div class='ui segment bottom attached' id="preview">
+  <header>
+    <h1
+      class="ui header violet" style="margin: .5em; text-align: center; font-size: 1.75em">
+      <div class="content">
+        <i class="eye icon violet"></i>
+        Preview Site
+        <div class="sub header">
+          View and test your new site data
+        </div>
+      </div>
+    </h1>
+  </header>
+  <a target="_blank" href="<%= props.previewURL %>" class="ui message">
+    <header class="header dark-grey-text violet">
+      Click to view in a new window
+      <i class="alternate square external link icon"></i>
+    </header>
+  </a>
+  <div class='ui message grey' style='display: flex; flex-direction: column; font-weight: bold; text-align: center;'>
+    <p>The preview link shows exactly how the live site will look when updated.<br />
+      Please review carefully before proceeding.</p>
+      <a href="/resource/update" class='ui basic button grey' style="text-align: center">
+        I have reviewed the preview site and am ready to proceed.
+      </a>
+  </div>
+  <p></p>
+  <p></p>
+  <iframe src="<%= props.previewURL %>" class="ui container" style="height: 65vh; width: 85vw"></iframe>
+
+  <p></p>
+  <p></p>
+</div>

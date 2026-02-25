@@ -1,0 +1,355 @@
+/* --------- global styles ----------- */
+html, body {
+  display: flex;
+  flex-flow: column nowrap;
+  flex: 1 0 100%;
+  background-color: #F3F4F5;
+}
+
+/* COLOR REF
+Black: 1B1C1D
+Dark Grey: 292E36
+Dark Teal: 0A938F
+Teal: 00B5AD
+*/
+
+.light-grey-background {
+  background-color: #E9E9E9!important;
+}
+
+.black-blackground {
+  background-color: #1B1C1D!important;
+  color: white;
+}
+
+.black-text {
+  color: #1B1C1D!important;
+}
+
+.dark-grey-background {
+  background-color: #292E36!important;
+  color: white;
+}
+
+.dark-grey-text {
+  color: #292E36!important;
+}
+
+.grey-text {
+  color: darkgrey!important;
+}
+
+.dark-teal-text {
+  color: #0A938F!important;
+}
+
+.dark-teal-background {
+  background-color: #0A938F!important;
+  color: white!important;
+}
+
+.teal-text {
+  color: #00B5AD!important;
+}
+
+.teal-background {
+  background-color: #00B5AD!important;
+  color: white!important;
+}
+
+#navbar-main a {
+  color: #ccc;
+}
+
+#login-form-segment {
+  width: '45%';
+}
+
+.grid.container {
+  margin-top: 5em;
+}
+
+.inputfile {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+
+.listings-header { font-size: .75em; }
+
+.centered-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 1em;
+}
+
+.centered-page .centered-header {
+  text-align: center;
+}
+
+#page-header {
+  margin: .5em; 
+  margin-bottom: 1em;
+}
+
+/* --------- nav styles ------------- */
+#secondary-menu {
+  display: flex;
+  justify-content: center;
+  margin-top: 1em;
+  margin-bottom: 1.5em;
+}
+
+.dropdown.item:focus-within > .menu,
+.dropdown.item:focus-within > .menu::after {
+  display: block;
+}
+
+/* --------- login styles ----------- */
+#login-page {
+  display:flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content:center;
+  align-items:center;
+  background-color: #1B1C1D;
+  text-align: center;
+}
+
+#login-segment {
+  width: 55vw;
+  max-width: 500px;
+  padding: 25px;
+  padding-bottom: 15px;
+}
+
+#login-page form {
+  color:#231935;
+  padding:.75em;
+}
+
+#login-page button {
+  color:#f5f4f2;
+}
+
+#login-page .top-message {
+  color:#d9d9d9;
+  font-size: 1.25em;
+}
+
+#login-page .bottom-message {
+  color:#d9d9d9;
+  line-height:2em;
+}
+
+#login-page .bottom-message a {
+  color:#098ca8;
+}
+
+/* --------- dashboard styles ----------- */
+
+
+
+
+
+
+/* ------ dev instruction divs (temp) ------ */
+.dev-instructions {
+  text-align: left;
+  border: 2px dashed lightgrey;
+}
+
+.dev-instructions li {
+  margin: .5em;
+}
+
+#upload {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
+#preview {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+}
+#preview > .message {
+  width: auto;
+}
+#preview > iframe {
+  display: flex;
+  flex: 1 1 auto;
+  align-self: stretch;
+}
+
+/* ----------- auth.ejs styles ("Register New User" view) -------- */
+
+#register .form {
+  width: 500px;
+  padding: 25px;
+}
+@media(max-width: 692px) {
+  #register .form {
+    width: 70%;
+  }
+}
+@media(max-width: 450px) {
+  #register .form {
+    width: 80%;
+  }
+}
+
+#register {
+  margin-top: 3em;
+}
+
+#register .message {
+  padding-left: 2em;
+  padding-right: 2em;
+}
+
+/* --------- Change password form (settings.ejs) ------------ */
+#settings .form {
+  padding: 25px;
+}
+
+#settings .segment {
+  width: 500px;
+}
+
+#settings h2 {
+  text-align: center;
+}
+
+/* listings/upload */
+#upload-header {
+  margin: .5em; 
+  margin-bottom: 1em; 
+  font-size: 1.75em;
+}
+
+/* Error page */
+#error header {
+  margin: 1em;
+}
+
+#error > .link-group {
+  display: inline;
+  margin-top: 1em;
+}
+
+#error > .link-group a {
+  text-decoration: underline;
+}
+
+/* Error header that lives in listingsNavbar.ejs */
+#error-message {
+  font-size: 1.25em;
+  font-weight: 700;
+}
+
+/* Password reset page */
+#forgot-password {
+  padding-bottom: .5em;
+}
+
+/* Global layout template */
+#layout-message {
+  width: 500px;
+  text-align: center;
+}
+
+#password-reset {
+  padding: 1.5em;
+}
+
+
+.black-blackground {
+  background-color: #1B1C1D;
+  color: white;
+}
+
+.black-text {
+  color: #1B1C1D;
+}
+
+.dark-grey-background {
+  background-color: #292E36;
+  color: white;
+}
+
+.dark-grey-text {
+  color: #292E36;
+}
+
+.dark-teal-text {
+  color: #0A938F;
+}
+
+.dark-teal-background {
+  background-color: #0A938F;
+}
+
+.teal-text {
+  color: #00B5AD;
+}
+
+.teal-background {
+  background-color: #00B5AD;
+  color: white;
+}
+
+#custom-form > .teal-button {
+  background-color: #00B5AD;
+  color: white;
+}
+
+#login-segment > .teal-button {
+  background-color: #00B5AD;
+  color: white;
+}
+
+#navbar-main {
+  background-color: #1B1C1D;
+  border-radius: 0;
+}
+
+#listings-nav > .active > .content > .title {
+  color: #666;
+}
+
+#listings-nav > a.step.active:before {
+  color: #666;
+}
+
+#listings-nav > a.active.step.completed::before  {
+  color: #00B5AD;
+}
+
+#listings-nav > a.step.completed::before  {
+  color: #00B5AD;
+}
+
+#listings-nav > a.step.completed  {
+  color: #BEBEBE;
+}
+
+.fake-disabled {
+  color: #BEBEBE!important;
+}
+
+#listings-nav .step {
+  height: 75px;
+}
+
+#instruction-list a {
+  color: #00B5AD!important;
+}

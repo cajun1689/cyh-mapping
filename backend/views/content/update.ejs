@@ -1,0 +1,28 @@
+<div class='ui segment bottom attached' style="padding: 3em 7em" id="upload">
+
+  <header style='text-align: center;'>
+    <h1
+      class="ui header blue listings-header" style="margin: .5em; margin-bottom: 1em; font-size: 1.75em">
+      <div class="content blue">
+        <i class="icon sync blue"></i>
+        Update Live Website
+      </div>
+    </h1>
+  </header>
+
+  <div class='ui message grey'>
+    <ul class='ui bulleted list' style='color: black'>
+      <p><strong>
+        Pressing the button on this page will <strong>replace the current website text</strong> with the content you have uploaded. 
+      </strong></p>
+      <p>This action cannot be undone.</p>
+    </ul>
+  </div>
+
+  <form action="/content/update" method="POST">
+    <button class='ui button large blue' value='submit'>
+      I understand. Update the Live Website.
+    </button>
+  </form>
+
+</div>

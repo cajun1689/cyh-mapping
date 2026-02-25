@@ -1,0 +1,48 @@
+<div class="ui segment bottom attached" id="upload">
+
+  <p></p>
+  <p></p>
+  <form role="form" action="/listings/geocode" method="POST" >
+    <header style='text-align: center'>
+      <h1 class="ui header" id="upload-header">
+        <div class="content dark-teal-text">
+          <i class="map marker alternate upload icon dark-teal-text"></i>
+          Geocode Listings
+        </div>
+        <div class="sub header">
+          Process Your Listings to Prepare them for placement on the Resource Map
+        </div>
+      </h1>
+    </header>
+    <div class="field">
+      <input type="submit" value="Step 2: Geocode Listings" class="ui button fluid teal-background">
+    </div>
+
+    <div class="ui grey icon message">
+      <i class="large sync middle aligned icon"></i>
+      <div class="content">
+        <div class="header">Click "Geocode Listings" to start the geocoding process</div>
+        <p class="header"><strong>Please only click the button once.</strong></p>
+        <p>This step may take up to 5 minutes.</p>
+        <p>We will email you when your listings are processed and ready for review.</p>
+      </div>
+    </div>
+    <div>
+
+    <% if (props.geocodingMessage) { %>
+      <div class="ui success icon message">
+        <i class="large check middle aligned icon"></i>
+        <div class="content">
+          <div class="header">Geocoding Complete</div>
+          <p>Your request has finished successfully geocoding.</p>
+        </div>
+      </div>
+      <button href='/listings/preview' class='ui button basic violet'>Click to continue to Step 3: Preview Site.</button>
+    <% } %>
+  </form>
+  </div>
+  <p></p>
+  <a href="https://www.microsoft.com/en-us/maps/product/enduserterms">Bing Maps Terms of Use</a>
+
+</div>
+</div>

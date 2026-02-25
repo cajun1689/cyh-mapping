@@ -1,0 +1,34 @@
+{
+  "title": "Additional Resources",
+  "route": "/resources",
+  "disclaimer": "Inclusion on this list does not imply that OYRM is affiliated with or endorses these organizations and/or resources.",
+  "resources": [
+    {
+      "name": "Self Enhancement Inc BIPOC Resource Guide",
+      "link": "https://www.selfenhancement.org/resource",
+      "description": "The Self Enhancement Inc (SEI) guide includes a wide variety of resources, such as scholarships and internships, educational and job seeker services, and resources for basic needs and community building. The primary focus is resources for Black youth, but the guide also includes a variety of resources for outher BIPOC youth, including Indigenous, Latinx, Pacific Islander, Asian, Middle Eastern, and multiracial children, youth, and adults. Use the search bar in the upper right corner of the website to search for resources specific to your identity & needs."
+    },
+    {
+      "name": "The Youth Alliance Help Hotlines",
+      "link": "https://theyouthalliance.com/resources/help-hotlines",
+      "description": "A youth-oriented list of national hotlines that provide anonymous, confidential information to callers. \n These hotlines can answer questions, offer support, and make referrals to other helpful organizations in times of need.  If you are in danger and require immediate help, call 911."
+    },
+    {
+      "name": "Douglas County Community Resource Guide",
+      "link": "https://guides.ucclibrary.com/communityresources",
+      "description": "A searchable website with services available in Douglas County, Oregon."
+    },
+    {
+      "name": "Brave Space Resource Website",
+      "link": "https://www.bravespacellc.com/resources",
+      "organization_location": "Portland, Oregon",
+      "description": "Brave Space creates community and facilitates access to expert and knowledgeable providers for transgender and non-binary children, youth, adults, and their families. \n Their online resource guide is a place to find information about Brave Space community services, gender-affirming service providers, free clothing, events, and more."
+    },
+    {
+      "name": "TransPonder Resource Directory",
+      "link": "https://transponder.community/resource-directory",
+      "organization_location": "Eugene, Oregon",
+      "description": "TransPonder is a trans-led organization in Eugene, Oregon. They provide a resource directory that is updated yearly. Resources include crisis resources, medical and mental health providers who serve the trans community, and more. Resources are personally verified by TransPonder staff."
+    }
+  ]
+}

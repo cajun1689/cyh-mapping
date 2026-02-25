@@ -1,0 +1,81 @@
+<div class="ui segment attached" id="upload">
+  <header>
+    <h1 class="ui header dark-teal-text" id="upload-header" style="text-align: center;">
+      <div class="content">
+        <i class="ui icon map outline"></i>
+        Upload Map Data CSV
+      </div>
+      <div class="sub header">
+        Upload a CSV to check for data formatting errors
+      </div>
+    </h1>
+  </header>
+  <div>
+  <form role="form" action="/listings/upload" method="POST" 
+    class="ui form <%= props.success ? 'success' : '' %>" enctype="multipart/form-data">
+    <div class="ui message teal">
+      This step may take several minutes. Please only click the button once.
+    </div>
+    <div class="field">
+      <input required <%= props.success ? 'disabled' : null %> type="file" accept="text/csv" name="listings" aria-label="Upload listings CSV file">
+    </div>
+    <div class="field">
+      <input <%= props.success ? 'disabled' : null %> <%= props.geocodingSuccess ? 'disabled' : null %> type="submit" value="Step 1: Upload CSV" class="ui button fluid teal-background">
+    </div>
+    <% if (props.success && props.success === true) { %>
+    <div class="ui success icon message">
+      <i class="large check middle aligned icon"></i>
+      <div class="content">
+        <div class="header">CSV Successfully Uploaded</div>
+        <p>Please click the button below for the next step.</p>
+      </div>
+    </div>
+    <% } else if (error?.message) { %>
+    <div class="ui negative message">
+      <header class="header"><%= error.message %></header>
+      <% if (error.errors) { %>
+      <div class="ui relaxed divided list">
+        <% error.errors.forEach(function({ path: [row, property], instance, message }) { %>
+        <%# The json is 0 indexed, but the CSV isn't. Add one to make the "row" correctly correspond to CSV row number %>
+        <% row ++ %>
+        <div class="item">
+          <i class="large map marker middle aligned icon"></i>
+          <div class="content">
+            <header style="font-weight: bold">Row <%= row %>: <%= (typeof instance === 'string' ? instance : '') %></header>
+            <p><%= property || 'Row' %> <%= message %></p>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+      <% } %>
+    </div>
+    <% if (!props?.success) { %> 
+      <div class='ui grey message'>
+        <div class='field'>
+          <div class='header'>
+            Please fix the errors above and upload your CSV again.
+          </div>
+        </div>
+      <% } if (props?.showEscapeHatch) { %>
+        <div class="field">
+          <div class="ui checkbox">
+            <input type="checkbox" id="disableStrict" name="disableStrict" value="true">
+            <label for='disableStrict' style='color: grey'>Advanced: Disable strict data validation (not recommended)</label>
+          </div>
+        </div>
+      </div>
+    <% } %>
+    <% } %>
+
+  </form>
+  <p></p>
+  <p></p>
+  <form role="form" action="/listings/preview" method="GET" >
+    <div class="field">
+      <button <%= props?.success ? null : 'disabled' %> href='/preview' value="Proceed to Next Step" class="ui button fluid teal-background">Proceed to Next Step</button>
+    </div>
+  </form>
+  </div>
+
+</div>
+</div>

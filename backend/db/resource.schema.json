@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://hto2020.com/schemas/sitetext1",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "name": { "type": "string" },
+      "link": { "type": "string", "format": "uri"  },
+      "resource_type": { "type": "string" },
+      "description": { "type": "string" }
+    },
+    "required": ["name", "link", "description"],
+    "additionalProperties": true
+  }
+}

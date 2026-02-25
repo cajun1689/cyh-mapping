@@ -1,0 +1,6 @@
+.env
+/node_modules
+test.js
+documentation.md
+accounts.md
+/archive
