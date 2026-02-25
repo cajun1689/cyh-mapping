@@ -302,6 +302,137 @@ router.post('/add', async (req, res) => {
   }
 })
 
+/* ----------- MANAGE / EDIT / DELETE LISTINGS ----------- */
+
+router.get('/manage', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT guid, full_name, parent_organization, category, city, latitude, longitude FROM listings ORDER BY category, full_name')
+    res.render('listings/manage', {
+      props: { activeNavTab: 'manage', listings: result.rows, message: req.flash('message')[0] || null }
+    })
+  } catch (error) {
+    console.error('Error loading listings:', error.message)
+    res.render('listings/manage', {
+      props: { activeNavTab: 'manage', listings: [], message: null },
+      error: 'Failed to load listings'
+    })
+  }
+})
+
+router.get('/edit/:guid', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM listings WHERE guid = $1', [req.params.guid])
+    if (!result.rows.length) {
+      req.flash('message', 'Listing not found')
+      return res.redirect('/listings/manage')
+    }
+    const existingCategories = await getExistingCategories()
+    res.render('listings/edit', {
+      props: { activeNavTab: 'manage', listing: result.rows[0], categories: existingCategories, success: false, error: null }
+    })
+  } catch (error) {
+    console.error('Error loading listing:', error.message)
+    req.flash('message', 'Error loading listing')
+    res.redirect('/listings/manage')
+  }
+})
+
+router.post('/edit/:guid', async (req, res) => {
+  const guid = parseInt(req.params.guid, 10)
+  try {
+    const body = req.body
+    const existingCategories = await getExistingCategories()
+
+    let category = (body.category || '').trim()
+    if (category === '__custom') {
+      category = (body.custom_category || '').trim()
+    }
+
+    const updates = {
+      full_name: (body.full_name || '').trim(),
+      category,
+      description: (body.description || '').trim(),
+      parent_organization: (body.parent_organization || '').trim() || null,
+      phone_1: (body.phone_1 || '').trim() || null,
+      crisis_line_number: (body.crisis_line_number || '').trim() || null,
+      website: (body.website || '').trim() || null,
+      program_email: (body.program_email || '').trim() || null,
+      full_address: (body.full_address || '').trim() || null,
+      city: (body.city || '').trim() || null,
+      min_age: body.min_age ? parseInt(body.min_age, 10) : null,
+      max_age: body.max_age ? parseInt(body.max_age, 10) : null,
+      eligibility_requirements: (body.eligibility_requirements || '').trim() || null,
+      financial_information: (body.financial_information || '').trim() || null,
+      intake_instructions: (body.intake_instructions || '').trim() || null,
+    }
+
+    const serviceType = (body.service_type || 'In-Person').trim()
+    updates.keywords = `{${serviceType}}`
+
+    const langs = (body.languages_offered || '').trim()
+    updates.languages_offered = langs ? `{${langs}}` : null
+
+    if (body.re_geocode && updates.full_address) {
+      const coords = await geocodeAddress(updates.full_address)
+      if (coords) {
+        updates.latitude = coords.latitude
+        updates.longitude = coords.longitude
+      }
+    }
+
+    // Build UPDATE query dynamically from columns that exist in the table
+    const colInfo = await pool.query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'listings' ORDER BY ordinal_position`)
+    const tableColumns = colInfo.rows.map(r => r.column_name)
+
+    const setClauses = []
+    const values = []
+    let paramIdx = 1
+
+    for (const col of tableColumns) {
+      if (col === 'guid') continue
+      if (updates[col] !== undefined) {
+        setClauses.push(`${col} = $${paramIdx}`)
+        values.push(updates[col])
+        paramIdx++
+      }
+    }
+
+    values.push(guid)
+    const updateQuery = `UPDATE listings SET ${setClauses.join(', ')} WHERE guid = $${paramIdx}`
+    await pool.query(updateQuery, values)
+
+    console.info(`Listing updated: [${guid}] ${updates.full_name}`)
+
+    const updated = await pool.query('SELECT * FROM listings WHERE guid = $1', [guid])
+    return res.render('listings/edit', {
+      props: { activeNavTab: 'manage', listing: updated.rows[0], categories: await getExistingCategories(), success: true, error: null }
+    })
+  } catch (error) {
+    console.error('Error updating listing:', error.message)
+    const result = await pool.query('SELECT * FROM listings WHERE guid = $1', [guid])
+    const existingCategories = await getExistingCategories()
+    return res.render('listings/edit', {
+      props: { activeNavTab: 'manage', listing: result.rows[0] || {}, categories: existingCategories, success: false, error: `Failed to save: ${error.message}` }
+    })
+  }
+})
+
+router.post('/delete/:guid', async (req, res) => {
+  try {
+    const guid = parseInt(req.params.guid, 10)
+    const listing = await pool.query('SELECT full_name FROM listings WHERE guid = $1', [guid])
+    const name = listing.rows[0]?.full_name || 'Unknown'
+    await pool.query('DELETE FROM listings WHERE guid = $1', [guid])
+    console.info(`Listing deleted: [${guid}] ${name}`)
+    req.flash('message', `"${name}" has been deleted.`)
+    res.redirect('/listings/manage')
+  } catch (error) {
+    console.error('Error deleting listing:', error.message)
+    req.flash('message', 'Error deleting listing')
+    res.redirect('/listings/manage')
+  }
+})
+
 // Catch all for /listings
 router.get('/*', (req, res) => {
   if (req.isAuthenticated()) return res.redirect('/listings/upload')

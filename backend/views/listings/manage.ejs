@@ -1,0 +1,95 @@
+<div class="ui segment" style="max-width: 1100px; margin: 1.5em auto; padding: 1.5em;">
+  <header style="text-align: center; margin-bottom: 1em;">
+    <h1 class="ui header dark-teal-text">
+      <i class="ui icon th list"></i>
+      <div class="content">
+        Manage Listings
+        <div class="sub header"><%= props.listings.length %> resources in the system</div>
+      </div>
+    </h1>
+  </header>
+
+  <% if (props.message) { %>
+  <div class="ui success icon message">
+    <i class="large check middle aligned icon"></i>
+    <div class="content"><div class="header"><%= props.message %></div></div>
+  </div>
+  <% } %>
+
+  <div style="margin-bottom: 1em; display: flex; gap: .5em; flex-wrap: wrap; align-items: center;">
+    <a href="/listings/add" class="ui button teal small"><i class="plus icon"></i>Add New</a>
+    <div class="ui small input" style="flex: 1; min-width: 200px;">
+      <input type="text" id="listing-search" placeholder="Search by name, category, or city..." oninput="filterTable(this.value)">
+    </div>
+  </div>
+
+  <table class="ui celled striped compact table" id="listings-table">
+    <thead>
+      <tr>
+        <th style="width:50px">#</th>
+        <th>Name</th>
+        <th>Category</th>
+        <th>City</th>
+        <th style="width:60px">Map</th>
+        <th style="width:120px">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% props.listings.forEach(function(listing) { %>
+      <tr>
+        <td><%= listing.guid %></td>
+        <td><strong><%= listing.full_name %></strong>
+          <% if (listing.parent_organization) { %>
+            <br><small style="color:#888"><%= listing.parent_organization %></small>
+          <% } %>
+        </td>
+        <td><%= listing.category %></td>
+        <td><%= listing.city || '—' %></td>
+        <td style="text-align:center">
+          <% if (listing.latitude && listing.longitude) { %>
+            <i class="green map marker alternate icon" title="Has coordinates"></i>
+          <% } else { %>
+            <i class="grey minus icon" title="No coordinates"></i>
+          <% } %>
+        </td>
+        <td>
+          <a href="/listings/edit/<%= listing.guid %>" class="ui mini button blue"><i class="edit icon"></i>Edit</a>
+          <button class="ui mini button red" onclick="confirmDelete(<%= listing.guid %>, '<%= listing.full_name.replace(/'/g, "\\'") %>')"><i class="trash icon"></i></button>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<div class="ui mini modal" id="delete-modal">
+  <div class="header">Delete Listing</div>
+  <div class="content">
+    <p>Are you sure you want to delete "<span id="delete-name"></span>"? This cannot be undone.</p>
+  </div>
+  <div class="actions">
+    <div class="ui cancel button">Cancel</div>
+    <form id="delete-form" method="POST" style="display:inline">
+      <button type="submit" class="ui red button">Delete</button>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+<script>
+  function filterTable(query) {
+    var rows = document.querySelectorAll('#listings-table tbody tr');
+    var q = query.toLowerCase();
+    rows.forEach(function(row) {
+      var text = row.textContent.toLowerCase();
+      row.style.display = text.includes(q) ? '' : 'none';
+    });
+  }
+
+  function confirmDelete(guid, name) {
+    document.getElementById('delete-name').textContent = name;
+    document.getElementById('delete-form').action = '/listings/delete/' + guid;
+    $('.ui.modal').modal('show');
+  }
+</script>

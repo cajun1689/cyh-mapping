@@ -7,6 +7,10 @@
     <strong>CYH Admin Home</strong>
   </a>
   <div class="right menu">
+    <a href="/listings/manage"
+      class="item right custom-right <%= props?.activeNavTab === 'manage' ? 'active' : '' %>">
+      <i class="ui icon th list"></i>Manage
+    </a>
     <a href="/listings/add"
       class="item right custom-right <%= props?.activeNavTab === 'add-listing' ? 'active' : '' %>">
       <i class="ui icon plus"></i>Add Listing
