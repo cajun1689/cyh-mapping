@@ -1,6 +1,7 @@
 const router = require('express').Router()
 const { pool } = require('../db')
 const { ensureLogin, ensureOwner, checkRequirePasswordChange } = require('../middleware/routeProtection')
+const sendWelcomeEmail = require('../services/welcomeEmail')
 
 router.use(ensureLogin)
 router.use(checkRequirePasswordChange)
@@ -95,6 +96,29 @@ router.post('/assign/:id', async (req, res) => {
   } catch (error) {
     console.error('Error assigning listings:', error.message)
     req.flash('message', 'Error updating assignments.')
+    res.redirect('/users/manage')
+  }
+})
+
+router.post('/resend-welcome/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10)
+    const result = await pool.query('SELECT email, role FROM staging_user WHERE id = $1', [id])
+    if (!result.rows.length) {
+      req.flash('message', 'User not found.')
+      return res.redirect('/users/manage')
+    }
+    const user = result.rows[0]
+    if (user.role !== 'org') {
+      req.flash('message', 'Welcome emails are only for organization users.')
+      return res.redirect('/users/manage')
+    }
+    await sendWelcomeEmail({ to: user.email })
+    req.flash('message', `Welcome email resent to ${user.email}.`)
+    res.redirect('/users/manage')
+  } catch (error) {
+    console.error('Error resending welcome email:', error.message)
+    req.flash('message', 'Failed to send email. Check SendGrid configuration.')
     res.redirect('/users/manage')
   }
 })
