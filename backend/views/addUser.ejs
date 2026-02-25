@@ -20,7 +20,7 @@
       </div>
       <h3 class="ui header centered">Role</h3>
       <div class="ui field">
-        <select class="ui dropdown" name="role" id="role-select">
+        <select name="role" id="role-select" style="width:100%; padding:.67em 1em; border:1px solid rgba(34,36,38,.15); border-radius:.29em; font-size:1em;">
           <option value="user">Admin (full access)</option>
           <option value="org">Organization (edit own listings only)</option>
         </select>
@@ -28,9 +28,9 @@
 
       <div id="listing-assignment" style="display: none; margin-top: 1em;">
         <h3 class="ui header centered">Assign Listings</h3>
-        <p style="text-align:center; color:#888; font-size:.9em;">Select the listing(s) this org user should manage.</p>
+        <p style="text-align:center; color:#888; font-size:.9em;">Select the listing(s) this org user should manage. Hold Ctrl/Cmd to select multiple.</p>
         <div class="ui field">
-          <select class="ui dropdown search multiple" name="listing_guids" multiple id="listing-select">
+          <select name="listing_guids" multiple id="listing-select" size="8" style="width:100%; padding:.5em; border:1px solid rgba(34,36,38,.15); border-radius:.29em; font-size:1em;">
             <% if (props.listings) { %>
               <% props.listings.forEach(function(l) { %>
                 <option value="<%= l.guid %>"><%= l.full_name %> (<%= l.city || 'No city' %>)</option>
@@ -45,15 +45,8 @@
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
 <script>
-  $(document).ready(function() {
-    $('#role-select').dropdown({
-      onChange: function(value) {
-        document.getElementById('listing-assignment').style.display = value === 'org' ? 'block' : 'none';
-      }
-    });
-    $('#listing-select').dropdown();
+  document.getElementById('role-select').addEventListener('change', function() {
+    document.getElementById('listing-assignment').style.display = this.value === 'org' ? 'block' : 'none';
   });
 </script>
