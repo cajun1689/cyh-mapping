@@ -7,11 +7,10 @@ import { formatListings } from './utils'
 
 const CURRENT_URL = new URL(window.location)
 const API_URL =
-  CURRENT_URL.searchParams.get('api') ?? (
-  CURRENT_URL.hostname === `localhost` ? `http://localhost:5050/api`
-: CURRENT_URL.hostname === `hto2020-frontend-staging.herokuapp.com` ? `https://hto2020-backend-staging.herokuapp.com/api`
-: `https://hto2020-backend-production.herokuapp.com/api`
-)
+  CURRENT_URL.searchParams.get('api') ??
+  (CURRENT_URL.hostname === 'localhost'
+    ? 'http://localhost:5050/api'
+    : `${window.location.origin}/api`)
 
 Promise
   .all([

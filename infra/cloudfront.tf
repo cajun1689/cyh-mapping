@@ -29,7 +29,7 @@ resource "aws_cloudfront_distribution" "frontend" {
 
   # EC2 origin for backend API
   origin {
-    domain_name = aws_eip.backend.public_ip
+    domain_name = aws_eip.backend.public_dns
     origin_id   = local.backend_origin_id
 
     custom_origin_config {

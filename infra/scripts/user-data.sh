@@ -18,6 +18,7 @@ PROJECT_NAME="${project_name}"
 BACKEND_PORT="${backend_port}"
 DOMAIN_NAME="${domain_name}"
 
+REPO_DIR="/home/ec2-user/repo"
 APP_DIR="/home/ec2-user/app"
 
 # -------------------------------------------------------------------
@@ -39,7 +40,6 @@ npm install -g pm2
 dnf install -y postgresql15-server postgresql15
 postgresql-setup --initdb
 
-# Configure pg_hba.conf for local password auth
 PG_HBA="/var/lib/pgsql/data/pg_hba.conf"
 sed -i 's/^local\s\+all\s\+all\s\+peer/local   all             all                                     md5/' "$PG_HBA"
 sed -i 's/^host\s\+all\s\+all\s\+127.0.0.1\/32\s\+ident/host    all             all             127.0.0.1\/32            md5/' "$PG_HBA"
@@ -47,25 +47,24 @@ sed -i 's/^host\s\+all\s\+all\s\+127.0.0.1\/32\s\+ident/host    all             
 systemctl enable postgresql
 systemctl start postgresql
 
-# Create database and user
 sudo -u postgres psql -c "CREATE USER cyh_app WITH PASSWORD '$DB_PASSWORD';"
 sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER cyh_app;"
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO cyh_app;"
 
 # -------------------------------------------------------------------
-# 4. Clone backend and install dependencies
+# 4. Clone repo and install backend dependencies
 # -------------------------------------------------------------------
-sudo -u ec2-user git clone "$GITHUB_REPO_URL" "$APP_DIR"
+sudo -u ec2-user git clone "$GITHUB_REPO_URL" "$REPO_DIR"
+
+# The backend lives in the backend/ subdirectory
+cp -r "$REPO_DIR/backend" "$APP_DIR"
+chown -R ec2-user:ec2-user "$APP_DIR"
 cd "$APP_DIR"
 sudo -u ec2-user npm install --production
 
 # -------------------------------------------------------------------
-# 5. Set up the database tables and seed admin user
+# 5. Set up database tables and seed admin user
 # -------------------------------------------------------------------
-cp /tmp/setup-db.sh "$APP_DIR/setup-db.sh" 2>/dev/null || true
-# Run the setup script that Terraform also deploys (via Makefile on first deploy)
-# For now, create the essential tables inline:
-
 DATABASE_URL="postgresql://cyh_app:$DB_PASSWORD@localhost:5432/$DB_NAME"
 
 PGPASSWORD="$DB_PASSWORD" psql -U cyh_app -h localhost -d "$DB_NAME" <<'EOSQL'
@@ -170,12 +169,11 @@ CREATE TABLE IF NOT EXISTS meta (
 );
 EOSQL
 
-# Seed the admin user (bcrypt hash the password using Node)
+# Seed admin user (bcrypt hash via Node)
 HASHED_PW=$(node -e "const bcrypt = require('bcrypt'); bcrypt.hash('$ADMIN_PASSWORD', 10).then(h => process.stdout.write(h));")
 PGPASSWORD="$DB_PASSWORD" psql -U cyh_app -h localhost -d "$DB_NAME" \
   -c "INSERT INTO staging_user (email, password, require_password_reset) VALUES ('$ADMIN_EMAIL', '$HASHED_PW', false) ON CONFLICT (email) DO NOTHING;"
 
-# Seed an initial meta entry so the home page doesn't crash
 PGPASSWORD="$DB_PASSWORD" psql -U cyh_app -h localhost -d "$DB_NAME" \
   -c "INSERT INTO meta (email, file_name, listing_count) VALUES ('$ADMIN_EMAIL', 'initial-setup', 0) ON CONFLICT DO NOTHING;"
 
@@ -187,9 +185,10 @@ DATABASE_URL=$DATABASE_URL
 SESSION_SECRET=$SESSION_SECRET
 GOOGLE_API_KEY=$GOOGLE_API_KEY
 OWNER_EMAIL=$ADMIN_EMAIL
-FRONTEND_URL=https://$DOMAIN_NAME
+FRONTEND_URL=*
 BACKEND_URL=http://localhost:$BACKEND_PORT
 PORT=$BACKEND_PORT
+NODE_ENV=production
 EOF
 
 chown ec2-user:ec2-user "$APP_DIR/.env"
@@ -217,7 +216,6 @@ server {
 }
 EOF
 
-# Remove default server block if present
 rm -f /etc/nginx/conf.d/default.conf
 systemctl enable nginx
 systemctl restart nginx
@@ -231,15 +229,14 @@ sudo -u ec2-user pm2 save
 env PATH=$PATH:/usr/bin pm2 startup systemd -u ec2-user --hp /home/ec2-user
 
 # -------------------------------------------------------------------
-# 9. Set up daily database backup
+# 9. Daily database backup cron
 # -------------------------------------------------------------------
-cat > /etc/cron.daily/pg-backup <<'CRONEOF'
+cat > /etc/cron.daily/pg-backup <<CRONEOF
 #!/bin/bash
 BACKUP_DIR="/home/ec2-user/backups"
-mkdir -p "$BACKUP_DIR"
-PGPASSWORD="$DB_PASSWORD" pg_dump -U cyh_app -h localhost "$DB_NAME" | gzip > "$BACKUP_DIR/$(date +\%Y\%m\%d).sql.gz"
-# Keep only last 30 days
-find "$BACKUP_DIR" -name "*.sql.gz" -mtime +30 -delete
+mkdir -p "\$BACKUP_DIR"
+PGPASSWORD="$DB_PASSWORD" pg_dump -U cyh_app -h localhost "$DB_NAME" | gzip > "\$BACKUP_DIR/\$(date +\%Y\%m\%d).sql.gz"
+find "\$BACKUP_DIR" -name "*.sql.gz" -mtime +30 -delete
 CRONEOF
 chmod +x /etc/cron.daily/pg-backup
 

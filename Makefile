@@ -39,7 +39,7 @@ deploy-frontend:
 	@echo "=== Building frontend ==="
 	npm run build
 	@echo "=== Syncing to S3 ==="
-	aws s3 sync dist/ s3://$$($(TF_OUTPUT) frontend_bucket) --delete
+	aws s3 sync build/ s3://$$($(TF_OUTPUT) frontend_bucket) --delete
 	@echo "=== Invalidating CloudFront cache ==="
 	aws cloudfront create-invalidation \
 		--distribution-id $$($(TF_OUTPUT) cloudfront_id) \
