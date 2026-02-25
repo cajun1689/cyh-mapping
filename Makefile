@@ -37,7 +37,7 @@ status:
 
 deploy-frontend:
 	@echo "=== Building frontend ==="
-	npm run build
+	CI=false NODE_OPTIONS=--openssl-legacy-provider npm run build
 	@echo "=== Syncing to S3 ==="
 	aws s3 sync build/ s3://$$($(TF_OUTPUT) frontend_bucket) --delete
 	@echo "=== Invalidating CloudFront cache ==="
