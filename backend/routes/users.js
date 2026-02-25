@@ -109,10 +109,6 @@ router.post('/resend-welcome/:id', async (req, res) => {
       return res.redirect('/users/manage')
     }
     const user = result.rows[0]
-    if (user.role !== 'org') {
-      req.flash('message', 'Welcome emails are only for organization users.')
-      return res.redirect('/users/manage')
-    }
     await sendWelcomeEmail({ to: user.email })
     req.flash('message', `Welcome email resent to ${user.email}.`)
     res.redirect('/users/manage')

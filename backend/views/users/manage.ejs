@@ -80,13 +80,11 @@
         <td>
           <% if (u.id !== props.currentUserId) { %>
             <div style="display: flex; flex-direction: column; gap: .4em;">
-              <% if (u.role === 'org') { %>
-                <form action="/users/resend-welcome/<%= u.id %>" method="POST" style="margin:0;">
-                  <button type="submit" class="ui mini button blue fluid" onclick="return confirm('Resend welcome email to <%= u.email %>?')">
-                    <i class="envelope icon"></i> Resend Email
-                  </button>
-                </form>
-              <% } %>
+              <form action="/users/resend-welcome/<%= u.id %>" method="POST" style="margin:0;">
+                <button type="submit" class="ui mini button blue fluid" onclick="return confirm('Resend welcome email to <%= u.email %>?')">
+                  <i class="envelope icon"></i> Resend Email
+                </button>
+              </form>
               <button class="ui mini button red fluid" onclick="if(confirm('Delete user <%= u.email %>? Their listing assignments will be removed.')){document.getElementById('delete-form-<%= u.id %>').submit()}">
                 <i class="trash icon"></i> Delete
               </button>
