@@ -182,7 +182,7 @@ EOSQL
 # Seed admin user (bcrypt hash via Node)
 HASHED_PW=$(node -e "const bcrypt = require('bcrypt'); bcrypt.hash('$ADMIN_PASSWORD', 10).then(h => process.stdout.write(h));")
 PGPASSWORD="$DB_PASSWORD" psql -U cyh_app -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" \
-  -c "INSERT INTO staging_user (email, password, require_password_reset) VALUES ('$ADMIN_EMAIL', '$HASHED_PW', false) ON CONFLICT (email) DO NOTHING;"
+  -c "INSERT INTO staging_user (email, password, role, require_password_reset) VALUES ('$ADMIN_EMAIL', '$HASHED_PW', 'owner', false) ON CONFLICT (email) DO NOTHING;"
 
 PGPASSWORD="$DB_PASSWORD" psql -U cyh_app -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" \
   -c "INSERT INTO meta (email, file_name, listing_count) VALUES ('$ADMIN_EMAIL', 'initial-setup', 0) ON CONFLICT DO NOTHING;"
