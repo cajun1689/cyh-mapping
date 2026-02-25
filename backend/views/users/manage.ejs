@@ -1,0 +1,99 @@
+<div class="ui segment" style="max-width: 1000px; margin: 2em auto; padding: 2em;">
+  <header style="text-align: center; margin-bottom: 1.5em;">
+    <h1 class="ui header dark-teal-text">
+      <i class="ui icon users"></i>
+      <div class="content">
+        Manage Users
+        <div class="sub header">View, edit roles, assign listings, and remove users</div>
+      </div>
+    </h1>
+  </header>
+
+  <% if (props.message) { %>
+  <div class="ui info message" style="text-align: center;">
+    <p><%= props.message %></p>
+  </div>
+  <% } %>
+
+  <table class="ui celled striped table">
+    <thead>
+      <tr>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Assigned Listings</th>
+        <th style="width: 200px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% props.users.forEach(function(u) { %>
+      <tr>
+        <td>
+          <strong><%= u.email %></strong>
+          <% if (u.id === props.currentUserId) { %>
+            <span class="ui mini label teal">You</span>
+          <% } %>
+        </td>
+        <td>
+          <% if (u.id === props.currentUserId) { %>
+            <span class="ui label"><%= u.role %></span>
+          <% } else { %>
+            <form action="/users/role/<%= u.id %>" method="POST" style="display:inline;">
+              <select name="role" onchange="this.form.submit()" style="padding:.4em .6em; border:1px solid rgba(34,36,38,.15); border-radius:.29em;">
+                <option value="user" <%= u.role === 'user' ? 'selected' : '' %>>Admin</option>
+                <option value="org" <%= u.role === 'org' ? 'selected' : '' %>>Organization</option>
+                <option value="owner" <%= u.role === 'owner' ? 'selected' : '' %>>Owner</option>
+              </select>
+            </form>
+          <% } %>
+        </td>
+        <td>
+          <% if (u.role === 'org') { %>
+            <% var assigned = Array.isArray(u.assigned_listings) ? u.assigned_listings : JSON.parse(u.assigned_listings || '[]'); %>
+            <% if (assigned.length > 0) { %>
+              <div style="margin-bottom: .5em;">
+                <% assigned.forEach(function(al) { %>
+                  <span class="ui small label" style="margin: .15em;"><%= al.full_name %> (<%= al.city || 'N/A' %>)</span>
+                <% }) %>
+              </div>
+            <% } else { %>
+              <em style="color: #999;">None assigned</em>
+            <% } %>
+            <details style="margin-top: .5em;">
+              <summary style="cursor: pointer; color: #4183c4; font-size: .9em;">Edit assignments</summary>
+              <form action="/users/assign/<%= u.id %>" method="POST" style="margin-top: .5em;">
+                <select name="listing_guids" multiple size="6" style="width:100%; padding:.4em; border:1px solid rgba(34,36,38,.15); border-radius:.29em; font-size:.9em;">
+                  <% props.allListings.forEach(function(l) { %>
+                    <option value="<%= l.guid %>"
+                      <%= assigned.some(function(a){ return a.guid == l.guid }) ? 'selected' : '' %>
+                    ><%= l.full_name %> (<%= l.city || 'No city' %>)</option>
+                  <% }) %>
+                </select>
+                <small style="color: #888;">Hold Ctrl/Cmd to select multiple. Deselect all to remove assignments.</small>
+                <button type="submit" class="ui mini button teal-background" style="margin-top: .5em;">Save Assignments</button>
+              </form>
+            </details>
+          <% } else { %>
+            <span style="color: #999;">&mdash;</span>
+          <% } %>
+        </td>
+        <td>
+          <% if (u.id !== props.currentUserId) { %>
+            <button class="ui mini button red" onclick="if(confirm('Delete user <%= u.email %>? Their listing assignments will be removed.')){document.getElementById('delete-form-<%= u.id %>').submit()}">
+              <i class="trash icon"></i> Delete
+            </button>
+            <form id="delete-form-<%= u.id %>" action="/users/delete/<%= u.id %>" method="POST" style="display:none;"></form>
+          <% } else { %>
+            <span style="color: #999;">&mdash;</span>
+          <% } %>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <div style="text-align: center; margin-top: 1.5em;">
+    <a href="/add-user" class="ui button teal-background">
+      <i class="plus icon"></i> Create New User
+    </a>
+  </div>
+</div>

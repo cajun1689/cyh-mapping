@@ -37,7 +37,7 @@
 
     <div class="required field">
       <label>Category</label>
-      <select class="ui dropdown" name="category" required>
+      <select name="category" required style="width:100%; padding:.67em 1em; border:1px solid rgba(34,36,38,.15); border-radius:.29em; font-size:1em;">
         <option value="">-- Select a category --</option>
         <% if (props.categories) { %>
           <% props.categories.forEach(function(cat) { %>
