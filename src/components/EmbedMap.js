@@ -15,7 +15,7 @@ import './Map.css'
 function EmbedMap({ listings, metadata }) {
   const [searchParams] = useSearchParams()
   const [search, setSearch] = useState()
-  const [hideFaithBased, setHideFaithBased] = useState(false)
+  const [hideFaithBased, setHideFaithBased] = useState(searchParams.get('hide_faith') === '1')
   const [ageGroupFilter, setAgeGroupFilter] = useState(searchParams.get('age_group') || 'Youth')
 
   const filteredListings = useMemo(
