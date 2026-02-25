@@ -104,7 +104,7 @@ const createMetaEntry = async (email, fileName) => {
     await db.query(CREATE_META_TABLE)
     const listingCount = (await db.query('SELECT * FROM listings')).rows.length
     // Create record of the data update that just happened 
-    await db.query(`SET timezone = 'PST8PDT'`)
+    await db.query(`SET timezone = 'MST7MDT'`)
     await db.query('INSERT INTO meta (email, file_name, listing_count) VALUES ($1, $2, $3) RETURNING *', [email, fileName, listingCount])
     return true
   } catch (error) {

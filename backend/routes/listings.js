@@ -10,8 +10,7 @@ const listingsSchema = require('../db/listings.schema.json')
 const { GEOCODER, PAPA_PARSE } = require('../utils/constants')
 const sendEmail = require('../services/sendEmail')
 const { addCostToListing } = require('../utils/listingMetaUtils')
-// Json file with max and min valid lat/longs by state
-const oregon = require('../utils/stateBoundaries.json').Oregon
+const wyoming = require('../utils/stateBoundaries.json').Wyoming
 const { TABLE_LISTINGS_COLUMNS, DROP_TABLE_PREVIEW_LISTINGS, CREATE_TABLE_PREVIEW_LISTINGS, INSERT_INTO_PREVIEW_LISTINGS, promotePreviewListingsToProd, createBackupListingTable, createMetaEntry, splitCategory, addCity } = require('../utils/listingUtils')
 const { geocodeFromExisting, recreateGeocodingTable } = require('../utils/geocodingUtils')
 const upload = multer()
@@ -20,11 +19,7 @@ const { geocodeListing } = require('../services/geocoding')
 const axios = require('axios')
 const API_KEY = process.env.GOOGLE_API_KEY
 
-// Make sure the coordinates we receive from the maps API are actually in Oregon. 
-const isInOregon = (lat, long) => ((lat >= oregon.min_lat && lat <= oregon.max_lat) && (long >= oregon.min_long && long <= oregon.max_long))
-// Filters out outliers that will skew the map view. Running the function below filters out any listing east of Burns, Oregon. We only have 2, and it skews the entire map display, so this is the shortest solution.
-const westOregon = { "min_long": -124.566244,	"min_lat": 41.991794,	"max_long": -119.0541,	"max_lat": 46.292035 }
-const isInWestOregon = (lat, long) => ((lat >= westOregon.min_lat && lat <= westOregon.max_lat) && (long >= westOregon.min_long && long <= westOregon.max_long))
+const isInState = (lat, long) => ((lat >= wyoming.min_lat && lat <= wyoming.max_lat) && (long >= wyoming.min_long && long <= wyoming.max_long))
 
 router.use(ensureLogin)
 router.use(checkRequirePasswordChange)
@@ -99,12 +94,13 @@ router.post('/upload', upload.single('listings'),
 
       const writeToDatabase = async listing => {
         if (listing.latitude && listing.longitude) {
-          if (isInWestOregon(listing.latitude, listing.longitude)) {
+          if (isInState(listing.latitude, listing.longitude)) {
             addCity(listing)
             await client.query(INSERT_INTO_PREVIEW_LISTINGS, TABLE_LISTINGS_COLUMNS.map(column => listing[column]))
             return
           }
         } else {
+          addCity(listing)
           await client.query(INSERT_INTO_PREVIEW_LISTINGS, TABLE_LISTINGS_COLUMNS.map(column => listing[column]))
           return
         }
