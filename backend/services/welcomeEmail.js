@@ -1,5 +1,6 @@
 const sendEmail = require('./sendEmail')
 const ownerEmail = process.env.OWNER_EMAIL
+const fromEmail = 'noreply@casperyouthhubmap.org'
 
 const loginUrl = 'https://casperyouthhubmap.org/auth/login'
 
@@ -7,7 +8,7 @@ async function sendWelcomeEmail({ to, tempPassword }) {
   const hasPassword = !!tempPassword
   return sendEmail({
     to,
-    from: ownerEmail,
+    from: fromEmail,
     subject: 'Welcome to the Wyoming Resource Map',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
