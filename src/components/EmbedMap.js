@@ -1,37 +1,83 @@
 import React, { useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { Segment, Card, Dropdown, Form, Input, Icon } from "semantic-ui-react"
+import { Segment, Card, Dropdown, Form, Grid, Input, Icon } from "semantic-ui-react"
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from "react-leaflet"
 import MarkerClusterGroup from 'react-leaflet-markercluster'
 
 import 'leaflet/dist/leaflet.css'
 import 'react-leaflet-markercluster/dist/styles.min.css'
 
-import { filterListings, getCityCount } from '../utils'
+import { filterListings, getCityCount, getKeywordCount, getCostCount } from '../utils'
 import { blueLMarker } from '../resources/mapIcons'
 import siteConfig from '../siteConfig.json'
 import './Map.css'
 
 function EmbedMap({ listings, metadata }) {
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [search, setSearch] = useState()
   const [hideFaithBased, setHideFaithBased] = useState(searchParams.get('hide_faith') === '1')
   const [ageGroupFilter, setAgeGroupFilter] = useState(searchParams.get('age_group') || 'Youth')
+  const [categoryFilter, setCategoryFilter] = useState('')
+  const [tagFilter, setTagFilter] = useState('')
+  const [costFilter, setCostFilter] = useState('')
+  const [cityFilter, setCityFilter] = useState('')
   const showFaithToggle = searchParams.get('no_faith_toggle') !== '1'
   const prideGradient = 'linear-gradient(90deg, #E40303, #FF8C00, #FFED00, #008026, #004DFF, #750787)'
   const rawToolbar = searchParams.get('toolbar_color')
   const toolbarBg = rawToolbar === 'pride' ? prideGradient : rawToolbar ? `#${rawToolbar}` : '#1B3A5C'
   const accentColor = searchParams.get('accent_color') ? `#${searchParams.get('accent_color')}` : '#F5C518'
 
+  const { listingCategoryIcons, listingCategories } = metadata || {}
+
+  const localFilteredListings = useMemo(() => {
+    let result = listings
+    if (categoryFilter) result = result.filter(l => l.category === categoryFilter)
+    if (tagFilter) result = result.filter(l => {
+      const entries = Object.entries(l).join(' ').toLowerCase()
+      return entries.includes(tagFilter.toLowerCase())
+    })
+    if (costFilter) result = result.filter(l => l.cost_keywords && l.cost_keywords.includes(costFilter))
+    if (cityFilter) result = result.filter(l => l.city === cityFilter)
+    return result
+  }, [listings, categoryFilter, tagFilter, costFilter, cityFilter])
+
   const filteredListings = useMemo(
-    () => filterListings(listings, searchParams, search, [], { hideFaithBased, ageGroupFilter }),
-    [listings, searchParams, search, hideFaithBased, ageGroupFilter]
+    () => filterListings(localFilteredListings, searchParams, search, [], { hideFaithBased, ageGroupFilter }),
+    [localFilteredListings, searchParams, search, hideFaithBased, ageGroupFilter]
   )
 
-  const listingCities = useMemo(() => getCityCount(filteredListings ?? {}), [filteredListings])
+  const listingCities = useMemo(() => getCityCount(localFilteredListings ?? []), [localFilteredListings])
+  const keywordCount = useMemo(() => getKeywordCount(localFilteredListings ?? []), [localFilteredListings])
+  const costCount = useMemo(() => getCostCount(localFilteredListings ?? []), [localFilteredListings])
+
+  const keywordOptions = Object.entries(keywordCount).map(([k, n]) => ({ key: k, text: `${k} (${n})`, value: k }))
+  const costOptions = Object.entries(costCount).map(([k, n]) => ({ key: k, text: `${k} (${n})`, value: k }))
+  const cityOptions = Object.entries(listingCities).map(([c, n]) => ({ key: c, text: `${c} (${n})`, value: c }))
 
   return (
     <div id="embed-wrapper" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {listingCategories && (
+        <div style={{ background: toolbarBg, padding: '.4em 0', display: 'flex', justifyContent: 'center', gap: '1.5em', flexWrap: 'wrap' }}>
+          {Object.entries(listingCategories).map(([parentCategory, subCategories]) => (
+            <Dropdown key={parentCategory} icon={null} pointing="top"
+              trigger={
+                <div style={{ textAlign: 'center', cursor: 'pointer', color: 'white', fontSize: '.75em', opacity: categoryFilter && !categoryFilter.startsWith(parentCategory) ? 0.5 : 1 }}>
+                  <Icon name={listingCategoryIcons?.[parentCategory]?.icon || 'folder'} size="big" />
+                  <div>{parentCategory}</div>
+                </div>
+              }>
+              <Dropdown.Menu>
+                {Object.entries(subCategories).map(([sub, count]) => (
+                  <Dropdown.Item key={sub} text={`${sub} (${count})`}
+                    active={categoryFilter === `${parentCategory}: ${sub}`}
+                    onClick={() => setCategoryFilter(categoryFilter === `${parentCategory}: ${sub}` ? '' : `${parentCategory}: ${sub}`)}
+                  />
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
+          ))}
+        </div>
+      )}
       <div style={{ background: toolbarBg, padding: '.5em .75em', display: 'flex', gap: '.5em', alignItems: 'center', flexWrap: 'wrap' }}>
         <Input
           size="small"
@@ -39,17 +85,39 @@ function EmbedMap({ listings, metadata }) {
           iconPosition="left"
           placeholder="Search..."
           onChange={(e, { value }) => setSearch(value)}
-          style={{ flex: 1, minWidth: '140px' }}
+          style={{ flex: 1, minWidth: '120px' }}
         />
-        {Object.keys(listingCities).length > 0 && (
+        {cityOptions.length > 0 && (
           <Dropdown
-            options={Object.entries(listingCities).map(([c, n]) => ({ key: c, text: `${c} (${n})`, value: c }))}
+            options={cityOptions}
             search selection clearable compact
             placeholder="Location"
             selectOnBlur={false}
-            style={{ minWidth: '140px' }}
-            value={searchParams.get('city') || ''}
-            onChange={() => {}}
+            style={{ minWidth: '120px' }}
+            value={cityFilter}
+            onChange={(e, { value }) => setCityFilter(value || '')}
+          />
+        )}
+        {keywordOptions.length > 0 && (
+          <Dropdown
+            options={keywordOptions}
+            search selection clearable compact
+            placeholder="Service Type"
+            selectOnBlur={false}
+            style={{ minWidth: '120px' }}
+            value={tagFilter}
+            onChange={(e, { value }) => setTagFilter(value || '')}
+          />
+        )}
+        {costOptions.length > 0 && (
+          <Dropdown
+            options={costOptions}
+            search selection clearable compact
+            placeholder="Cost"
+            selectOnBlur={false}
+            style={{ minWidth: '100px' }}
+            value={costFilter}
+            onChange={(e, { value }) => setCostFilter(value || '')}
           />
         )}
         <Dropdown
@@ -64,7 +132,7 @@ function EmbedMap({ listings, metadata }) {
           style={{ minWidth: '100px' }}
         />
         {showFaithToggle && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
             <Form.Checkbox
               toggle
               fitted
