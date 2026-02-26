@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { Container, Header, Segment, Form, Dropdown, Button, Icon, Message, Tab } from 'semantic-ui-react'
 import siteConfig from '../siteConfig.json'
 
@@ -44,6 +44,9 @@ function EmbedCodePage() {
   const iframeSnippet = `<iframe src="${baseUrl}/#/embed${queryString ? '?' + queryString : ''}" width="100%" height="${height}px" style="border:none; border-radius:8px;" loading="lazy" title="${siteConfig.siteName}"></iframe>`
 
   const previewUrl = `${baseUrl}/#/embed${queryString ? '?' + queryString : ''}`
+  const previewKey = useRef(0)
+  const prevUrl = useRef(previewUrl)
+  if (prevUrl.current !== previewUrl) { previewKey.current++; prevUrl.current = previewUrl; }
 
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text)
@@ -187,7 +190,7 @@ function EmbedCodePage() {
         <Header as="h4">Preview</Header>
         <div style={{ border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden' }}>
           <iframe
-            key={previewUrl}
+            key={previewKey.current}
             src={previewUrl}
             width="100%"
             height={`${height}px`}
