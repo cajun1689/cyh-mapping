@@ -258,7 +258,7 @@ return (<>
             options={keywordDropdownOptions} 
             search selection clearable 
             button
-            placeholder={<div><i className="ui icon user" id="keyword-icon"></i><span id="keyword-label">  Population</span></div>}
+            placeholder={<div><i className="ui icon tag" id="keyword-icon"></i><span id="keyword-label">  Service Type</span></div>}
             selectOnBlur={false}
             inverted fluid 
             value={searchParams.get('tag') || ``} 
