@@ -41,9 +41,15 @@ function EmbedMap({ listings, metadata }) {
     return result
   }, [listings, categoryFilter, tagFilter, costFilter, cityFilter])
 
+  const cleanParams = useMemo(() => {
+    const clean = new URLSearchParams(searchParams)
+    ;['toolbar_color', 'accent_color', 'hide_faith', 'no_faith_toggle', 'age_select'].forEach(k => clean.delete(k))
+    return clean
+  }, [searchParams])
+
   const filteredListings = useMemo(
-    () => filterListings(localFilteredListings, searchParams, search, [], { hideFaithBased, ageGroupFilter }),
-    [localFilteredListings, searchParams, search, hideFaithBased, ageGroupFilter]
+    () => filterListings(localFilteredListings, cleanParams, search, [], { hideFaithBased, ageGroupFilter }),
+    [localFilteredListings, cleanParams, search, hideFaithBased, ageGroupFilter]
   )
 
   const listingCities = useMemo(() => getCityCount(localFilteredListings ?? []), [localFilteredListings])
