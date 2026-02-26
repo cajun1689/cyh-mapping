@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { Segment, Card, Dropdown, Form, Grid, Input, Icon } from "semantic-ui-react"
+import { Segment, Card, Dropdown, Form, Input, Icon } from "semantic-ui-react"
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from "react-leaflet"
 import MarkerClusterGroup from 'react-leaflet-markercluster'
 
@@ -13,7 +13,7 @@ import siteConfig from '../siteConfig.json'
 import './Map.css'
 
 function EmbedMap({ listings, metadata }) {
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const [search, setSearch] = useState()
   const [hideFaithBased, setHideFaithBased] = useState(searchParams.get('hide_faith') === '1')
   const [ageGroupFilter, setAgeGroupFilter] = useState(searchParams.get('age_group') || 'Youth')

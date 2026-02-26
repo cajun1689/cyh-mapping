@@ -3,7 +3,8 @@ import {HashRouter as Router, Route, Routes} from 'react-router-dom'
 
 import './index.css'
 import Page from './components/Page'
-import Map, { EmbedContext } from './components/Map'
+import Map from './components/Map'
+import EmbedMap from './components/EmbedMap'
 import EmbedCode from './components/EmbedCode'
 
 import { CONTENT } from './constants'
@@ -25,12 +26,10 @@ function App({listings, metadata}) {
   if (isEmbed) {
     return (
       <Router>
-        <EmbedContext.Provider value="/embed">
-          <Routes>
-            <Route path="/embed" element={<Map listings={listings} metadata={metadata} ageGroupFilter={ageGroupFilter} setAgeGroupFilter={setAgeGroupFilter} />} />
-            <Route path="/embed/:markerId" element={<Map listings={listings} metadata={metadata} ageGroupFilter={ageGroupFilter} setAgeGroupFilter={setAgeGroupFilter} />} />
-          </Routes>
-        </EmbedContext.Provider>
+        <Routes>
+          <Route path="/embed" element={<EmbedMap listings={listings} metadata={metadata} />} />
+          <Route path="/embed/:markerId" element={<EmbedMap listings={listings} metadata={metadata} />} />
+        </Routes>
       </Router>
     )
   }
