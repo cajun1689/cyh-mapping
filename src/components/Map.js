@@ -301,7 +301,7 @@ return (<>
               toggle
               checked={!hideFaithBased}
               onChange={() => setHideFaithBased(!hideFaithBased)}
-              label={<label style={{color: 'white', fontSize: '.9em', fontWeight: 'bold', whiteSpace: 'nowrap', paddingLeft: '4.3em'}}>Include faith-based</label>}
+              label={<label style={{color: hideFaithBased ? 'white' : 'yellow', fontSize: '.9em', fontWeight: 'bold', whiteSpace: 'nowrap', paddingLeft: '4.3em', marginLeft: '10px'}}>Include faith-based organizations</label>}
             />
           </Grid.Column>
         </Grid>}
