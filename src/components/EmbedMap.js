@@ -18,6 +18,8 @@ function EmbedMap({ listings, metadata }) {
   const [hideFaithBased, setHideFaithBased] = useState(searchParams.get('hide_faith') === '1')
   const [ageGroupFilter, setAgeGroupFilter] = useState(searchParams.get('age_group') || 'Youth')
   const showFaithToggle = searchParams.get('no_faith_toggle') !== '1'
+  const toolbarColor = searchParams.get('toolbar_color') ? `#${searchParams.get('toolbar_color')}` : '#1B3A5C'
+  const accentColor = searchParams.get('accent_color') ? `#${searchParams.get('accent_color')}` : '#F5C518'
 
   const filteredListings = useMemo(
     () => filterListings(listings, searchParams, search, [], { hideFaithBased, ageGroupFilter }),
@@ -28,7 +30,7 @@ function EmbedMap({ listings, metadata }) {
 
   return (
     <div id="embed-wrapper" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ background: '#1B3A5C', padding: '.5em .75em', display: 'flex', gap: '.5em', alignItems: 'center', flexWrap: 'wrap' }}>
+      <div style={{ background: toolbarColor, padding: '.5em .75em', display: 'flex', gap: '.5em', alignItems: 'center', flexWrap: 'wrap' }}>
         <Input
           size="small"
           icon="search"
@@ -68,14 +70,14 @@ function EmbedMap({ listings, metadata }) {
               onChange={() => setHideFaithBased(!hideFaithBased)}
               style={{ margin: 0 }}
             />
-            <span style={{ color: hideFaithBased ? 'white' : '#F5C518', fontSize: '.8em', whiteSpace: 'nowrap', cursor: 'pointer' }} onClick={() => setHideFaithBased(!hideFaithBased)}>Include faith-based organizations</span>
+            <span style={{ color: hideFaithBased ? 'white' : accentColor, fontSize: '.8em', whiteSpace: 'nowrap', cursor: 'pointer' }} onClick={() => setHideFaithBased(!hideFaithBased)}>Include faith-based organizations</span>
           </div>
         )}
       </div>
       <div style={{ flex: 1, position: 'relative' }}>
         <EmbedMapContainer listings={filteredListings} />
       </div>
-      <div style={{ background: '#1B3A5C', padding: '.35em .75em', textAlign: 'center' }}>
+      <div style={{ background: toolbarColor, padding: '.35em .75em', textAlign: 'center' }}>
         <a href={siteConfig.siteUrl || window.location.origin} target="_blank" rel="noreferrer" style={{ color: '#fff', fontSize: '.8em', textDecoration: 'none' }}>
           <Icon name="map" size="small" /> {siteConfig.siteName}
         </a>

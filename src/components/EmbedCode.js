@@ -14,6 +14,8 @@ function EmbedCodePage() {
   const [ageSelectable, setAgeSelectable] = useState(false)
   const [includeFaith, setIncludeFaith] = useState(true)
   const [showFaithToggle, setShowFaithToggle] = useState(true)
+  const [toolbarColor, setToolbarColor] = useState('#1B3A5C')
+  const [accentColor, setAccentColor] = useState('#F5C518')
   const [copied, setCopied] = useState(false)
 
   const baseUrl = window.location.origin
@@ -24,6 +26,8 @@ function EmbedCodePage() {
     ageSelectable ? 'data-age-select' : '',
     !includeFaith ? 'data-hide-faith' : '',
     !showFaithToggle ? 'data-no-faith-toggle' : '',
+    toolbarColor !== '#1B3A5C' ? `data-toolbar-color="${toolbarColor}"` : '',
+    accentColor !== '#F5C518' ? `data-accent-color="${accentColor}"` : '',
   ].filter(Boolean).join(' ')
 
   const scriptSnippet = `<div id="wyrm-map"${dataAttrs ? ' ' + dataAttrs : ''}></div>\n<script src="${baseUrl}/embed.js"></script>`
@@ -33,6 +37,8 @@ function EmbedCodePage() {
   if (ageSelectable) params.set('age_select', '1')
   if (!includeFaith) params.set('hide_faith', '1')
   if (!showFaithToggle) params.set('no_faith_toggle', '1')
+  if (toolbarColor !== '#1B3A5C') params.set('toolbar_color', toolbarColor.replace('#', ''))
+  if (accentColor !== '#F5C518') params.set('accent_color', accentColor.replace('#', ''))
   const queryString = params.toString()
   const iframeSnippet = `<iframe src="${baseUrl}/#/embed${queryString ? '?' + queryString : ''}" width="100%" height="${height}px" style="border:none; border-radius:8px;" loading="lazy" title="${siteConfig.siteName}"></iframe>`
 
@@ -142,6 +148,22 @@ function EmbedCodePage() {
             label="Include faith-based organizations by default"
             style={{ marginTop: '.5em' }}
           />
+          <Form.Group widths="equal" style={{ marginTop: '1.5em' }}>
+            <Form.Field>
+              <label>Toolbar Color</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input type="color" value={toolbarColor} onChange={(e) => setToolbarColor(e.target.value)} style={{ width: '40px', height: '36px', padding: '2px', border: '1px solid #ddd', borderRadius: '4px', cursor: 'pointer' }} />
+                <input type="text" value={toolbarColor} onChange={(e) => setToolbarColor(e.target.value)} style={{ flex: 1, padding: '.5em', border: '1px solid rgba(34,36,38,.15)', borderRadius: '.29em', fontFamily: 'monospace' }} />
+              </div>
+            </Form.Field>
+            <Form.Field>
+              <label>Accent Color</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input type="color" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} style={{ width: '40px', height: '36px', padding: '2px', border: '1px solid #ddd', borderRadius: '4px', cursor: 'pointer' }} />
+                <input type="text" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} style={{ flex: 1, padding: '.5em', border: '1px solid rgba(34,36,38,.15)', borderRadius: '.29em', fontFamily: 'monospace' }} />
+              </div>
+            </Form.Field>
+          </Form.Group>
         </Form>
       </Segment>
 
@@ -173,7 +195,9 @@ function EmbedCodePage() {
           <Message.Item><code>data-age-select</code> &mdash; Add this attribute to let visitors change the age group themselves.</Message.Item>
           <Message.Item><code>data-hide-faith</code> &mdash; Hide faith-based organizations by default.</Message.Item>
           <Message.Item><code>data-no-faith-toggle</code> &mdash; Remove the faith-based toggle from the toolbar entirely.</Message.Item>
-          <Message.Item><code>data-height</code> &mdash; Height in pixels (default 600).</Message.Item>
+          <Message.Item><code>data-height</code> &mdash; Height in pixels (default 900).</Message.Item>
+          <Message.Item><code>data-toolbar-color</code> &mdash; Toolbar background color as hex (e.g. <code>#1B3A5C</code>).</Message.Item>
+          <Message.Item><code>data-accent-color</code> &mdash; Accent/highlight color as hex (e.g. <code>#F5C518</code>).</Message.Item>
           <Message.Item>The map updates automatically when new resources are added.</Message.Item>
         </Message.List>
       </Message>
