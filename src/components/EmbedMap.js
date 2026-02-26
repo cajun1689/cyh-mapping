@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { Segment, Card, Dropdown, Form, Input, Icon } from "semantic-ui-react"
+import { Segment, Card, Dropdown, Form, Input, Icon, Label, Button } from "semantic-ui-react"
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from "react-leaflet"
 import MarkerClusterGroup from 'react-leaflet-markercluster'
 
 import 'leaflet/dist/leaflet.css'
 import 'react-leaflet-markercluster/dist/styles.min.css'
 
-import { filterListings, getCityCount, getKeywordCount, getCostCount } from '../utils'
+import { filterListings, getCityCount, getKeywordCount, getCostCount, getColor } from '../utils'
 import { blueLMarker } from '../resources/mapIcons'
 import siteConfig from '../siteConfig.json'
 import './Map.css'
@@ -150,8 +150,13 @@ function EmbedMap({ listings, metadata }) {
           </div>
         )}
       </div>
-      <div style={{ flex: 1, position: 'relative' }}>
-        <EmbedMapContainer listings={filteredListings} />
+      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0', overflow: 'hidden' }}>
+        <div style={{ overflowY: 'auto', padding: '.75em' }}>
+          <EmbedCards listings={filteredListings} />
+        </div>
+        <div style={{ position: 'relative' }}>
+          <EmbedMapContainer listings={filteredListings} />
+        </div>
       </div>
       <div style={{ background: toolbarBg, padding: '.35em .75em', textAlign: 'center' }}>
         <a href={siteConfig.siteUrl || window.location.origin} target="_blank" rel="noreferrer" style={{ color: '#fff', fontSize: '.8em', textDecoration: 'none' }}>
@@ -196,6 +201,54 @@ function EmbedMarkers({ listings }) {
         </Marker>
       ))}
     </MarkerClusterGroup>
+  )
+}
+
+function EmbedCards({ listings }) {
+  const [numShowing, setNumShowing] = useState(25)
+  if (!listings || listings.length === 0) return <div style={{ textAlign: 'center', padding: '2em', color: '#888' }}>No Results Found.</div>
+  return (
+    <Card.Group itemsPerRow="1" style={{ margin: 0 }}>
+      {listings.slice(0, numShowing).map((listing, i) => <EmbedCard key={listing.guid} listing={listing} index={i} />)}
+      {listings.length > numShowing && (
+        <Button fluid basic color="grey" icon="angle double down" content="Show more results" onClick={() => setNumShowing(numShowing + 25)} style={{ marginTop: '.5em' }} />
+      )}
+    </Card.Group>
+  )
+}
+
+function EmbedCard({ listing, index }) {
+  const { full_name, parent_organization, full_address, phone_1, phone_label_1, crisis_line_number, crisis_line_label, website, program_email, description, category, min_age, max_age, keywords, cost_keywords, financial_information } = listing
+  const color = getColor(index)
+  return (
+    <Card color={color} raised style={{ maxWidth: '100%' }}>
+      <Card.Content>
+        <Label ribbon color={color} style={{ marginBottom: '.75em' }}>{parent_organization || full_name}</Label>
+        <Card.Header>{full_name}</Card.Header>
+        {full_address && <Card.Meta><Icon name="map marker alternate" /> {full_address}</Card.Meta>}
+        <Segment secondary style={{ marginTop: '.5em' }}>
+          {full_address && <Card.Description><Icon name="map marker alternate" /><a target="_blank" rel="noreferrer" href={`https://www.google.com/maps/dir//${encodeURIComponent(full_address)}`}>Get Directions <sup><Icon size="small" name="external" /></sup></a></Card.Description>}
+          {phone_1 && <Card.Description><Icon name="phone" />{phone_label_1 ? `${phone_label_1}: ` : ''}<a href={`tel:${phone_1}`}>{phone_1}</a></Card.Description>}
+          {crisis_line_number && <Card.Description><Icon name="phone" />{crisis_line_label || 'Crisis Line'}: <a href={`tel:${crisis_line_number}`}>{crisis_line_number}</a></Card.Description>}
+          {website && <Card.Description><Icon name="globe" /><a target="_blank" rel="noreferrer" href={website}>Website</a></Card.Description>}
+          {program_email && <Card.Description><Icon name="mail outline" /><a href={`mailto:${program_email}`}>{program_email}</a></Card.Description>}
+        </Segment>
+        {description && (
+          <Segment basic vertical>
+            <Card.Header as="strong">Description:</Card.Header>
+            <Card.Description className="description" style={{ display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{description}</Card.Description>
+          </Segment>
+        )}
+        {(min_age && max_age) && <Card.Description><strong>Ages:</strong> {min_age}-{max_age}</Card.Description>}
+        {financial_information && <Card.Description><strong>Cost:</strong> {financial_information}</Card.Description>}
+        <Card.Description><strong>{category.split(':')[0]}:</strong> {category.split(':')[1]}</Card.Description>
+      </Card.Content>
+      {(keywords || cost_keywords) && (
+        <Card.Content extra style={{ color: 'dimgrey' }}>
+          {[...(keywords || []), ...(cost_keywords || [])].map(k => <span key={k}> # {k}</span>)}
+        </Card.Content>
+      )}
+    </Card>
   )
 }
 
