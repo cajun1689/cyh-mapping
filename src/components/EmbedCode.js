@@ -9,7 +9,7 @@ const ageGroupOptions = [
 ]
 
 function EmbedCodePage() {
-  const [height, setHeight] = useState('600')
+  const [height, setHeight] = useState('900')
   const [ageGroup, setAgeGroup] = useState('')
   const [ageSelectable, setAgeSelectable] = useState(false)
   const [includeFaith, setIncludeFaith] = useState(true)
@@ -20,7 +20,7 @@ function EmbedCodePage() {
 
   const dataAttrs = [
     ageGroup ? `data-filter="${ageGroup}"` : '',
-    height !== '600' ? `data-height="${height}"` : '',
+    height !== '900' ? `data-height="${height}"` : '',
     ageSelectable ? 'data-age-select' : '',
     !includeFaith ? 'data-hide-faith' : '',
     !showFaithToggle ? 'data-no-faith-toggle' : '',

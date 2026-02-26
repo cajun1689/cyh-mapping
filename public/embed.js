@@ -3,7 +3,7 @@
   if (!container) return;
 
   var filter = container.getAttribute("data-filter") || "";
-  var height = container.getAttribute("data-height") || "600";
+  var height = container.getAttribute("data-height") || "900";
   var ageSelect = container.hasAttribute("data-age-select");
   var hideFaith = container.hasAttribute("data-hide-faith");
   var noFaithToggle = container.hasAttribute("data-no-faith-toggle");
