@@ -64,7 +64,7 @@ function EmbedMap({ listings, metadata }) {
             toggle
             checked={!hideFaithBased}
             onChange={() => setHideFaithBased(!hideFaithBased)}
-            label={<label style={{ color: hideFaithBased ? 'white' : 'yellow', fontSize: '.8em', whiteSpace: 'nowrap', marginLeft: '10px' }}>Include faith-based organizations</label>}
+            label={<span style={{ color: hideFaithBased ? 'white' : 'yellow', fontSize: '.8em', whiteSpace: 'nowrap', marginLeft: '10px' }}>Include faith-based organizations</span>}
             style={{ margin: 0 }}
           />
         )}
