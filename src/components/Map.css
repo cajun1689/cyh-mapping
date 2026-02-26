@@ -25,6 +25,9 @@
 .map-card .value-list > dt { font-weight: bold; }
 .map-card .value-list > dd { display: contents !important; margin: 0 !important; }
 
+.faith-toggle-label { color: white; font-size: .9em; font-weight: bold; white-space: nowrap; margin-left: 10px !important; }
+.faith-toggle-on .faith-toggle-label { color: #F5C518 !important; }
+
 @media only screen and (max-width:991px){
   .fixed.sticky { position: absolute !important; }
 }
