@@ -296,13 +296,14 @@ return (<>
               placeholder="Age Group"
             />
           </Grid.Column>}
-          <Grid.Column width={5} verticalAlign="middle" style={{display: 'flex', alignItems: 'center', padding: '.5em 1em'}} className={hideFaithBased ? '' : 'faith-toggle-on'}>
+          <Grid.Column width={5} verticalAlign="middle" style={{display: 'flex', alignItems: 'center', gap: '10px', padding: '.5em 1em'}}>
             <Form.Checkbox
               toggle
+              fitted
               checked={!hideFaithBased}
               onChange={() => setHideFaithBased(!hideFaithBased)}
-              label={<label className="faith-toggle-label">Include faith-based organizations</label>}
             />
+            <span style={{color: hideFaithBased ? 'white' : '#F5C518', fontSize: '.9em', fontWeight: 'bold', whiteSpace: 'nowrap', cursor: 'pointer'}} onClick={() => setHideFaithBased(!hideFaithBased)}>Include faith-based organizations</span>
           </Grid.Column>
         </Grid>}
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '.25em'}}>

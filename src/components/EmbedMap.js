@@ -60,13 +60,16 @@ function EmbedMap({ listings, metadata }) {
           style={{ minWidth: '100px' }}
         />
         {showFaithToggle && (
-          <Form.Checkbox
-            toggle
-            checked={!hideFaithBased}
-            onChange={() => setHideFaithBased(!hideFaithBased)}
-            label={<span style={{ color: hideFaithBased ? 'white' : '#F5C518', fontSize: '.8em', whiteSpace: 'nowrap', marginLeft: '10px' }}>Include faith-based organizations</span>}
-            style={{ margin: 0 }}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
+            <Form.Checkbox
+              toggle
+              fitted
+              checked={!hideFaithBased}
+              onChange={() => setHideFaithBased(!hideFaithBased)}
+              style={{ margin: 0 }}
+            />
+            <span style={{ color: hideFaithBased ? 'white' : '#F5C518', fontSize: '.8em', whiteSpace: 'nowrap', cursor: 'pointer' }} onClick={() => setHideFaithBased(!hideFaithBased)}>Include faith-based organizations</span>
+          </div>
         )}
       </div>
       <div style={{ flex: 1, position: 'relative' }}>
