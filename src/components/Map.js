@@ -296,7 +296,7 @@ return (<>
               placeholder="Age Group"
             />
           </Grid.Column>}
-          <Grid.Column width={5} verticalAlign="middle" style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '.5em 1em', marginTop: '6px'}}>
+          <Grid.Column width={5} verticalAlign="middle" style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '.5em 1em', marginTop: '2px'}}>
             <Form.Checkbox
               toggle
               fitted
