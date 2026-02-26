@@ -18,7 +18,9 @@ function EmbedMap({ listings, metadata }) {
   const [hideFaithBased, setHideFaithBased] = useState(searchParams.get('hide_faith') === '1')
   const [ageGroupFilter, setAgeGroupFilter] = useState(searchParams.get('age_group') || 'Youth')
   const showFaithToggle = searchParams.get('no_faith_toggle') !== '1'
-  const toolbarColor = searchParams.get('toolbar_color') ? `#${searchParams.get('toolbar_color')}` : '#1B3A5C'
+  const prideGradient = 'linear-gradient(90deg, #E40303, #FF8C00, #FFED00, #008026, #004DFF, #750787)'
+  const rawToolbar = searchParams.get('toolbar_color')
+  const toolbarBg = rawToolbar === 'pride' ? prideGradient : rawToolbar ? `#${rawToolbar}` : '#1B3A5C'
   const accentColor = searchParams.get('accent_color') ? `#${searchParams.get('accent_color')}` : '#F5C518'
 
   const filteredListings = useMemo(
@@ -30,7 +32,7 @@ function EmbedMap({ listings, metadata }) {
 
   return (
     <div id="embed-wrapper" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ background: toolbarColor, padding: '.5em .75em', display: 'flex', gap: '.5em', alignItems: 'center', flexWrap: 'wrap' }}>
+      <div style={{ background: toolbarBg, padding: '.5em .75em', display: 'flex', gap: '.5em', alignItems: 'center', flexWrap: 'wrap' }}>
         <Input
           size="small"
           icon="search"
@@ -77,7 +79,7 @@ function EmbedMap({ listings, metadata }) {
       <div style={{ flex: 1, position: 'relative' }}>
         <EmbedMapContainer listings={filteredListings} />
       </div>
-      <div style={{ background: toolbarColor, padding: '.35em .75em', textAlign: 'center' }}>
+      <div style={{ background: toolbarBg, padding: '.35em .75em', textAlign: 'center' }}>
         <a href={siteConfig.siteUrl || window.location.origin} target="_blank" rel="noreferrer" style={{ color: '#fff', fontSize: '.8em', textDecoration: 'none' }}>
           <Icon name="map" size="small" /> {siteConfig.siteName}
         </a>

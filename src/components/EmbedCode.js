@@ -26,7 +26,7 @@ function EmbedCodePage() {
     ageSelectable ? 'data-age-select' : '',
     !includeFaith ? 'data-hide-faith' : '',
     !showFaithToggle ? 'data-no-faith-toggle' : '',
-    toolbarColor !== '#1B3A5C' ? `data-toolbar-color="${toolbarColor}"` : '',
+    toolbarColor === 'pride' ? 'data-toolbar-color="pride"' : toolbarColor !== '#1B3A5C' ? `data-toolbar-color="${toolbarColor}"` : '',
     accentColor !== '#F5C518' ? `data-accent-color="${accentColor}"` : '',
   ].filter(Boolean).join(' ')
 
@@ -37,7 +37,8 @@ function EmbedCodePage() {
   if (ageSelectable) params.set('age_select', '1')
   if (!includeFaith) params.set('hide_faith', '1')
   if (!showFaithToggle) params.set('no_faith_toggle', '1')
-  if (toolbarColor !== '#1B3A5C') params.set('toolbar_color', toolbarColor.replace('#', ''))
+  if (toolbarColor === 'pride') params.set('toolbar_color', 'pride')
+  else if (toolbarColor !== '#1B3A5C') params.set('toolbar_color', toolbarColor.replace('#', ''))
   if (accentColor !== '#F5C518') params.set('accent_color', accentColor.replace('#', ''))
   const queryString = params.toString()
   const iframeSnippet = `<iframe src="${baseUrl}/#/embed${queryString ? '?' + queryString : ''}" width="100%" height="${height}px" style="border:none; border-radius:8px;" loading="lazy" title="${siteConfig.siteName}"></iframe>`
@@ -150,11 +151,18 @@ function EmbedCodePage() {
           />
           <Form.Group widths="equal" style={{ marginTop: '1.5em' }}>
             <Form.Field>
-              <label>Toolbar Color</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input type="color" value={toolbarColor} onChange={(e) => setToolbarColor(e.target.value)} style={{ width: '40px', height: '36px', padding: '2px', border: '1px solid #ddd', borderRadius: '4px', cursor: 'pointer' }} />
-                <input type="text" value={toolbarColor} onChange={(e) => setToolbarColor(e.target.value)} style={{ flex: 1, padding: '.5em', border: '1px solid rgba(34,36,38,.15)', borderRadius: '.29em', fontFamily: 'monospace' }} />
-              </div>
+              <label onClick={(e) => { if (e.shiftKey) { e.preventDefault(); setToolbarColor(toolbarColor === 'pride' ? '#1B3A5C' : 'pride'); }}} style={{ cursor: 'default' }}>Toolbar Color</label>
+              {toolbarColor === 'pride' ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '40px', height: '36px', borderRadius: '4px', border: '1px solid #ddd', background: 'linear-gradient(90deg, #E40303, #FF8C00, #FFED00, #008026, #004DFF, #750787)' }} />
+                  <input type="text" value="pride" readOnly style={{ flex: 1, padding: '.5em', border: '1px solid rgba(34,36,38,.15)', borderRadius: '.29em', fontFamily: 'monospace', background: 'linear-gradient(90deg, #E40303, #FF8C00, #FFED00, #008026, #004DFF, #750787)', color: 'white', fontWeight: 'bold', textAlign: 'center' }} />
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input type="color" value={toolbarColor} onChange={(e) => setToolbarColor(e.target.value)} style={{ width: '40px', height: '36px', padding: '2px', border: '1px solid #ddd', borderRadius: '4px', cursor: 'pointer' }} />
+                  <input type="text" value={toolbarColor} onChange={(e) => setToolbarColor(e.target.value)} style={{ flex: 1, padding: '.5em', border: '1px solid rgba(34,36,38,.15)', borderRadius: '.29em', fontFamily: 'monospace' }} />
+                </div>
+              )}
             </Form.Field>
             <Form.Field>
               <label>Accent Color</label>

@@ -17,7 +17,7 @@
   if (ageSelect) params.push("age_select=1");
   if (hideFaith) params.push("hide_faith=1");
   if (noFaithToggle) params.push("no_faith_toggle=1");
-  if (toolbarColor) params.push("toolbar_color=" + encodeURIComponent(toolbarColor.replace("#", "")));
+  if (toolbarColor) params.push("toolbar_color=" + encodeURIComponent(toolbarColor === "pride" ? "pride" : toolbarColor.replace("#", "")));
   if (accentColor) params.push("accent_color=" + encodeURIComponent(accentColor.replace("#", "")));
   if (params.length) src += "?" + params.join("&");
 
