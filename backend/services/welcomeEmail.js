@@ -1,6 +1,6 @@
 const sendEmail = require('./sendEmail')
 const ownerEmail = process.env.OWNER_EMAIL
-const fromEmail = 'noreply@casperyouthhubmap.org'
+const fromEmail = 'mail@casperyouthhubmap.org'
 
 const loginUrl = 'https://casperyouthhubmap.org/auth/login'
 
