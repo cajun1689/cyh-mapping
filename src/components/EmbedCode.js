@@ -151,7 +151,7 @@ function EmbedCodePage() {
           />
           <Form.Group widths="equal" style={{ marginTop: '1.5em' }}>
             <Form.Field>
-              <label onClick={(e) => { if (e.shiftKey) { e.preventDefault(); setToolbarColor(toolbarColor === 'pride' ? '#1B3A5C' : 'pride'); }}} style={{ cursor: 'default' }}>Toolbar Color</label>
+              <span onClick={(e) => { if (e.shiftKey) { e.preventDefault(); setToolbarColor(toolbarColor === 'pride' ? '#1B3A5C' : 'pride'); }}} style={{ display: 'block', margin: '0 0 .28571429rem 0', color: 'rgba(0,0,0,.87)', fontSize: '.92857143em', fontWeight: 700 }}>Toolbar Color</span>
               {toolbarColor === 'pride' ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <div style={{ width: '40px', height: '36px', borderRadius: '4px', border: '1px solid #ddd', background: 'linear-gradient(90deg, #E40303, #FF8C00, #FFED00, #008026, #004DFF, #750787)' }} />
@@ -187,6 +187,7 @@ function EmbedCodePage() {
         <Header as="h4">Preview</Header>
         <div style={{ border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden' }}>
           <iframe
+            key={previewUrl}
             src={previewUrl}
             width="100%"
             height={`${height}px`}
