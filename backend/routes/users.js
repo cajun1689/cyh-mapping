@@ -109,7 +109,9 @@ router.post('/resend-welcome/:id', async (req, res) => {
       return res.redirect('/users/manage')
     }
     const user = result.rows[0]
-    await sendWelcomeEmail({ to: user.email })
+    console.log(`Sending welcome email to ${user.email}...`)
+    const emailResult = await sendWelcomeEmail({ to: user.email })
+    console.log(`Welcome email result:`, emailResult ? 'sent' : 'failed (no result)')
     req.flash('message', `Welcome email resent to ${user.email}.`)
     res.redirect('/users/manage')
   } catch (error) {
