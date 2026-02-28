@@ -152,24 +152,19 @@
   }
   #map-page > .map-right-col {
     flex: 1 1 0%;
-    height: 0;
     position: relative !important;
     top: 0 !important;
     z-index: 0;
     width: 100%;
-    min-height: 40vh;
+    min-height: 0;
+    overflow: hidden;
   }
   #map-page > .map-right-col > .leaflet-container {
-    position: absolute !important;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: auto !important;
-    width: auto !important;
+    height: 100% !important;
+    width: 100% !important;
   }
-  /* Hide sponsor bar on mobile — covered by card panel overlay */
-  #map-page > .map-right-col > .ui.segment { display: none; }
+  /* Hide sponsor bar on mobile — but NOT the map (which is also a .ui.segment) */
+  #map-page > .map-right-col > .ui.segment:not(.leaflet-container) { display: none; }
 
   #map-page > .cards {
     position: absolute;
