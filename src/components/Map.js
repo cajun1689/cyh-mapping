@@ -142,7 +142,7 @@ function MapSearch({ listingCategories, listingCategoryIcons, debouncedSearch, l
   const location = useLocation()
   const [ searchParams, setSearchParams ] = useSearchParams()
   const [ age, setAge ] = useState(searchParams.get('age') || ``)
-  const [showFilters, setShowFilters] = useState(true)
+  const [showFilters, setShowFilters] = useState(window.innerWidth > 767)
   const showAgeSelector = !isEmbed || searchParams.get('age_select') === '1'
 
   // When user clears the params, this clears the input value as well

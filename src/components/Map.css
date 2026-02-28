@@ -216,11 +216,12 @@
   .saved-btn-desktop { display: none !important; }
   .saved-btn-mobile { display: inline-flex !important; }
 
-  /* Category icons: single scrollable row */
-  #map-nav .mobile-category-scroll {
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-  }
+  /* Hide category icons on mobile to maximize map space */
+  #map-nav .mobile-category-scroll { display: none; }
+
+  /* Compact toolbar spacing on mobile */
+  #map-nav .search-row { margin-top: 0.5em !important; }
+  #map-nav.ui.segment { padding-top: 0.4em !important; padding-bottom: 0.4em !important; }
 
   /* Bigger tap targets on mobile */
   .map-card .ui.secondary.segment .description a {
