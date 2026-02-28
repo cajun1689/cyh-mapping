@@ -25,14 +25,231 @@
 .map-card .value-list > dt { font-weight: bold; }
 .map-card .value-list > dd { display: contents !important; margin: 0 !important; }
 
+/* Card modernization */
+#map-page > .cards > .card.map-card {
+  border-radius: 12px !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  overflow: hidden;
+}
+#map-page > .cards > .card.map-card:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.13) !important;
+}
+#map-page > .cards { gap: 14px; }
+
+/* Larger touch targets for contact links */
+.map-card .ui.secondary.segment .description {
+  padding: 4px 0;
+  line-height: 1.6;
+}
+.map-card .ui.secondary.segment .description a {
+  display: inline-block;
+  min-height: 32px;
+  line-height: 32px;
+}
+
+/* Category icon menu — horizontal scroll */
+#map-nav .mobile-category-scroll {
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  gap: 0.5em;
+  padding: 0.5em 1em;
+  scroll-snap-type: x proximity;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+#map-nav .mobile-category-scroll::-webkit-scrollbar { display: none; }
+#map-nav .mobile-category-scroll > li {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  min-width: 72px;
+  text-align: center;
+  list-style: none;
+}
+
+/* Saved button: show text on desktop, icon-only on mobile */
+.saved-btn-desktop { display: inline-flex !important; }
+.saved-btn-mobile { display: none !important; }
+
+/* Filter drawer */
+.filter-drawer {
+  max-height: 500px;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.25s ease;
+  opacity: 1;
+}
+.filter-drawer.collapsed {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Desktop: filters in a horizontal row */
+.filter-drawer .filter-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.filter-drawer .filter-grid > * {
+  flex: 1 1 120px;
+  min-width: 0;
+}
+.filter-drawer .filter-grid > .ui.input {
+  flex: 0 0 80px;
+}
+.filter-drawer .filter-grid > .full-width {
+  flex: 0 0 auto;
+}
+
+/* Panel header — hidden on desktop */
+.mobile-card-panel .drag-handle { display: none; }
+.mobile-card-panel .panel-header { display: none; }
 
 @media only screen and (max-width:991px){
   .fixed.sticky { position: absolute !important; }
 }
 @media only screen and (max-width: 767px) {
   #app > header > nav.menu { min-height: 0; }
-  #app > header > nav.menu > .item { font-size: medium; line-height: 2.5; }
   #app > header > nav.menu > .item.mac-logo { display: none; }
-  #map-page { grid: 'map-right' 'cards'; }
-  #map-page > .map-right-col { position: relative !important; top: 0px !important; z-index: 0; }
+
+  /* Prevent #app from scrolling when map is shown — the card panel scrolls itself */
+  #app:has(#map-page) { overflow: hidden; }
+
+  /* Map nav: full bleed, no extra margin */
+  #map-nav.ui.segment {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    border-radius: 0 !important;
+    flex-shrink: 0;
+  }
+
+  /* Map page: full bleed, fill remaining height */
+  #map-page.ui.container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  #map-page {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    flex: 1 1 0%;
+    min-height: 0;
+    gap: 0;
+    overflow: hidden;
+  }
+  #map-page > .map-right-col {
+    flex: 1;
+    position: relative !important;
+    top: 0 !important;
+    z-index: 0;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  #map-page > .map-right-col > .leaflet-container {
+    flex: 1;
+    height: auto !important;
+    width: 100% !important;
+    min-height: 0;
+  }
+  /* Hide sponsor bar on mobile — not visible under the map overlay */
+  #map-page > .map-right-col > .ui.segment { display: none; }
+
+  #map-page > .cards {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    max-height: 35vh;
+    background: #fff;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    transition: max-height 0.35s ease;
+    padding: 0 8px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  #map-page > .cards.expanded {
+    max-height: 80vh;
+  }
+  .mobile-card-panel .drag-handle {
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: #ccc;
+    margin: 8px auto 4px;
+    cursor: pointer;
+  }
+  .mobile-card-panel .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 12px 8px;
+    font-size: .85em;
+    color: #666;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 8px;
+  }
+
+  /* Card active/pressed feedback */
+  #map-page > .cards > .card.map-card:active {
+    transform: scale(0.98);
+  }
+
+  /* Mobile: icon-only saved button */
+  .saved-btn-desktop { display: none !important; }
+  .saved-btn-mobile { display: inline-flex !important; }
+
+  /* Category icons: single scrollable row */
+  #map-nav .mobile-category-scroll {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+  }
+
+  /* Bigger tap targets on mobile */
+  .map-card .ui.secondary.segment .description a {
+    min-height: 44px;
+    line-height: 44px;
+    padding: 0 4px;
+  }
+
+  /* Disable scroll snap on #app — the card panel handles its own scroll */
+  #app { scroll-snap-type: none; }
+
+  /* Filter drawer 2-col grid on mobile */
+  .filter-drawer .filter-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .filter-drawer .filter-grid .full-width { grid-column: 1 / -1; }
+
+  /* Embed: hide filter items by default, show filter toggle */
+  .embed-filter-items { display: none !important; }
+  .embed-filter-items[style*="contents"] { display: contents !important; }
+  .embed-filter-toggle { display: inline-flex !important; }
+
+  /* Embed: stack cards and map on small screens */
+  .embed-content { grid-template-columns: 1fr !important; grid-template-rows: 1fr 1fr; }
+  .embed-cards-col { order: 2; }
+  .embed-map-col { order: 1; }
+}
+
+/* Embed: hide filter toggle on wide screens */
+@media only screen and (min-width: 768px) {
+  .embed-filter-toggle { display: none !important; }
 }

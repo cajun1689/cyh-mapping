@@ -1,7 +1,7 @@
 import React, { createContext, createRef, forwardRef, useContext, useEffect, useMemo, useState } from "react";
 import { debounce } from "lodash"
 import { Link, useParams, useNavigate, useLocation, useSearchParams, NavLink } from "react-router-dom";
-import { Container, Segment, Card, Label, Grid, Ref, Form, Icon, Input, Dropdown, Button } from "semantic-ui-react";
+import { Container, Segment, Card, Label, Ref, Form, Icon, Input, Dropdown, Button } from "semantic-ui-react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from "react-leaflet";
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import { useSessionStorage } from './../hooks/useSessionStorage'
@@ -72,11 +72,20 @@ function MapPage({ listings, metadata, ageGroupFilter, setAgeGroupFilter }) {
   const isEmbed = basePath !== ''
 
   const sponsors = metadata.sponsors || []
+  const [panelExpanded, setPanelExpanded] = useState(false)
 
   const content = (<>
     <MapSearch listingCategories={listingCategories} listingCategoryIcons={listingCategoryIcons} debouncedSearch={debouncedSearch} listingCities={listingCities} keywordCount={keywordCount} costCount={costCount} saved={saved} handleSave={handleSave} handleHide={handleHide} hidden={hidden} showSaved={showSaved} handleShowSaved={handleShowSaved} hideFaithBased={hideFaithBased} setHideFaithBased={setHideFaithBased} ageGroupFilter={ageGroupFilter} setAgeGroupFilter={setAgeGroupFilter} />
     <Container as="main" id="map-page">
-      <MapCards listings={filteredListings} cardRefs={cardRefs} mapRef={mapRef} saved={saved} handleSave={handleSave} handleHide={handleHide} />
+      {/* Desktop: cards render normally in the grid. Mobile: wrapped in bottom panel via CSS */}
+      <div className={`cards mobile-card-panel ${panelExpanded ? 'expanded' : ''}`}>
+        <div className="drag-handle" onClick={() => setPanelExpanded(!panelExpanded)} role="button" aria-label={panelExpanded ? 'Collapse results' : 'Expand results'} tabIndex={0} />
+        <div className="panel-header" onClick={() => setPanelExpanded(!panelExpanded)} role="button" tabIndex={0}>
+          <span>{filteredListings.length} result{filteredListings.length !== 1 ? 's' : ''}</span>
+          <Icon name={panelExpanded ? 'chevron down' : 'chevron up'} />
+        </div>
+        <MapCards listings={filteredListings} cardRefs={cardRefs} mapRef={mapRef} saved={saved} handleSave={handleSave} handleHide={handleHide} />
+      </div>
       <div className="map-right-col">
         <MapMap listings={filteredListings} cardRefs={cardRefs} ref={mapRef} />
         {sponsors.length > 0 && <SponsorBar sponsors={sponsors} />}
@@ -136,14 +145,15 @@ function MapSearch({ listingCategories, listingCategoryIcons, debouncedSearch, l
   },[searchParams])
 
   const MainIconMenu = ()  => 
-    <Grid as="menu" columns={Object.keys(listingCategories).length} doubling container textAlign="center">
+    <div className="mobile-category-scroll">
     { Object.entries(listingCategories).map(([parentCategory, subCategories]) =>
-      <Dropdown as="li" className="column" icon={null}
+      <Dropdown as="li" icon={null}
         key={parentCategory} 
         text={<>
           <Icon size="big" name={listingCategoryIcons[parentCategory]?.icon} />
           <header>{parentCategory}</header></>
-        }>
+        }
+        style={{ color: 'white', textAlign: 'center', cursor: 'pointer', minWidth: '72px', padding: '4px 8px' }}>
         <Dropdown.Menu as="menu">
         {Object.entries(subCategories).map(([subCategory, count]) =>
           <Dropdown.Item key={subCategory} as={NavLink} 
@@ -153,7 +163,7 @@ function MapSearch({ listingCategories, listingCategoryIcons, debouncedSearch, l
         </Dropdown.Menu>
       </Dropdown>
     ) }
-    </Grid>
+    </div>
 
   const debouncedAge = debounce((value) => { setSearchParams({ ...Object.fromEntries(searchParams), age: value })}, 500)
 
@@ -191,97 +201,92 @@ function MapSearch({ listingCategories, listingCategoryIcons, debouncedSearch, l
   const keywords = keywordDropdownOptions.length > 0
   const cost = costDropdownOptions.length > 0
 
+  const activeFilterCount = [...searchParams].filter(([k]) => k !== 'age_group' && k !== 'saved').length
+
 return (<>
     <Segment as="nav" id="map-nav" color="blue" basic vertical inverted>
       <MainIconMenu />
       <Form size="tiny" className="container">
-      {/* Search Input & "Show Saved" Button  */}
-      <Grid columns='equal' stackable style={showFilters ? {marginTop: '1.5em'} : { marginTop: '1.5em', marginBottom: '.25em'}}>
-        <Grid.Column width={4}>
-          <Button basic floated='right' inverted color='yellow' fluid size='small'
-              icon={searchParams.get('saved') ? 'list' : 'star outline'}
-              content={(searchParams.get('saved')) ? 'Show All' : 'Show Saved'}
-              disabled={saved.length === 0 && !searchParams.get('saved')} 
-              onClick={() => handleShowSaved(saved)}
-              style={{minWidth: '150px'}}
-              />
-        </Grid.Column>
-        {/* Search Text Input  */}
-        <Grid.Column style={{display: 'flex'}}>
-          <Input 
-            tabIndex="1" fluid
-            style={{width: '100%', paddingRight: '.5em'}}
-            icon='search'
-            iconPosition="left"
-            placeholder="Search..." 
-            onFocus={() => navigate(`${basePath}/?${searchParams.toString()}`)} 
-            onChange={(e, {value}) => debouncedSearch(value)} 
-          />
-          <Button 
-            icon={<Icon name={showFilters? "angle up" : "filter"} />}
-            onClick={() => setShowFilters(!showFilters)}
-            style={{maxHeight: '35px'}}
-            />
-          </Grid.Column>
-      </Grid>
-
-      {/* Optional Filters  */}
-      {showFilters &&
-      <Grid stackable columns='equal' style={{marginBottom: '.25em', marginTop: 0}}>
-      {/* Age Input  */}
-      <Grid.Column width={2}>
-        <Input type="number" id='age-input' fluid
-          placeholder='Age'
-          value={age}
+      {/* Search row — always visible */}
+      <div className="search-row" style={{ display: 'flex', gap: '.4em', marginTop: '1.5em', marginBottom: showFilters ? 0 : '.25em', alignItems: 'center' }}>
+        <Button basic inverted color='yellow' size='small' className="saved-btn-mobile"
+            icon={searchParams.get('saved') ? 'list' : 'star outline'}
+            disabled={saved.length === 0 && !searchParams.get('saved')} 
+            onClick={() => handleShowSaved(saved)}
+            title={searchParams.get('saved') ? 'Show All' : 'Show Saved'}
+            style={{ minWidth: '44px', minHeight: '36px', padding: '0 8px', flexShrink: 0 }}
+        />
+        <Button basic inverted color='yellow' size='small' className="saved-btn-desktop"
+            icon={searchParams.get('saved') ? 'list' : 'star outline'}
+            content={(searchParams.get('saved')) ? 'Show All' : 'Show Saved'}
+            disabled={saved.length === 0 && !searchParams.get('saved')} 
+            onClick={() => handleShowSaved(saved)}
+            style={{minWidth: '130px', flexShrink: 0 }}
+        />
+        <Input 
+          tabIndex="1" fluid
+          style={{ flex: 1, minWidth: 0 }}
+          icon='search'
+          iconPosition="left"
+          placeholder="Search..." 
           onFocus={() => navigate(`${basePath}/?${searchParams.toString()}`)} 
-          onChange={(e, {value}) => handleAge(value)} />
-      </Grid.Column>
-      {/* Location Dropdown  */}
-      {locationDropdown && 
-        <Grid.Column>
-          <Dropdown id="keyword-input"
-            options={locationDropdownOptions} 
-            search selection clearable 
-            button 
-            placeholder={<div><i className="ui icon map marker alternate" id="keyword-icon"></i><span id="keyword-label">  Location</span></div>}
-            selectOnBlur={false}  
-            inverted fluid
-            value={searchParams.get('city') || ``} 
+          onChange={(e, {value}) => debouncedSearch(value)} 
+        />
+        <Button 
+          icon={<Icon name={showFilters ? "angle up" : "filter"} />}
+          onClick={() => setShowFilters(!showFilters)}
+          style={{ minWidth: '44px', minHeight: '36px', padding: '0 10px', flexShrink: 0, position: 'relative' }}
+        />
+        {!showFilters && activeFilterCount > 0 && (
+          <span style={{ position: 'absolute', top: '-6px', right: '-6px', background: '#F5C518', color: '#1B3A5C', borderRadius: '50%', width: '18px', height: '18px', fontSize: '.7em', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{activeFilterCount}</span>
+        )}
+      </div>
+
+      {/* Filter drawer — collapsible */}
+      <div className={`filter-drawer ${showFilters ? '' : 'collapsed'}`}>
+        <div className="filter-grid" style={{ marginBottom: '.25em', marginTop: '.5em' }}>
+          <Input type="number" id='age-input' fluid
+            placeholder='Age'
+            value={age}
             onFocus={() => navigate(`${basePath}/?${searchParams.toString()}`)} 
-            onChange={(e, {value}) => handleDropdownClick(e.type, value, 'city')}
-          />
-          </Grid.Column>}
-        {/* Keyword Dropdown  */}
-        {keywords && 
-        <Grid.Column>
-          <Dropdown id='keyword-input'
-            options={keywordDropdownOptions} 
-            search selection clearable 
-            button
-            placeholder={<div><i className="ui icon tag" id="keyword-icon"></i><span id="keyword-label">  Service Type</span></div>}
-            selectOnBlur={false}
-            inverted fluid 
-            value={searchParams.get('tag') || ``} 
-            onFocus={() => navigate(`${basePath}/?${searchParams.toString()}`)} 
-            onChange={(e, {value}) => handleDropdownClick(e.type, value, 'tag')}
-          />
-        </Grid.Column>}
-        {/* COST DROPDOWN  */}
-        {cost && 
-        <Grid.Column>
-          <Dropdown id='keyword-input'
-            options={costDropdownOptions} 
-            search selection clearable 
-            button
-            placeholder={<div><i className="ui icon dollar sign" id="keyword-icon"></i><span id="keyword-label">  Cost</span></div>}
-            selectOnBlur={false}
-            inverted fluid 
-            value={searchParams.get('cost') || ``} 
-            onFocus={() => navigate(`${basePath}/?${searchParams.toString()}`)} 
-            onChange={(e, {value}) => handleDropdownClick(e.type, value, 'cost')}
-            />
-          </Grid.Column>}
-          {showAgeSelector && <Grid.Column width={2}>
+            onChange={(e, {value}) => handleAge(value)} />
+          {locationDropdown && 
+            <Dropdown id="keyword-input"
+              options={locationDropdownOptions} 
+              search selection clearable 
+              button 
+              placeholder={<div><i className="ui icon map marker alternate" id="keyword-icon"></i><span id="keyword-label">  Location</span></div>}
+              selectOnBlur={false}  
+              inverted fluid
+              value={searchParams.get('city') || ``} 
+              onFocus={() => navigate(`${basePath}/?${searchParams.toString()}`)} 
+              onChange={(e, {value}) => handleDropdownClick(e.type, value, 'city')}
+            />}
+          {keywords && 
+            <Dropdown id='keyword-input'
+              options={keywordDropdownOptions} 
+              search selection clearable 
+              button
+              placeholder={<div><i className="ui icon tag" id="keyword-icon"></i><span id="keyword-label">  Service Type</span></div>}
+              selectOnBlur={false}
+              inverted fluid 
+              value={searchParams.get('tag') || ``} 
+              onFocus={() => navigate(`${basePath}/?${searchParams.toString()}`)} 
+              onChange={(e, {value}) => handleDropdownClick(e.type, value, 'tag')}
+            />}
+          {cost && 
+            <Dropdown id='keyword-input'
+              options={costDropdownOptions} 
+              search selection clearable 
+              button
+              placeholder={<div><i className="ui icon dollar sign" id="keyword-icon"></i><span id="keyword-label">  Cost</span></div>}
+              selectOnBlur={false}
+              inverted fluid 
+              value={searchParams.get('cost') || ``} 
+              onFocus={() => navigate(`${basePath}/?${searchParams.toString()}`)} 
+              onChange={(e, {value}) => handleDropdownClick(e.type, value, 'cost')}
+            />}
+          {showAgeSelector &&
             <Dropdown id='age-group-input'
               options={[
                 { key: 'all', text: 'All Ages', value: 'all' },
@@ -294,9 +299,8 @@ return (<>
               value={ageGroupFilter}
               onChange={(e, {value}) => setAgeGroupFilter(value)}
               placeholder="Age Group"
-            />
-          </Grid.Column>}
-          <Grid.Column width={5} style={{display: 'flex', alignItems: 'flex-start', gap: '3px', padding: '.5em 1em', marginTop: '4px'}}>
+            />}
+          <div className="full-width" style={{display: 'flex', alignItems: 'flex-start', gap: '3px', padding: '.5em 1em', marginTop: '4px'}}>
             <Form.Checkbox
               toggle
               fitted
@@ -304,8 +308,10 @@ return (<>
               onChange={() => setHideFaithBased(!hideFaithBased)}
             />
             <span style={{color: hideFaithBased ? 'white' : '#F5C518', fontSize: '.9em', fontWeight: 'bold', whiteSpace: 'nowrap', cursor: 'pointer'}} onClick={() => setHideFaithBased(!hideFaithBased)}>Include faith-based organizations</span>
-          </Grid.Column>
-        </Grid>}
+          </div>
+        </div>
+      </div>
+
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '.25em'}}>
           <Label.Group columns={[...searchParams].length} className="doubling container">
             {!location.search.includes('saved') &&

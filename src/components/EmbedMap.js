@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { Segment, Card, Dropdown, Form, Input, Icon, Label, Button } from "semantic-ui-react"
+import { Button, Card, Dropdown, Form, Icon, Input, Label, Segment } from "semantic-ui-react"
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from "react-leaflet"
 import MarkerClusterGroup from 'react-leaflet-markercluster'
 
@@ -21,6 +21,7 @@ function EmbedMap({ listings, metadata }) {
   const [tagFilter, setTagFilter] = useState('')
   const [costFilter, setCostFilter] = useState('')
   const [cityFilter, setCityFilter] = useState('')
+  const [showEmbedFilters, setShowEmbedFilters] = useState(false)
   const showFaithToggle = searchParams.get('no_faith_toggle') !== '1'
   const prideGradient = 'linear-gradient(90deg, #E40303, #FF8C00, #FFED00, #008026, #004DFF, #750787)'
   const rawToolbar = searchParams.get('toolbar_color')
@@ -84,77 +85,86 @@ function EmbedMap({ listings, metadata }) {
           ))}
         </div>
       )}
-      <div style={{ background: toolbarBg, padding: '.5em .75em', display: 'flex', gap: '.5em', alignItems: 'center', flexWrap: 'wrap' }}>
+      <div className="embed-toolbar" style={{ background: toolbarBg, padding: '.5em .75em', display: 'flex', gap: '.5em', alignItems: 'center', flexWrap: 'wrap' }}>
         <Input
           size="small"
           icon="search"
           iconPosition="left"
           placeholder="Search..."
           onChange={(e, { value }) => setSearch(value)}
-          style={{ flex: 1, minWidth: '120px' }}
+          style={{ flex: 1, minWidth: '100px' }}
         />
-        {cityOptions.length > 0 && (
-          <Dropdown
-            options={cityOptions}
-            search selection clearable compact
-            placeholder="Location"
-            selectOnBlur={false}
-            style={{ minWidth: '120px' }}
-            value={cityFilter}
-            onChange={(e, { value }) => setCityFilter(value || '')}
-          />
-        )}
-        {keywordOptions.length > 0 && (
-          <Dropdown
-            options={keywordOptions}
-            search selection clearable compact
-            placeholder="Service Type"
-            selectOnBlur={false}
-            style={{ minWidth: '120px' }}
-            value={tagFilter}
-            onChange={(e, { value }) => setTagFilter(value || '')}
-          />
-        )}
-        {costOptions.length > 0 && (
-          <Dropdown
-            options={costOptions}
-            search selection clearable compact
-            placeholder="Cost"
-            selectOnBlur={false}
-            style={{ minWidth: '100px' }}
-            value={costFilter}
-            onChange={(e, { value }) => setCostFilter(value || '')}
-          />
-        )}
-        <Dropdown
-          options={[
-            { key: 'all', text: 'All Ages', value: 'all' },
-            { key: 'Youth', text: 'Youth', value: 'Youth' },
-            { key: 'Adult', text: 'Adult', value: 'Adult' },
-          ]}
-          selection compact
-          value={ageGroupFilter}
-          onChange={(e, { value }) => setAgeGroupFilter(value)}
-          style={{ minWidth: '100px' }}
+        <Button
+          icon={<Icon name={showEmbedFilters ? 'angle up' : 'filter'} />}
+          size="small"
+          onClick={() => setShowEmbedFilters(!showEmbedFilters)}
+          className="embed-filter-toggle"
+          style={{ minWidth: '36px', minHeight: '36px', padding: '0 8px', flexShrink: 0 }}
         />
-        {showFaithToggle && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-            <Form.Checkbox
-              toggle
-              fitted
-              checked={!hideFaithBased}
-              onChange={() => setHideFaithBased(!hideFaithBased)}
-              style={{ margin: 0 }}
+        <div className="embed-filter-items" style={{ display: showEmbedFilters ? 'contents' : undefined }}>
+          {cityOptions.length > 0 && (
+            <Dropdown
+              options={cityOptions}
+              search selection clearable compact
+              placeholder="Location"
+              selectOnBlur={false}
+              style={{ minWidth: '120px' }}
+              value={cityFilter}
+              onChange={(e, { value }) => setCityFilter(value || '')}
             />
-            <span style={{ color: hideFaithBased ? 'white' : accentColor, fontSize: '.8em', whiteSpace: 'nowrap', cursor: 'pointer' }} onClick={() => setHideFaithBased(!hideFaithBased)}>Include faith-based organizations</span>
-          </div>
-        )}
+          )}
+          {keywordOptions.length > 0 && (
+            <Dropdown
+              options={keywordOptions}
+              search selection clearable compact
+              placeholder="Service Type"
+              selectOnBlur={false}
+              style={{ minWidth: '120px' }}
+              value={tagFilter}
+              onChange={(e, { value }) => setTagFilter(value || '')}
+            />
+          )}
+          {costOptions.length > 0 && (
+            <Dropdown
+              options={costOptions}
+              search selection clearable compact
+              placeholder="Cost"
+              selectOnBlur={false}
+              style={{ minWidth: '100px' }}
+              value={costFilter}
+              onChange={(e, { value }) => setCostFilter(value || '')}
+            />
+          )}
+          <Dropdown
+            options={[
+              { key: 'all', text: 'All Ages', value: 'all' },
+              { key: 'Youth', text: 'Youth', value: 'Youth' },
+              { key: 'Adult', text: 'Adult', value: 'Adult' },
+            ]}
+            selection compact
+            value={ageGroupFilter}
+            onChange={(e, { value }) => setAgeGroupFilter(value)}
+            style={{ minWidth: '100px' }}
+          />
+          {showFaithToggle && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+              <Form.Checkbox
+                toggle
+                fitted
+                checked={!hideFaithBased}
+                onChange={() => setHideFaithBased(!hideFaithBased)}
+                style={{ margin: 0 }}
+              />
+              <span style={{ color: hideFaithBased ? 'white' : accentColor, fontSize: '.8em', whiteSpace: 'nowrap', cursor: 'pointer' }} onClick={() => setHideFaithBased(!hideFaithBased)}>Include faith-based organizations</span>
+            </div>
+          )}
+        </div>
       </div>
-      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0', overflow: 'hidden' }}>
-        <div style={{ overflowY: 'auto', padding: '.75em' }}>
+      <div className="embed-content" style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0', overflow: 'hidden' }}>
+        <div className="embed-cards-col" style={{ overflowY: 'auto', padding: '.75em' }}>
           <EmbedCards listings={filteredListings} />
         </div>
-        <div style={{ position: 'relative' }}>
+        <div className="embed-map-col" style={{ position: 'relative' }}>
           <EmbedMapContainer listings={filteredListings} />
         </div>
       </div>

@@ -1,5 +1,5 @@
 html, body { overflow: hidden; }
-#app { height: 100vh; display: flex; flex-flow: column nowrap; scroll-padding-top: 72px; overflow-y: auto; scroll-behavior: smooth; scroll-snap-type: y proximity; }
+#app { height: 100dvh; height: 100vh; display: flex; flex-flow: column nowrap; scroll-padding-top: 72px; overflow-y: auto; scroll-behavior: smooth; scroll-snap-type: y proximity; }
 
 #app > header { position: sticky; top: 0px; z-index: 3; padding: 0; background-color: #1B3A5C; }
 #app > header > nav.menu { font-family: 'Yanone Kaffeesatz', sans-serif; letter-spacing: 0.5px; text-transform: uppercase; }
@@ -14,9 +14,60 @@ html, body { overflow: hidden; }
 
 #app > footer > p { color: 'grey'; }
 
-#app > main { flex: 1 1 auto; }
+#app > main { flex: 1 1 0%; min-height: 0; }
 
 .site-brand { text-transform: uppercase !important; white-space: pre; color: #F5C518 !important; font-weight: bold; letter-spacing: 1px; }
+
+/* Mobile hamburger nav */
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.85);
+  font-size: 1.4em;
+  cursor: pointer;
+  padding: 8px 12px;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+}
+.hamburger-btn:hover { color: #F5C518; }
+
+.mobile-nav-drawer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  background-color: #1B3A5C;
+}
+.mobile-nav-drawer.open { max-height: 300px; }
+.mobile-nav-drawer .item {
+  display: block;
+  padding: 12px 20px;
+  min-height: 44px;
+  line-height: 44px;
+  color: rgba(255,255,255,0.85);
+  text-decoration: none;
+  text-transform: uppercase;
+  font-family: 'Yanone Kaffeesatz', sans-serif;
+  letter-spacing: 0.5px;
+  font-size: 1.1em;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+.mobile-nav-drawer .item:hover,
+.mobile-nav-drawer .item.active { color: #F5C518; background-color: rgba(255,255,255,0.04); }
+
+@media only screen and (max-width: 767px) {
+  .hamburger-btn { display: flex; }
+  #app > header > nav.menu > .item.nav-link { display: none; }
+  #app > header > nav.menu { min-height: 0; align-items: center; }
+  .site-brand { font-size: 0.95em !important; }
+}
+@media only screen and (min-width: 768px) {
+  .mobile-nav-drawer { display: none !important; }
+}
 
 #age-input::placeholder {
   color: rgba(255,255,255,0.7);
