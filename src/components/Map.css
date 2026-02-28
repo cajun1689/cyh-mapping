@@ -152,14 +152,15 @@
     z-index: 0;
     min-height: 0;
     width: 100%;
-    display: flex;
-    flex-direction: column;
   }
   #map-page > .map-right-col > .leaflet-container {
-    flex: 1;
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     height: auto !important;
-    width: 100% !important;
-    min-height: 0;
+    width: auto !important;
   }
   /* Hide sponsor bar on mobile — not visible under the map overlay */
   #map-page > .map-right-col > .ui.segment { display: none; }
