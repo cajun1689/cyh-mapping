@@ -85,30 +85,32 @@ function EmbedMap({ listings, metadata }) {
           ))}
         </div>
       )}
-      <div className="embed-toolbar" style={{ background: toolbarBg, padding: '.5em .75em', display: 'flex', gap: '.5em', alignItems: 'center', flexWrap: 'wrap' }}>
-        <Input
-          size="small"
-          icon="search"
-          iconPosition="left"
-          placeholder="Search..."
-          onChange={(e, { value }) => setSearch(value)}
-          style={{ flex: 1, minWidth: '100px' }}
-        />
-        <Button
-          icon={<Icon name={showEmbedFilters ? 'angle up' : 'filter'} />}
-          size="small"
-          onClick={() => setShowEmbedFilters(!showEmbedFilters)}
-          className="embed-filter-toggle"
-          style={{ minWidth: '36px', minHeight: '36px', padding: '0 8px', flexShrink: 0 }}
-        />
-        <div className="embed-filter-items" style={{ display: showEmbedFilters ? 'contents' : undefined }}>
+      <div className="embed-toolbar" style={{ background: toolbarBg, padding: '.5em .75em' }}>
+        <div style={{ display: 'flex', gap: '.5em', alignItems: 'center' }}>
+          <Input
+            size="small"
+            icon="search"
+            iconPosition="left"
+            placeholder="Search..."
+            onChange={(e, { value }) => setSearch(value)}
+            style={{ flex: 1, minWidth: 0 }}
+          />
+          <Button
+            icon={<Icon name={showEmbedFilters ? 'angle up' : 'filter'} />}
+            size="small"
+            onClick={() => setShowEmbedFilters(!showEmbedFilters)}
+            className="embed-filter-toggle"
+            style={{ minWidth: '36px', minHeight: '36px', padding: '0 8px', flexShrink: 0 }}
+          />
+        </div>
+        <div className="embed-filter-items" style={{ display: showEmbedFilters ? 'flex' : undefined, gap: '.4em', marginTop: '.4em', alignItems: 'center', flexWrap: 'wrap' }}>
           {cityOptions.length > 0 && (
             <Dropdown
               options={cityOptions}
               search selection clearable compact
               placeholder="Location"
               selectOnBlur={false}
-              style={{ minWidth: '120px' }}
+              style={{ flex: '1 1 100px', minWidth: 0 }}
               value={cityFilter}
               onChange={(e, { value }) => setCityFilter(value || '')}
             />
@@ -119,7 +121,7 @@ function EmbedMap({ listings, metadata }) {
               search selection clearable compact
               placeholder="Service Type"
               selectOnBlur={false}
-              style={{ minWidth: '120px' }}
+              style={{ flex: '1 1 100px', minWidth: 0 }}
               value={tagFilter}
               onChange={(e, { value }) => setTagFilter(value || '')}
             />
@@ -130,7 +132,7 @@ function EmbedMap({ listings, metadata }) {
               search selection clearable compact
               placeholder="Cost"
               selectOnBlur={false}
-              style={{ minWidth: '100px' }}
+              style={{ flex: '1 1 80px', minWidth: 0 }}
               value={costFilter}
               onChange={(e, { value }) => setCostFilter(value || '')}
             />
@@ -144,10 +146,10 @@ function EmbedMap({ listings, metadata }) {
             selection compact
             value={ageGroupFilter}
             onChange={(e, { value }) => setAgeGroupFilter(value)}
-            style={{ minWidth: '100px' }}
+            style={{ flex: '0 0 auto', minWidth: '80px' }}
           />
           {showFaithToggle && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0, flexShrink: 0 }}>
               <Form.Checkbox
                 toggle
                 fitted

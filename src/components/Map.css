@@ -247,7 +247,7 @@
 
   /* Embed: hide filter items by default, show filter toggle */
   .embed-filter-items { display: none !important; }
-  .embed-filter-items[style*="contents"] { display: contents !important; }
+  .embed-filter-items[style*="flex"] { display: flex !important; }
   .embed-filter-toggle { display: inline-flex !important; }
 
   /* Embed: stack cards and map on small screens */
