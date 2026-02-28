@@ -116,8 +116,12 @@
   #app > header > nav.menu { min-height: 0; }
   #app > header > nav.menu > .item.mac-logo { display: none; }
 
-  /* Prevent #app from scrolling when map is shown — the card panel scrolls itself */
-  #app:has(#map-page) { overflow: hidden; }
+  /* Lock viewport when map is active — class set by React, no :has() needed */
+  #app.map-active {
+    overflow: hidden !important;
+    height: 100vh;
+    height: 100dvh;
+  }
 
   /* Map nav: full bleed, no extra margin */
   #map-nav.ui.segment {
@@ -138,21 +142,22 @@
     padding-right: 0;
   }
   #map-page {
-    display: flex;
+    display: flex !important;
     flex-direction: column;
     position: relative;
-    flex: 1 1 0%;
+    flex: 1 1 0% !important;
     min-height: 0;
     gap: 0;
     overflow: hidden;
   }
   #map-page > .map-right-col {
-    flex: 1;
+    flex: 1 1 0%;
+    height: 0;
     position: relative !important;
     top: 0 !important;
     z-index: 0;
-    min-height: 0;
     width: 100%;
+    min-height: 40vh;
   }
   #map-page > .map-right-col > .leaflet-container {
     position: absolute !important;
@@ -163,7 +168,7 @@
     height: auto !important;
     width: auto !important;
   }
-  /* Hide sponsor bar on mobile — not visible under the map overlay */
+  /* Hide sponsor bar on mobile — covered by card panel overlay */
   #map-page > .map-right-col > .ui.segment { display: none; }
 
   #map-page > .cards {

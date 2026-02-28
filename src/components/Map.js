@@ -74,6 +74,12 @@ function MapPage({ listings, metadata, ageGroupFilter, setAgeGroupFilter }) {
   const sponsors = metadata.sponsors || []
   const [panelExpanded, setPanelExpanded] = useState(false)
 
+  useEffect(() => {
+    const app = document.getElementById('app')
+    if (app) app.classList.add('map-active')
+    return () => { if (app) app.classList.remove('map-active') }
+  }, [])
+
   const content = (<>
     <MapSearch listingCategories={listingCategories} listingCategoryIcons={listingCategoryIcons} debouncedSearch={debouncedSearch} listingCities={listingCities} keywordCount={keywordCount} costCount={costCount} saved={saved} handleSave={handleSave} handleHide={handleHide} hidden={hidden} showSaved={showSaved} handleShowSaved={handleShowSaved} hideFaithBased={hideFaithBased} setHideFaithBased={setHideFaithBased} ageGroupFilter={ageGroupFilter} setAgeGroupFilter={setAgeGroupFilter} />
     <Container as="main" id="map-page">

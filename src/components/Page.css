@@ -1,5 +1,5 @@
 html, body { overflow: hidden; }
-#app { height: 100dvh; height: 100vh; display: flex; flex-flow: column nowrap; scroll-padding-top: 72px; overflow-y: auto; scroll-behavior: smooth; scroll-snap-type: y proximity; }
+#app { height: 100vh; height: 100dvh; display: flex; flex-flow: column nowrap; scroll-padding-top: 72px; overflow-y: auto; scroll-behavior: smooth; scroll-snap-type: y proximity; }
 
 #app > header { position: sticky; top: 0px; z-index: 3; padding: 0; background-color: #1B3A5C; }
 #app > header > nav.menu { font-family: 'Yanone Kaffeesatz', sans-serif; letter-spacing: 0.5px; text-transform: uppercase; }
