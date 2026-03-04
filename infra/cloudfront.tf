@@ -118,6 +118,7 @@ resource "aws_cloudfront_distribution" "frontend" {
       "/settings",
       "/change-password*",
       "/add-user*",
+      "/app-privacy",
       "/styles.css",
       "/img/*",
     ])
