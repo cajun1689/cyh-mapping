@@ -41,6 +41,11 @@ app.use((req, res, next) => {
 /* Serve public assets */
 app.use(express.static('public'))
 
+/* Public pages (no auth required) */
+app.get('/app-privacy', (req, res) => {
+  res.render('app-privacy', { layout: false })
+})
+
 /* Routes */
 app.use('/api', require('./routes/api'))
 app.use('/api-preview', require('./routes/api-preview'))
