@@ -138,7 +138,10 @@ export function filterListings(listings = {}, searchParams, search = "", hidden=
     const isHidden = (hidden.includes(listing.guid)) 
     if (isHidden) return false
 
-    if (hideFaithBased && listing.keywords && listing.keywords.includes('Faith-Based')) return false
+    if (hideFaithBased) {
+      if (listing.keywords && listing.keywords.includes('Faith-Based')) return false
+      if (listing.category && listing.category.startsWith('Faith Based')) return false
+    }
 
     if (ageGroupFilter !== 'all') {
       const group = listing.age_group || 'Youth and Adult'
