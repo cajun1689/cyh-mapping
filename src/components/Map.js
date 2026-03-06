@@ -12,7 +12,7 @@ import 'react-leaflet-markercluster/dist/styles.min.css';
 import { filterListings, getKeywordCount, getCostCount } from '../utils'
 import './Map.css'
 import { greenLMarker, blueLMarker } from '../resources/mapIcons'
-import { getCityCount, getColor, titleCaseKey } from '../utils'
+import { getCityCount, getColor, getCategoryColor, titleCaseKey } from '../utils'
 import siteConfig from '../siteConfig.json'
 
 export const EmbedContext = createContext('')
@@ -404,7 +404,7 @@ const MapCard = forwardRef(({ mapRef, listing, saved, handleSave, handleHide, in
   const basePath = useBasePath()
   const navigate = useNavigate()
   const [ searchParams, setSearchParams ] = useSearchParams()
-  const cardColor = getColor(index)
+  const cardColor = getCategoryColor(category)
   const updateSearchParams = (key, val) => {
     const currentParams = Object.fromEntries([...searchParams])
     const newParams = { ...currentParams, key: val }

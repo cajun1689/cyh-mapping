@@ -2,5 +2,19 @@
   "Counseling": { "icon": "comments" },
   "Psychiatric Care": { "icon": "medkit" },
   "Substance Use": { "icon": "shield" },
-  "Crisis Services": { "icon": "phone" }
+  "Crisis Services": { "icon": "phone" },
+  "Belonging & Connection": { "icon": "users" },
+  "Basic Needs": { "icon": "home" },
+  "Disability": { "icon": "universal access" },
+  "Education & Workforce": { "icon": "graduation cap" },
+  "Emergency Services": { "icon": "ambulance" },
+  "Faith Based": { "icon": "heart" },
+  "Family Life": { "icon": "child" },
+  "Healthcare": { "icon": "hospital" },
+  "Legal": { "icon": "balance scale" },
+  "LGBTQ+": { "icon": "flag" },
+  "Resiliency Building": { "icon": "star" },
+  "Technology": { "icon": "laptop" },
+  "Transportation": { "icon": "bus" },
+  "Violence & Justice": { "icon": "gavel" }
 }

@@ -1,6 +1,33 @@
 /* Display utilities */
 
 export const getColor = index => [ "green", "teal", "blue", "violet", "purple", "pink", "red", "orange", "yellow", "olive", ][ index % 10 ]
+
+export const categoryColorMap = {
+  'Counseling': 'blue',
+  'Psychiatric Care': 'purple',
+  'Substance Use': 'green',
+  'Crisis Services': 'red',
+  'Belonging & Connection': 'teal',
+  'Basic Needs': 'orange',
+  'Disability': 'olive',
+  'Education & Workforce': 'yellow',
+  'Emergency Services': 'red',
+  'Faith Based': 'violet',
+  'Family Life': 'green',
+  'Healthcare': 'pink',
+  'Legal': 'brown',
+  'LGBTQ+': 'pink',
+  'Resiliency Building': 'teal',
+  'Technology': 'grey',
+  'Transportation': 'orange',
+  'Violence & Justice': 'purple',
+}
+
+export const getCategoryColor = (category) => {
+  if (!category) return 'blue'
+  const parent = category.split(': ')[0]
+  return categoryColorMap[parent] || 'blue'
+}
 export const formatSocialMediaUrl = url => url.includes('https://www.') ? url.split('https://www.')[1] : url.includes('https://') ? url.split('https://')[1] : url.includes('http://') ? url.split('http://')[1] : url
 export const titleCaseKey = key => key.charAt(0).toUpperCase() + key.slice(1)
 

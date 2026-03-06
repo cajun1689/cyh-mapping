@@ -7,7 +7,7 @@ import MarkerClusterGroup from 'react-leaflet-markercluster'
 import 'leaflet/dist/leaflet.css'
 import 'react-leaflet-markercluster/dist/styles.min.css'
 
-import { filterListings, getCityCount, getKeywordCount, getCostCount, getColor } from '../utils'
+import { filterListings, getCityCount, getKeywordCount, getCostCount, getColor, getCategoryColor } from '../utils'
 import { blueLMarker } from '../resources/mapIcons'
 import siteConfig from '../siteConfig.json'
 import './Map.css'
@@ -231,7 +231,7 @@ function EmbedCards({ listings }) {
 
 function EmbedCard({ listing, index }) {
   const { full_name, parent_organization, full_address, phone_1, phone_label_1, crisis_line_number, crisis_line_label, website, program_email, description, category, min_age, max_age, keywords, cost_keywords, financial_information } = listing
-  const color = getColor(index)
+  const color = getCategoryColor(category)
   return (
     <Card color={color} raised style={{ maxWidth: '100%' }}>
       <Card.Content>
