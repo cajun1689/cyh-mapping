@@ -160,7 +160,12 @@ export function filterListings(listings = {}, searchParams, search = "", hidden=
     }
 
     if (filters) {
-      let hasFilters = Object.entries(filters).every(([ key, value ]) => Array.isArray(listing[key]) ? listing[key].includes(value) : listing[key] === value)
+      let hasFilters = Object.entries(filters).every(([ key, value ]) => {
+        if (key === 'category' && value.endsWith(':')) {
+          return listing.category && listing.category.startsWith(value.replace(/:$/, ': '))
+        }
+        return Array.isArray(listing[key]) ? listing[key].includes(value) : listing[key] === value
+      })
       if (!hasFilters) return false
     }
 

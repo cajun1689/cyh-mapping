@@ -46,7 +46,12 @@ app.get('/app-privacy', (req, res) => {
   res.render('app-privacy', { layout: false })
 })
 
+/* Chat rate limiter — 20 requests per 5 minutes per IP */
+const chatRateLimit = require('./middleware/chatRateLimit')
+app.use('/api/chat', chatRateLimit)
+
 /* Routes */
+app.use('/api/chat', require('./routes/chat'))
 app.use('/api', require('./routes/api'))
 app.use('/api-preview', require('./routes/api-preview'))
 app.use('/listings', require('./routes/listings'))

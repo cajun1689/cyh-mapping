@@ -12,6 +12,7 @@ function Page({aboutText, resources, children, ageGroupFilter}) {
   const closeNav = () => setMobileNavOpen(false)
 
   const navLinks = [
+    { to: '/chat', label: 'Ask for Help', icon: 'chat' },
     aboutText && { to: '/about', label: 'About' },
     resources && { to: '/resources', label: 'More Resources' },
     { to: '/embed-code', label: 'Embed' },

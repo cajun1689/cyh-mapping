@@ -153,23 +153,22 @@ function MapSearch({ listingCategories, listingCategoryIcons, debouncedSearch, l
 
   const MainIconMenu = ()  => 
     <div className="mobile-category-scroll">
-    { Object.entries(listingCategories).map(([parentCategory, subCategories]) =>
-      <Dropdown as="li" icon={null}
-        key={parentCategory} 
-        text={<>
-          <Icon size="big" name={listingCategoryIcons[parentCategory]?.icon} />
-          <header>{parentCategory}</header></>
-        }
-        style={{ color: 'white', textAlign: 'center', cursor: 'pointer', minWidth: '72px', padding: '4px 8px' }}>
-        <Dropdown.Menu as="menu">
-        {Object.entries(subCategories).map(([subCategory, count]) =>
-          <Dropdown.Item key={subCategory} as={NavLink} 
-            text={`${subCategory} (${count})`} 
-            to={`${basePath}/?${new URLSearchParams({...Object.fromEntries(searchParams), category: `${parentCategory}: ${subCategory}` }).toString()}`} />
-        )}
-        </Dropdown.Menu>
-      </Dropdown>
-    ) }
+    { Object.entries(listingCategories).map(([parentCategory, subCategories]) => {
+      const iconName = listingCategoryIcons[parentCategory]?.icon || 'folder'
+      const hexColor = getCategoryHexColor(parentCategory)
+      const isActive = searchParams.get('category')?.startsWith(`${parentCategory}:`)
+      return (
+        <NavLink
+          key={parentCategory}
+          to={`${basePath}/?${new URLSearchParams({...Object.fromEntries(searchParams), category: `${parentCategory}:` }).toString()}`}
+          style={{ color: 'white', textAlign: 'center', cursor: 'pointer', minWidth: '72px', padding: '4px 8px', textDecoration: 'none', opacity: isActive ? 1 : 0.8 }}
+          className="category-icon-link"
+        >
+          <Icon size="big" name={iconName} style={{ color: isActive ? '#F5C518' : hexColor }} />
+          <header>{parentCategory}</header>
+        </NavLink>
+      )
+    }) }
     </div>
 
   const debouncedAge = debounce((value) => { setSearchParams({ ...Object.fromEntries(searchParams), age: value })}, 500)
@@ -322,7 +321,14 @@ return (<>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '.25em'}}>
           <Label.Group columns={[...searchParams].length} className="doubling container">
             {!location.search.includes('saved') &&
-            [...searchParams].filter(([key]) => key !== 'age_group').map(([key, value]) => value && <Label key={key} basic color="blue"><strong>{titleCaseKey(key.replace(/_/ig,` `))}:</strong> {value} <Icon name="delete" onClick={() => { searchParams.delete(key); setSearchParams(searchParams) }} /></Label> ) }
+            [...searchParams].filter(([key]) => key !== 'age_group').map(([key, value]) => {
+              if (!value) return null
+              let displayValue = value
+              if (key === 'category') {
+                displayValue = value.endsWith(':') ? value.slice(0, -1) : value
+              }
+              return <Label key={key} basic color="blue"><strong>{titleCaseKey(key.replace(/_/ig,` `))}:</strong> {displayValue} <Icon name="delete" onClick={() => { searchParams.delete(key); setSearchParams(searchParams) }} /></Label>
+            }) }
           </Label.Group>
         </div>
       </Form>

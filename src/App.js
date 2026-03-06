@@ -13,6 +13,7 @@ import { getCategoryCount } from './utils'
 import About from './components/About'
 import Resources from './components/Resources'
 import SuggestUpdate from './components/SuggestUpdate'
+import Chat from './components/Chat'
 
 function App({listings, metadata}) {
   const {ABOUT_TEXT, DISCLAIMER, VIDEO_TUTORIAL_LINK, RUBRIC_TEXT, CONTRIBUTORS, FORMS } = CONTENT 
@@ -42,6 +43,7 @@ function App({listings, metadata}) {
             <About aboutText={ABOUT_TEXT} contributors={CONTRIBUTORS} disclaimer={DISCLAIMER} videoLink={VIDEO_TUTORIAL_LINK} rubric={RUBRIC_TEXT} />}
           />}
           {resources && <Route path="/resources" element={<Resources resources={resources} />} />}
+          <Route path="/chat" element={<Chat listings={listings} />} />
           <Route path="/embed-code" element={<EmbedCode />} />
           <Route path="/suggest" element={<SuggestUpdate forms={FORMS} />} />
           <Route path="/suggest/:listingId" element={<SuggestUpdate />} />

@@ -23,6 +23,15 @@
   background: none !important;
   border: none !important;
 }
+/* Direct-click category links (single-sub categories) */
+.category-icon-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+.category-icon-link:hover {
+  opacity: 0.85;
+}
 
 #map-page { display: grid; grid: 'cards map-right' / 1fr 1fr; gap: 1em; }
 #map-page > .cards { grid-area: cards; width: auto; margin-top: 1rem; }

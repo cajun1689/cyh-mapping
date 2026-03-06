@@ -7,7 +7,7 @@ import MarkerClusterGroup from 'react-leaflet-markercluster'
 import 'leaflet/dist/leaflet.css'
 import 'react-leaflet-markercluster/dist/styles.min.css'
 
-import { filterListings, getCityCount, getKeywordCount, getCostCount, getCategoryColor } from '../utils'
+import { filterListings, getCityCount, getKeywordCount, getCostCount, getCategoryColor, getCategoryHexColor } from '../utils'
 import { blueLMarker } from '../resources/mapIcons'
 import siteConfig from '../siteConfig.json'
 import './Map.css'
@@ -32,7 +32,14 @@ function EmbedMap({ listings, metadata }) {
 
   const localFilteredListings = useMemo(() => {
     let result = listings
-    if (categoryFilter) result = result.filter(l => l.category === categoryFilter)
+    if (categoryFilter) {
+      if (categoryFilter.endsWith(':')) {
+        const prefix = categoryFilter.replace(/:$/, ': ')
+        result = result.filter(l => l.category && l.category.startsWith(prefix))
+      } else {
+        result = result.filter(l => l.category === categoryFilter)
+      }
+    }
     if (tagFilter) result = result.filter(l => {
       const entries = Object.entries(l).join(' ').toLowerCase()
       return entries.includes(tagFilter.toLowerCase())
@@ -65,24 +72,21 @@ function EmbedMap({ listings, metadata }) {
     <div id="embed-wrapper" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       {listingCategories && (
         <div style={{ background: toolbarBg, padding: '.4em 0', display: 'flex', justifyContent: 'center', gap: '1.5em', flexWrap: 'wrap' }}>
-          {Object.entries(listingCategories).map(([parentCategory, subCategories]) => (
-            <Dropdown key={parentCategory} icon={null} pointing="top"
-              trigger={
-                <div style={{ textAlign: 'center', cursor: 'pointer', color: 'white', fontSize: '.75em', opacity: categoryFilter && !categoryFilter.startsWith(parentCategory) ? 0.5 : 1 }}>
-                  <Icon name={listingCategoryIcons?.[parentCategory]?.icon || 'folder'} size="big" />
-                  <div>{parentCategory}</div>
-                </div>
-              }>
-              <Dropdown.Menu>
-                {Object.entries(subCategories).map(([sub, count]) => (
-                  <Dropdown.Item key={sub} text={`${sub} (${count})`}
-                    active={categoryFilter === `${parentCategory}: ${sub}`}
-                    onClick={() => setCategoryFilter(categoryFilter === `${parentCategory}: ${sub}` ? '' : `${parentCategory}: ${sub}`)}
-                  />
-                ))}
-              </Dropdown.Menu>
-            </Dropdown>
-          ))}
+          {Object.entries(listingCategories).map(([parentCategory]) => {
+            const iconName = listingCategoryIcons?.[parentCategory]?.icon || 'folder'
+            const hexColor = getCategoryHexColor(parentCategory)
+            const isActive = categoryFilter && categoryFilter.startsWith(`${parentCategory}:`)
+            const dimmed = categoryFilter && !isActive
+            return (
+              <div key={parentCategory}
+                style={{ textAlign: 'center', cursor: 'pointer', color: 'white', fontSize: '.75em', opacity: dimmed ? 0.5 : 1 }}
+                onClick={() => setCategoryFilter(isActive ? '' : `${parentCategory}:`)}
+              >
+                <Icon name={iconName} size="big" style={{ color: isActive ? '#F5C518' : hexColor }} />
+                <div>{parentCategory}</div>
+              </div>
+            )
+          })}
         </div>
       )}
       <div className="embed-toolbar" style={{ background: toolbarBg, padding: '.5em .75em' }}>
