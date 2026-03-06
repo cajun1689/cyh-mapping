@@ -7,7 +7,7 @@ import MarkerClusterGroup from 'react-leaflet-markercluster'
 import 'leaflet/dist/leaflet.css'
 import 'react-leaflet-markercluster/dist/styles.min.css'
 
-import { filterListings, getCityCount, getKeywordCount, getCostCount, getColor, getCategoryColor } from '../utils'
+import { filterListings, getCityCount, getKeywordCount, getCostCount, getCategoryColor } from '../utils'
 import { blueLMarker } from '../resources/mapIcons'
 import siteConfig from '../siteConfig.json'
 import './Map.css'

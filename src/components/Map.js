@@ -12,7 +12,7 @@ import 'react-leaflet-markercluster/dist/styles.min.css';
 import { filterListings, getKeywordCount, getCostCount } from '../utils'
 import './Map.css'
 import { greenLMarker, blueLMarker } from '../resources/mapIcons'
-import { getCityCount, getColor, getCategoryColor, titleCaseKey } from '../utils'
+import { getCityCount, getCategoryColor, titleCaseKey } from '../utils'
 import siteConfig from '../siteConfig.json'
 
 export const EmbedContext = createContext('')
