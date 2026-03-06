@@ -6,6 +6,24 @@
 
 .leaflet-container { height: 68vh; }
 
+/* Donut cluster icons */
+.donut-cluster-icon {
+  background: none !important;
+  border: none !important;
+}
+.donut-cluster {
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.25));
+  transition: transform 0.15s ease;
+}
+.donut-cluster:hover {
+  transform: scale(1.12);
+}
+/* Category dot markers */
+.category-dot-icon {
+  background: none !important;
+  border: none !important;
+}
+
 #map-page { display: grid; grid: 'cards map-right' / 1fr 1fr; gap: 1em; }
 #map-page > .cards { grid-area: cards; width: auto; margin-top: 1rem; }
 #map-page > .cards > .card:first-child { margin-top: 0; }

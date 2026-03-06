@@ -23,6 +23,33 @@ export const categoryColorMap = {
   'Violence & Justice': 'purple',
 }
 
+export const categoryHexColors = {
+  'Counseling': '#4A90D9',
+  'Psychiatric Care': '#9B59B6',
+  'Substance Use': '#27AE60',
+  'Crisis Services': '#E74C3C',
+  'Belonging & Connection': '#3498DB',
+  'Basic Needs': '#E67E22',
+  'Disability': '#1ABC9C',
+  'Education & Workforce': '#F39C12',
+  'Emergency Services': '#C0392B',
+  'Faith Based': '#8E44AD',
+  'Family Life': '#2ECC71',
+  'Healthcare': '#E91E63',
+  'Legal': '#795548',
+  'LGBTQ+': '#FF6B6B',
+  'Resiliency Building': '#00BCD4',
+  'Technology': '#607D8B',
+  'Transportation': '#FF9800',
+  'Violence & Justice': '#9C27B0',
+}
+
+export const getCategoryHexColor = (category) => {
+  if (!category) return '#4A90D9'
+  const parent = category.split(': ')[0]
+  return categoryHexColors[parent] || '#7F8C8D'
+}
+
 export const getCategoryColor = (category) => {
   if (!category) return 'blue'
   const parent = category.split(': ')[0]

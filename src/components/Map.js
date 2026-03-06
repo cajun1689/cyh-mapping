@@ -4,6 +4,7 @@ import { Link, useParams, useNavigate, useLocation, useSearchParams, NavLink } f
 import { Container, Segment, Card, Label, Ref, Form, Icon, Input, Dropdown, Button } from "semantic-ui-react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from "react-leaflet";
 import MarkerClusterGroup from 'react-leaflet-markercluster';
+import L from 'leaflet';
 import { useSessionStorage } from './../hooks/useSessionStorage'
 
 import 'leaflet/dist/leaflet.css';
@@ -11,8 +12,8 @@ import 'react-leaflet-markercluster/dist/styles.min.css';
 
 import { filterListings, getKeywordCount, getCostCount } from '../utils'
 import './Map.css'
-import { greenLMarker, blueLMarker } from '../resources/mapIcons'
-import { getCityCount, getCategoryColor, titleCaseKey } from '../utils'
+import { greenLMarker } from '../resources/mapIcons'
+import { getCityCount, getCategoryColor, getCategoryHexColor, titleCaseKey } from '../utils'
 import siteConfig from '../siteConfig.json'
 
 export const EmbedContext = createContext('')
@@ -510,6 +511,63 @@ const MapMap = forwardRef(({ listings, cardRefs }, ref) => {
   )
 })
 
+function createDonutSvg(slices, count) {
+  const size = Math.min(28 + Math.log2(count) * 8, 56)
+  const strokeWidth = 5
+  const radius = (size - strokeWidth) / 2
+  const circumference = 2 * Math.PI * radius
+  const center = size / 2
+  const total = slices.reduce((sum, s) => sum + s.count, 0) || 1
+  let offset = 0
+
+  const arcs = slices.map((slice, i) => {
+    const segLen = (slice.count / total) * circumference
+    const dashOffset = -offset
+    offset += segLen
+    return `<circle cx="${center}" cy="${center}" r="${radius}" fill="none" stroke="${slice.color}" stroke-width="${strokeWidth}" stroke-dasharray="${segLen} ${circumference - segLen}" stroke-dashoffset="${dashOffset}" stroke-linecap="butt" transform="rotate(-90 ${center} ${center})"/>`
+  }).join('')
+
+  return `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="${center}" cy="${center}" r="${radius}" fill="white" stroke="#ddd" stroke-width="0.5"/>
+    ${arcs}
+    <text x="${center}" y="${center}" text-anchor="middle" dominant-baseline="central" font-size="${size < 36 ? 11 : 13}" font-weight="bold" fill="#333">${count}</text>
+  </svg>`
+}
+
+function createClusterIcon(cluster) {
+  const markers = cluster.getAllChildMarkers()
+  const count = cluster.getChildCount()
+  const categoryCounts = {}
+  markers.forEach(m => {
+    const cat = m.options.category || 'Other'
+    const parent = cat.split(': ')[0]
+    categoryCounts[parent] = (categoryCounts[parent] || 0) + 1
+  })
+  const slices = Object.entries(categoryCounts).map(([cat, cnt]) => ({
+    color: getCategoryHexColor(cat),
+    count: cnt,
+  }))
+  const size = Math.min(28 + Math.log2(count) * 8, 56)
+  const html = createDonutSvg(slices, count)
+  return L.divIcon({
+    html: `<div class="donut-cluster">${html}</div>`,
+    className: 'donut-cluster-icon',
+    iconSize: L.point(size + 4, size + 4),
+    iconAnchor: L.point((size + 4) / 2, (size + 4) / 2),
+  })
+}
+
+function createDotIcon(hexColor, isSelected) {
+  const size = isSelected ? 16 : 10
+  const border = isSelected ? `2px solid #333` : `2px solid white`
+  return L.divIcon({
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${hexColor};border:${border};box-shadow:0 1px 4px rgba(0,0,0,0.3);"></div>`,
+    className: 'category-dot-icon',
+    iconSize: L.point(size, size),
+    iconAnchor: L.point(size / 2, size / 2),
+  })
+}
+
 function MapMarkers ({listings, cardRefs}) {
   const basePath = useBasePath()
   const { markerId } = useParams()
@@ -521,26 +579,30 @@ function MapMarkers ({listings, cardRefs}) {
   useEffect(() => currentCoords && currentCoords[0] && currentCoords[1] && map.setView(currentCoords, 18), [map, currentCoords])
 
   return (<>
-    <MarkerClusterGroup>
-      {mappedListings.map(listing =>
-        <Marker key={listing.guid} position={listing.coords} icon={markerId === `${listing.guid}` ? greenLMarker : blueLMarker} eventHandlers={{ click: ({latlng}) => map.setView(latlng) }}>
-          <Tooltip>{listing.full_name}</Tooltip>
-          <Popup>
-            <Card style={{ border: `none`, boxShadow: `none` }}>
-              <Card.Content>
-                <Card.Header><Link to={`${basePath}/${listing.guid}`}>{listing.full_name}</Link></Card.Header>
-                <Card.Meta>{listing.full_address}</Card.Meta>
-                <Segment basic vertical>
-                  <Card.Content>
-                    <div className="description">{listing.description}</div>
+    <MarkerClusterGroup iconCreateFunction={createClusterIcon} maxClusterRadius={50} spiderfyOnMaxZoom showCoverageOnHover={false}>
+      {mappedListings.map(listing => {
+        const isSelected = markerId === `${listing.guid}`
+        const hexColor = getCategoryHexColor(listing.category)
+        return (
+          <Marker key={listing.guid} position={listing.coords} icon={isSelected ? greenLMarker : createDotIcon(hexColor, false)} category={listing.category} eventHandlers={{ click: ({latlng}) => map.setView(latlng) }}>
+            <Tooltip>{listing.full_name}</Tooltip>
+            <Popup>
+              <Card style={{ border: `none`, boxShadow: `none` }}>
+                <Card.Content>
+                  <Card.Header><Link to={`${basePath}/${listing.guid}`}>{listing.full_name}</Link></Card.Header>
+                  <Card.Meta>{listing.full_address}</Card.Meta>
+                  <Segment basic vertical>
+                    <Card.Content>
+                      <div className="description">{listing.description}</div>
+                    </Card.Content>
+                  </Segment>
+                  <Link to={`${basePath}/${listing.guid}`} onClick={() => { cardRefs[listing.guid].current?.scrollIntoView({behavior: "smooth"}) }} className="listing-show-details">Show Details</Link>
                   </Card.Content>
-                </Segment>
-                <Link to={`${basePath}/${listing.guid}`} onClick={() => { cardRefs[listing.guid].current?.scrollIntoView({behavior: "smooth"}) }} className="listing-show-details">Show Details</Link>
-                </Card.Content>
-            </Card>
-          </Popup>
-        </Marker>
-      )}
+              </Card>
+            </Popup>
+          </Marker>
+        )
+      })}
     </MarkerClusterGroup>
   </>)
 }
