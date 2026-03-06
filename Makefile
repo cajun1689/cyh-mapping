@@ -18,6 +18,10 @@
 TF_DIR := infra
 TF_OUTPUT = cd $(TF_DIR) && terraform output -raw
 
+# SSH key for EC2 access (AWS key pair: cyh-key)
+SSH_KEY := ~/.ssh/cyh-key.pem
+SSH_OPTS := -i $(SSH_KEY)
+
 # -------------------------------------------------------------------
 # Infrastructure
 # -------------------------------------------------------------------
@@ -52,12 +56,12 @@ deploy-frontend:
 
 deploy-backend:
 	@echo "=== Deploying backend to EC2 ==="
-	rsync -avz \
+	rsync -avz -e "ssh $(SSH_OPTS)" \
 		--exclude node_modules \
 		--exclude .env \
 		--exclude .git \
 		backend/ ec2-user@$$($(TF_OUTPUT) ec2_ip):~/app/
-	ssh ec2-user@$$($(TF_OUTPUT) ec2_ip) \
+	ssh $(SSH_OPTS) ec2-user@$$($(TF_OUTPUT) ec2_ip) \
 		"cd ~/app && npm install --production && pm2 restart cyh-mapping-backend || pm2 start server.js --name cyh-mapping-backend"
 	@echo "=== Backend deployed ==="
 
@@ -75,7 +79,7 @@ deploy: deploy-frontend deploy-backend
 # -------------------------------------------------------------------
 
 ssh:
-	ssh ec2-user@$$($(TF_OUTPUT) ec2_ip)
+	ssh $(SSH_OPTS) ec2-user@$$($(TF_OUTPUT) ec2_ip)
 
 logs:
-	ssh ec2-user@$$($(TF_OUTPUT) ec2_ip) "pm2 logs"
+	ssh $(SSH_OPTS) ec2-user@$$($(TF_OUTPUT) ec2_ip) "pm2 logs"

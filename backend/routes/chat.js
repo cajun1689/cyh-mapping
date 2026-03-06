@@ -40,7 +40,7 @@ async function getListingsAndPrompt() {
 
 router.post('/', async (req, res) => {
   try {
-    const { message, history = [] } = req.body
+    const { message, history = [], latitude, longitude } = req.body
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
       return res.status(400).json({ error: 'Message is required' })
@@ -61,10 +61,16 @@ router.post('/', async (req, res) => {
       content: String(h.content).slice(0, 1000),
     }))
 
+    let userContent = message.trim()
+    if (typeof latitude === 'number' && typeof longitude === 'number' &&
+        isFinite(latitude) && isFinite(longitude)) {
+      userContent += `\n[User GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}]`
+    }
+
     const messages = [
       { role: 'system', content: systemPrompt },
       ...trimmedHistory,
-      { role: 'user', content: message.trim() },
+      { role: 'user', content: userContent },
     ]
 
     const completion = await getOpenAI().chat.completions.create({

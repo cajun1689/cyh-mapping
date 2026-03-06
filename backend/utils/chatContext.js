@@ -10,6 +10,9 @@ function condenseListing(listing) {
     org: listing.parent_organization || '',
     cat: listing.category,
     city: listing.city || '',
+    addr: listing.full_address || '',
+    lat: listing.latitude || null,
+    lon: listing.longitude || null,
     desc: (listing.description || '').slice(0, 200),
     ages: `${listing.min_age || '?'}-${listing.max_age || '?'}`,
     cost: Array.isArray(listing.cost_keywords) ? listing.cost_keywords.join(', ') : '',
@@ -93,10 +96,18 @@ TONE:
 - Use casual, friendly language. Not too formal, not too slang-heavy.
 - Be encouraging and non-judgmental.
 
+LOCATION AWARENESS — IMPORTANT:
+1. The user's message may contain a "[User GPS: lat, lon]" tag appended by the app. This is their real-time GPS location. USE IT to prioritize the CLOSEST matching resources. Do NOT mention the GPS tag or coordinates in your response — just naturally recommend nearby resources first.
+2. Each resource in the dataset has "lat" and "lon" fields. Compare the user's GPS to each resource's lat/lon to estimate distance. Recommend closest matches first. You can mention approximate distance in miles if helpful (e.g., "about 2 miles from you").
+3. If NO GPS tag is present (e.g., the user is on the web), ask where they are located: "To find the best options for you, could you tell me where you're located? You can share a city, part of town, or even an address."
+4. If the user mentions a city or area instead of GPS, use the "city" field in resources to match.
+5. Always respect their privacy if they decline to share location.
+
 HOW TO RESPOND:
 - When a user describes what they need, identify the most relevant resources from the dataset below.
+- Give a RANGE of options — recommend 3-6 resources when possible so they have choices. Include a variety (different organizations, different sub-categories if relevant).
 - Briefly explain WHY each resource might be a good fit based on what the user described.
-- Recommend 1-5 resources per response. Don't overwhelm them.
+- If you know their location, sort recommendations from closest to furthest.
 - If you're not sure which resources fit, ask a clarifying question.
 
 RESPONSE FORMAT — You MUST respond with valid JSON only, no markdown fences:

@@ -1,6 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Yanone+Kaffeesatz&display=swap');
 
-#map-nav { scroll-snap-align: start; background-color: #1B3A5C !important; }
+/* Disable scroll snapping when the map is active — prevents category clicks from scrolling the page */
+#app.map-active { scroll-snap-type: none !important; }
+
+#map-nav { background-color: #1B3A5C !important; }
 #map-nav > form > .labels { padding: 0; margin: 0; }
 #map-nav > form > .labels > .label { text-transform: capitalize; }
 
@@ -23,7 +26,29 @@
   background: none !important;
   border: none !important;
 }
-/* Direct-click category links (single-sub categories) */
+/* Sub-category filter pills */
+.sub-category-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 1em 8px;
+}
+.sub-pill {
+  padding: 4px 14px;
+  border-radius: 16px;
+  border: 1.5px solid rgba(255,255,255,0.4);
+  font-size: .8em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+  user-select: none;
+}
+.sub-pill:hover { opacity: 0.85; }
+.sub-pill.active { opacity: 1; }
+
+/* Direct-click category links */
 .category-icon-link {
   display: inline-flex;
   flex-direction: column;
@@ -33,10 +58,23 @@
   opacity: 0.85;
 }
 
+.chat-rec-banner {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #1B3A5C;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: .9em;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
 #map-page { display: grid; grid: 'cards map-right' / 1fr 1fr; gap: 1em; }
 #map-page > .cards { grid-area: cards; width: auto; margin-top: 1rem; }
 #map-page > .cards > .card:first-child { margin-top: 0; }
-#map-page > .cards > .card { scroll-snap-align: start; }
 #map-page > .map-right-col { grid-area: map-right; position: sticky; top: 72px; z-index: 1; align-self: start; }
 #map-page > .map-right-col > .leaflet-container { width: auto; }
 #map-page .leaflet-popup-content .description { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }

@@ -60,7 +60,19 @@ function MapPage({ listings, metadata, ageGroupFilter, setAgeGroupFilter }) {
 
   const debouncedSearch = debounce((value) => { setSearch(value) }, 300);
 
-  let filteredListings = useMemo(() => filterListings(listings, searchParams, search, hidden, { hideFaithBased, ageGroupFilter }), [listings, searchParams, search, hidden, hideFaithBased, ageGroupFilter])
+  const chatRecsParam = searchParams.get('chat_recs')
+  const chatRecGuids = useMemo(() => {
+    if (!chatRecsParam) return null
+    return chatRecsParam.split(',').map(Number).filter(n => !isNaN(n))
+  }, [chatRecsParam])
+
+  let filteredListings = useMemo(() => {
+    if (chatRecGuids && chatRecGuids.length > 0) {
+      const guidSet = new Set(chatRecGuids)
+      return listings.filter(l => guidSet.has(l.guid))
+    }
+    return filterListings(listings, searchParams, search, hidden, { hideFaithBased, ageGroupFilter })
+  }, [listings, searchParams, search, hidden, hideFaithBased, ageGroupFilter, chatRecGuids])
   
   // If you don't want to recalculate the two lines below on every search, just use metadata.listingCities and metadata.listingKeywords, respectively. That would be faster, but also a less rich user experience
   let listingCities = useMemo(() => getCityCount(filteredListings ?? {}), [filteredListings])
@@ -68,7 +80,7 @@ function MapPage({ listings, metadata, ageGroupFilter, setAgeGroupFilter }) {
   const costCount = useMemo(() => getCostCount(filteredListings ?? {}), [filteredListings])
   
   const cardRefs = listings.reduce((cardRefs, listing) => ({...cardRefs, [listing.guid]: createRef()}), {})
-  const mapRef = createRef()
+  const mapRef = React.useRef(null)
 
   const isEmbed = basePath !== ''
 
@@ -84,6 +96,15 @@ function MapPage({ listings, metadata, ageGroupFilter, setAgeGroupFilter }) {
   const content = (<>
     <MapSearch listingCategories={listingCategories} listingCategoryIcons={listingCategoryIcons} debouncedSearch={debouncedSearch} listingCities={listingCities} keywordCount={keywordCount} costCount={costCount} saved={saved} handleSave={handleSave} handleHide={handleHide} hidden={hidden} showSaved={showSaved} handleShowSaved={handleShowSaved} hideFaithBased={hideFaithBased} setHideFaithBased={setHideFaithBased} ageGroupFilter={ageGroupFilter} setAgeGroupFilter={setAgeGroupFilter} />
     <Container as="main" id="map-page">
+      {chatRecGuids && chatRecGuids.length > 0 && (
+        <div className="chat-rec-banner">
+          <Icon name="chat" />
+          <span>Showing {chatRecGuids.length} chat recommendation{chatRecGuids.length !== 1 ? 's' : ''}</span>
+          <Button size="mini" basic inverted onClick={() => navigate(`${basePath}/`)} style={{ marginLeft: 'auto' }}>
+            <Icon name="close" /> Show All
+          </Button>
+        </div>
+      )}
       {/* Desktop: cards render normally in the grid. Mobile: wrapped in bottom panel via CSS */}
       <div className={`cards mobile-card-panel ${panelExpanded ? 'expanded' : ''}`}>
         <div className="drag-handle" onClick={() => setPanelExpanded(!panelExpanded)} role="button" aria-label={panelExpanded ? 'Collapse results' : 'Expand results'} tabIndex={0} />
@@ -158,15 +179,42 @@ function MapSearch({ listingCategories, listingCategoryIcons, debouncedSearch, l
       const hexColor = getCategoryHexColor(parentCategory)
       const isActive = searchParams.get('category')?.startsWith(`${parentCategory}:`)
       return (
-        <NavLink
+        <div
           key={parentCategory}
-          to={`${basePath}/?${new URLSearchParams({...Object.fromEntries(searchParams), category: `${parentCategory}:` }).toString()}`}
-          style={{ color: 'white', textAlign: 'center', cursor: 'pointer', minWidth: '72px', padding: '4px 8px', textDecoration: 'none', opacity: isActive ? 1 : 0.8 }}
+          role="button"
+          tabIndex={0}
+          onClick={() => {
+            clearSaved()
+            const scrollY = window.scrollY
+            const next = new URLSearchParams(searchParams)
+            if (isActive) {
+              next.delete('category')
+            } else {
+              next.set('category', `${parentCategory}:`)
+            }
+            setSearchParams(next, { preventScrollReset: true })
+            requestAnimationFrame(() => window.scrollTo(0, scrollY))
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              const scrollY = window.scrollY
+              const next = new URLSearchParams(searchParams)
+              if (isActive) {
+                next.delete('category')
+              } else {
+                next.set('category', `${parentCategory}:`)
+              }
+              setSearchParams(next, { preventScrollReset: true })
+              requestAnimationFrame(() => window.scrollTo(0, scrollY))
+            }
+          }}
+          style={{ color: 'white', textAlign: 'center', cursor: 'pointer', minWidth: '72px', padding: '4px 8px', opacity: isActive ? 1 : 0.8 }}
           className="category-icon-link"
         >
           <Icon size="big" name={iconName} style={{ color: isActive ? '#F5C518' : hexColor }} />
           <header>{parentCategory}</header>
-        </NavLink>
+        </div>
       )
     }) }
     </div>
@@ -212,6 +260,42 @@ function MapSearch({ listingCategories, listingCategoryIcons, debouncedSearch, l
 return (<>
     <Segment as="nav" id="map-nav" color="blue" basic vertical inverted>
       <MainIconMenu />
+      {(() => {
+        const activeCat = searchParams.get('category')
+        if (!activeCat) return null
+        const activeParent = Object.keys(listingCategories).find(p => activeCat.startsWith(`${p}:`))
+        if (!activeParent) return null
+        const subs = Object.keys(listingCategories[activeParent] || {})
+        if (subs.length <= 1) return null
+        const hexColor = getCategoryHexColor(activeParent)
+        const isParentOnly = activeCat === `${activeParent}:`
+        return (
+          <div className="sub-category-bar">
+            <div
+              role="button" tabIndex={0}
+              className={`sub-pill ${isParentOnly ? 'active' : ''}`}
+              style={isParentOnly ? { background: hexColor, borderColor: hexColor, color: '#fff' } : { borderColor: hexColor, color: '#fff' }}
+              onClick={() => { const next = new URLSearchParams(searchParams); next.set('category', `${activeParent}:`); setSearchParams(next, { preventScrollReset: true }) }}
+            >All</div>
+            {subs.map(sub => {
+              const fullCat = `${activeParent}: ${sub}`
+              const isSubActive = activeCat === fullCat
+              return (
+                <div
+                  key={sub} role="button" tabIndex={0}
+                  className={`sub-pill ${isSubActive ? 'active' : ''}`}
+                  style={isSubActive ? { background: hexColor, borderColor: hexColor, color: '#fff' } : { borderColor: hexColor, color: '#fff' }}
+                  onClick={() => {
+                    const next = new URLSearchParams(searchParams)
+                    next.set('category', isSubActive ? `${activeParent}:` : fullCat)
+                    setSearchParams(next, { preventScrollReset: true })
+                  }}
+                >{sub}</div>
+              )
+            })}
+          </div>
+        )
+      })()}
       <Form size="tiny" className="container">
       {/* Search row — always visible */}
       <div className="search-row" style={{ display: 'flex', gap: '.4em', marginTop: '1.5em', marginBottom: showFilters ? 0 : '.25em', alignItems: 'center' }}>
@@ -352,7 +436,9 @@ function MapCards({ listings, cardRefs, mapRef, saved, handleSave, handleHide })
   useEffect(() => {
     if (location.state?.scrollToMap) mapRef.current?.scrollIntoView({ behavior: 'smooth' })
     else if (currentCard) currentCard.current?.scrollIntoView({behavior: "smooth"})
-  }, [currentCard, location, mapRef])
+  // Only scroll when a specific card/marker is selected, not on filter changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentCard, markerId])
 
   // Limit the number of results shown after search, for speed optimization. User can click "Show More" button to reveal the additional hidden results (all results.)
   const CardsDisplay = ({numEntries}) => {
@@ -581,7 +667,13 @@ function MapMarkers ({listings, cardRefs}) {
   const mappedListings = useMemo(() => listings.filter(({ coords: [ lat, lon ] }) => lat && lon), [listings])
   const currentCoords = useMemo(() => listings.find(({ guid }) => guid === Number(markerId))?.coords, [listings, markerId])
   const bounds = useMemo(() => mappedListings.map(({coords}) => coords), [mappedListings])
-  useEffect(() => bounds.length && map.fitBounds(bounds), [map, bounds])
+  useEffect(() => {
+    if (!bounds.length) return
+    const el = document.getElementById('app')
+    const scrollTop = el?.scrollTop || 0
+    map.fitBounds(bounds)
+    requestAnimationFrame(() => { if (el) el.scrollTop = scrollTop })
+  }, [map, bounds])
   useEffect(() => currentCoords && currentCoords[0] && currentCoords[1] && map.setView(currentCoords, 18), [map, currentCoords])
 
   return (<>

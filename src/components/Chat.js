@@ -82,9 +82,8 @@ function Chat({ listings }) {
   }
 
   const viewOnMap = (guids) => {
-    const params = new URLSearchParams()
-    guids.forEach(g => params.append('saved', g))
-    navigate(`/?${params.toString()}`)
+    if (!guids || guids.length === 0) return
+    navigate(`/?chat_recs=${guids.join(',')}`)
   }
 
   return (
