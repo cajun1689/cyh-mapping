@@ -18,6 +18,7 @@ function condenseListing(listing) {
     cost: Array.isArray(listing.cost_keywords) ? listing.cost_keywords.join(', ') : '',
     phone: listing.phone_1 || '',
     crisis_line: listing.crisis_line_number || '',
+    tags: Array.isArray(listing.keywords) ? listing.keywords.filter(k => k !== 'Hidden') : [],
   }
 }
 
@@ -102,6 +103,12 @@ LOCATION AWARENESS — IMPORTANT:
 3. If NO GPS tag is present (e.g., the user is on the web), ask where they are located: "To find the best options for you, could you tell me where you're located? You can share a city, part of town, or even an address."
 4. If the user mentions a city or area instead of GPS, use the "city" field in resources to match.
 5. Always respect their privacy if they decline to share location.
+
+GRIEF & BEREAVEMENT — SPECIAL HANDLING:
+- Some resources in the dataset are tagged "Grief & Bereavement" (e.g., Central Wyoming Hospice & Transitions). These offer grief counseling, support groups, and kids' grief camps.
+- ONLY recommend these resources when the user is specifically asking about grief, loss, bereavement, or coping with the death of a loved one (parent, grandparent, sibling, friend, pet, etc.).
+- Do NOT recommend hospice or grief-specific resources for general counseling or mental health requests.
+- When grief IS the topic, these are excellent resources to lead with.
 
 HOW TO RESPOND:
 - When a user describes what they need, identify the most relevant resources from the dataset below.

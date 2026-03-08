@@ -72,7 +72,7 @@ export const getCityCount = listings => {
   return cityCount
 }
 
-const HIDDEN_KEYWORDS = ['Faith-Based']
+const HIDDEN_KEYWORDS = ['Faith-Based', 'Hidden']
 
 export const getKeywordCount = listings => {
   let keywordCount = {}
@@ -142,6 +142,8 @@ export function filterListings(listings = {}, searchParams, search = "", hidden=
       if (listing.keywords && listing.keywords.includes('Faith-Based')) return false
       if (listing.category && listing.category.startsWith('Faith Based')) return false
     }
+
+    if (listing.keywords && listing.keywords.includes('Hidden') && !search && !tag) return false
 
     if (ageGroupFilter !== 'all') {
       const group = listing.age_group || 'Youth and Adult'
