@@ -1,6 +1,24 @@
 const router = require('express').Router()
 const db = require('../db')
 const categories = require('../apiData/categories.json')
+
+function ensureArray(val) {
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'string') {
+    try { const p = JSON.parse(val); if (Array.isArray(p)) return p; } catch {}
+    return [val];
+  }
+  return [];
+}
+
+function normalizeListing(listing) {
+  if (listing.keywords) listing.keywords = ensureArray(listing.keywords);
+  if (listing.cost_keywords && !Array.isArray(listing.cost_keywords)) {
+    listing.cost_keywords = ensureArray(listing.cost_keywords);
+  }
+  return listing;
+}
+
 const { getCityCount, getCategoryCount, getKeywordCount, getListing, getResources } = require('../utils/listingMetaUtils')
 
 // Code is similar to "api-preview.js", but they're pulling from different tables and working with different data on different routes
@@ -9,7 +27,7 @@ const queryString = 'SELECT * FROM listings'
 router.get('/listings', async (req, res) => {
   try {
     const listings = await db.query(queryString)
-    if (listings?.rows) return res.json(listings.rows.map(listing => Object.fromEntries(Object.entries(listing).filter(e => e[1] !== null))))
+    if (listings?.rows) return res.json(listings.rows.map(listing => normalizeListing(Object.fromEntries(Object.entries(listing).filter(e => e[1] !== null)))))
     // If there's no listings (but no error) send empty json
     return res.json({})
   } catch (error) {

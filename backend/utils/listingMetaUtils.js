@@ -1,6 +1,15 @@
 const cities = require('./cities')
 const db = require('../db')
 
+function ensureArray(val) {
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'string') {
+    try { const p = JSON.parse(val); if (Array.isArray(p)) return p; } catch {}
+    return [val];
+  }
+  return [];
+}
+
 const getCategoryCount = (listings) => {
   let listingCategories = {}
   listings.forEach((listing) => {
@@ -16,7 +25,7 @@ const getKeywordCount = listings => {
   let keywordCount = {}
   listings.forEach((listing) => {
     if (listing.keywords) {
-      listing.keywords.forEach((keyword) => {
+      ensureArray(listing.keywords).forEach((keyword) => {
         if (!keywordCount[`${keyword}`]) keywordCount[`${keyword}`] = 1
         else keywordCount[`${keyword}`] ++
       })
@@ -71,7 +80,7 @@ const cost = ["Low Cost", "Free", "OHP", "Accepts Uninsured", "Sliding Scale", "
 const addCostToListing = listing => {
   if (!listing) return
   if (listing.keywords) {
-    let keywords = listing.keywords
+    let keywords = ensureArray(listing.keywords)
     // Grab cost-related keywords out of the general keywords array
     const costKeywords = keywords.filter(keyword => cost.includes(keyword))
 
