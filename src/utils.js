@@ -74,11 +74,20 @@ export const getCityCount = listings => {
 
 const HIDDEN_KEYWORDS = ['Faith-Based', 'Hidden']
 
+function ensureArray(val) {
+  if (Array.isArray(val)) return val
+  if (typeof val === 'string') {
+    try { const p = JSON.parse(val); if (Array.isArray(p)) return p } catch {}
+    return [val]
+  }
+  return []
+}
+
 export const getKeywordCount = listings => {
   let keywordCount = {}
   listings.forEach((listing) => {
     if (listing.keywords) {
-      listing.keywords.forEach((keyword) => {
+      ensureArray(listing.keywords).forEach((keyword) => {
         if (HIDDEN_KEYWORDS.includes(keyword)) return
         if (!keywordCount[`${keyword}`]) keywordCount[`${keyword}`] = 1
         else keywordCount[`${keyword}`] ++
@@ -117,6 +126,7 @@ export const getCategoryCount = (listings) => {
 /* This function accepts json listings and returns them, formatted for leaflet use */
 export function formatListings(listings) {
   listings = listings.map(listing => {
+    if (listing.keywords) listing.keywords = ensureArray(listing.keywords)
     if (listing.cost_keywords && listing.cost_keywords?.length > 0) {
       listing.cost = listing.cost_keywords
     }
