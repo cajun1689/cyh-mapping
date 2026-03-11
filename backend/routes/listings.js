@@ -18,6 +18,10 @@ const imageUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize
   const allowed = ['image/jpeg', 'image/png', 'image/webp']
   cb(null, allowed.includes(file.mimetype))
 }})
+const imageUploadFields = imageUpload.fields([
+  { name: 'building_image', maxCount: 1 },
+  { name: 'office_entrance_image', maxCount: 1 }
+])
 const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3')
 const s3 = new S3Client({ region: process.env.AWS_REGION || 'us-west-2' })
 const S3_BUCKET = 'cyh-mapping-frontend'
@@ -230,7 +234,7 @@ router.get('/add', async (req, res) => {
   })
 })
 
-router.post('/add', imageUpload.single('building_image'), async (req, res) => {
+router.post('/add', imageUploadFields, async (req, res) => {
   try {
     const body = req.body
     const existingCategories = await getExistingCategories()
@@ -296,9 +300,14 @@ router.post('/add', imageUpload.single('building_image'), async (req, res) => {
     }
 
     // Upload building image if provided
-    if (req.file) {
-      listing.image_url = await uploadImageToS3(req.file, listing.guid)
-    }
+    const buildingFile = req.files?.building_image?.[0]
+    if (buildingFile) listing.image_url = await uploadImageToS3(buildingFile, listing.guid)
+
+    // Office entrance image (for multi-office buildings)
+    const officeEntranceFile = req.files?.office_entrance_image?.[0]
+    if (officeEntranceFile) listing.office_entrance_image_url = await uploadImageToS3(officeEntranceFile, `${listing.guid}-entrance`)
+
+    listing.internal_directions = (body.internal_directions || '').trim() || null
 
     // Get existing column names from the listings table
     const colInfo = await pool.query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'listings' ORDER BY ordinal_position`)
@@ -371,7 +380,7 @@ router.get('/edit/:guid', async (req, res) => {
   }
 })
 
-router.post('/edit/:guid', imageUpload.single('building_image'), async (req, res) => {
+router.post('/edit/:guid', imageUploadFields, async (req, res) => {
   const guid = parseInt(req.params.guid, 10)
   try {
     const body = req.body
@@ -421,13 +430,20 @@ router.post('/edit/:guid', imageUpload.single('building_image'), async (req, res
     }
 
     // Upload new building image if provided
-    if (req.file) {
-      updates.image_url = await uploadImageToS3(req.file, guid)
+    const buildingFile = req.files?.building_image?.[0]
+    if (buildingFile) {
+      updates.image_url = await uploadImageToS3(buildingFile, guid)
     }
-    // Remove existing image if requested
-    if (body.remove_image === 'on' && !req.file) {
-      updates.image_url = null
+    if (body.remove_image === 'on' && !buildingFile) updates.image_url = null
+
+    // Office entrance image (for multi-office buildings)
+    const officeEntranceFile = req.files?.office_entrance_image?.[0]
+    if (officeEntranceFile) {
+      updates.office_entrance_image_url = await uploadImageToS3(officeEntranceFile, `${guid}-entrance`)
     }
+    if (body.remove_office_entrance_image === 'on' && !officeEntranceFile) updates.office_entrance_image_url = null
+
+    updates.internal_directions = (body.internal_directions || '').trim() || null
 
     // Build UPDATE query dynamically from columns that exist in the table
     const colInfo = await pool.query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'listings' ORDER BY ordinal_position`)

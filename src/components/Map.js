@@ -492,7 +492,7 @@ const blueCheckStyle = { color: 'grey', fontStyle: 'italic' }
 const socialLinkStyle = { display: 'flex' }
 
 const MapCard = forwardRef(({ mapRef, listing, saved, handleSave, handleHide, index}, ref) => {
-  const { guid, category, parent_organization, full_name, full_address, description, text_message_instructions, phone_1, phone_label_1, phone_1_ext, phone_2, phone_label_2, crisis_line_number, crisis_line_label, website, twitter_link, facebook_link, youtube_link, instagram_link, program_email, languages_offered, keywords, min_age, max_age, eligibility_requirements, covid_message, financial_information, intake_instructions, agency_verified, date_agency_verified, cost_keywords, image_url } = listing
+  const { guid, category, parent_organization, full_name, full_address, description, text_message_instructions, phone_1, phone_label_1, phone_1_ext, phone_2, phone_label_2, crisis_line_number, crisis_line_label, website, twitter_link, facebook_link, youtube_link, instagram_link, program_email, languages_offered, keywords, min_age, max_age, eligibility_requirements, covid_message, financial_information, intake_instructions, agency_verified, date_agency_verified, cost_keywords, image_url, office_entrance_image_url, internal_directions } = listing
 
   const basePath = useBasePath()
   const navigate = useNavigate()
@@ -555,6 +555,14 @@ const MapCard = forwardRef(({ mapRef, listing, saved, handleSave, handleHide, in
           {image_url && <div style={{margin: '.75em 0', textAlign: 'center'}}>
             <img src={image_url} alt={`${full_name} building`} style={{maxWidth: '100%', maxHeight: '200px', borderRadius: '6px', objectFit: 'cover'}} />
           </div>}
+
+          {(office_entrance_image_url || internal_directions) && (
+            <Segment basic vertical style={{marginTop: '.5em', background: 'rgba(0,0,0,.03)', borderRadius: '6px'}}>
+              <Card.Header as="strong"><Icon name="door open" /> Inside the building</Card.Header>
+              {internal_directions && <Card.Description style={{marginTop: '.5em'}}>{internal_directions}</Card.Description>}
+              {office_entrance_image_url && <div style={{marginTop: '.75em', textAlign: 'center'}}><img src={office_entrance_image_url} alt={`${full_name} office entrance`} style={{maxWidth: '100%', maxHeight: '180px', borderRadius: '6px', objectFit: 'cover'}} /></div>}
+            </Segment>
+          )}
 
           <Segment basic vertical>
             <ExpandableDescription label="Description" value={description} />

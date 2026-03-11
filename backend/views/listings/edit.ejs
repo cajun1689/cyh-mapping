@@ -176,6 +176,27 @@
       <small style="color: #888;">Helps youth recognize where they're going. Max 5 MB. JPG, PNG, or WebP.</small>
     </div>
 
+    <h3 class="ui dividing header">Inside the Building (Multi-Office Buildings)</h3>
+    <p class="ui message" style="font-size: 0.9em;">For offices inside a building with multiple other offices: add a photo of your office entrance and directions so youth know they're in the right place.</p>
+    <div class="field">
+      <label>Directions once inside the building</label>
+      <textarea name="internal_directions" rows="3" placeholder="e.g. Take the elevator to the 2nd floor, turn left, we're the third door on the right"><%= l.internal_directions || '' %></textarea>
+    </div>
+    <div class="field">
+      <% if (l.office_entrance_image_url) { %>
+        <div style="margin-bottom: .75em;">
+          <img src="<%= l.office_entrance_image_url %>" alt="Office entrance" style="max-width: 300px; max-height: 200px; border-radius: 6px; border: 1px solid #ddd;">
+        </div>
+        <div class="ui checkbox" style="margin-bottom: .5em;">
+          <input type="checkbox" name="remove_office_entrance_image" id="remove_office_entrance_image">
+          <label for="remove_office_entrance_image">Remove office entrance photo</label>
+        </div>
+      <% } %>
+      <label><i class="door open icon"></i> <%= l.office_entrance_image_url ? 'Replace' : 'Upload' %> photo of office entrance (from inside)</label>
+      <input type="file" name="office_entrance_image" accept="image/jpeg,image/png,image/webp">
+      <small style="color: #888;">Photo of your office door/entrance so youth know they're in the right place. Max 5 MB.</small>
+    </div>
+
     <h3 class="ui dividing header">Details</h3>
 
     <div class="two fields">

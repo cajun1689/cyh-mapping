@@ -120,6 +120,8 @@ CREATE TABLE IF NOT EXISTS listings (
   latitude NUMERIC,
   longitude NUMERIC,
   image_url TEXT,
+  office_entrance_image_url TEXT,
+  internal_directions TEXT,
   age_group TEXT DEFAULT 'Youth and Adult',
   contact_name TEXT,
   contact_email TEXT,

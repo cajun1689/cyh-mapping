@@ -17,6 +17,10 @@ const imageUpload = multer({
     cb(null, allowed.includes(file.mimetype))
   }
 })
+const imageUploadFields = imageUpload.fields([
+  { name: 'building_image', maxCount: 1 },
+  { name: 'office_entrance_image', maxCount: 1 }
+])
 
 async function uploadImageToS3(file, guid) {
   const ext = file.originalname.split('.').pop().toLowerCase()
@@ -83,7 +87,7 @@ router.get('/edit/:guid', async (req, res) => {
   }
 })
 
-router.post('/edit/:guid', imageUpload.single('building_image'), async (req, res) => {
+router.post('/edit/:guid', imageUploadFields, async (req, res) => {
   const guid = parseInt(req.params.guid, 10)
   try {
     const ownership = await pool.query('SELECT guid FROM listings WHERE guid = $1 AND managed_by = $2', [guid, req.user.id])
@@ -132,8 +136,15 @@ router.post('/edit/:guid', imageUpload.single('building_image'), async (req, res
       }
     }
 
-    if (req.file) updates.image_url = await uploadImageToS3(req.file, guid)
-    if (body.remove_image === 'on' && !req.file) updates.image_url = null
+    const buildingFile = req.files?.building_image?.[0]
+    if (buildingFile) updates.image_url = await uploadImageToS3(buildingFile, guid)
+    if (body.remove_image === 'on' && !buildingFile) updates.image_url = null
+
+    const officeEntranceFile = req.files?.office_entrance_image?.[0]
+    if (officeEntranceFile) updates.office_entrance_image_url = await uploadImageToS3(officeEntranceFile, `${guid}-entrance`)
+    if (body.remove_office_entrance_image === 'on' && !officeEntranceFile) updates.office_entrance_image_url = null
+
+    updates.internal_directions = (body.internal_directions || '').trim() || null
 
     const colInfo = await pool.query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'listings' ORDER BY ordinal_position`)
     const tableColumns = colInfo.rows.map(r => r.column_name)
