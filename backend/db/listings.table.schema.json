@@ -46,7 +46,8 @@
       "agency_verified": { "type": "string" },
       "date_agency_verified": { "type": "string" },
       "image_url": { "type": "string", "format": "uri" },
-      "office_entrance_image_url": { "type": "string", "format": "uri" }
+      "office_entrance_image_url": { "type": "string", "format": "uri" },
+      "photo_urls": { "type": "array", "items": { "type": "string", "format": "uri" } }
     },
     "required": ["guid", "full_name", "category", "description"],
     "additionalProperties": true

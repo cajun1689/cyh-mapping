@@ -97,3 +97,11 @@ upload-csv:
 	ssh $(SSH_OPTS) ec2-user@$$($(TF_OUTPUT) ec2_ip) \
 		"cd ~/app && node scripts/upload-csv.js ~/$(UPLOAD_CSV)"
 	@echo "=== Done. Listings live at https://casperyouthhubmap.org ==="
+
+# Backfill Street View images for listings without photos.
+# Requires GOOGLE_API_KEY: either in EC2 .env, or pass when running:
+#   GOOGLE_API_KEY=your_key make backfill-street-view
+backfill-street-view:
+	@echo "=== Backfilling Street View images ==="
+	scp $(SSH_OPTS) backend/scripts/backfill-street-view.js ec2-user@$$($(TF_OUTPUT) ec2_ip):~/app/scripts/
+	ssh $(SSH_OPTS) ec2-user@$$($(TF_OUTPUT) ec2_ip) "cd ~/app && GOOGLE_API_KEY='$(GOOGLE_API_KEY)' node scripts/backfill-street-view.js"

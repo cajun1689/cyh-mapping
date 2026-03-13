@@ -16,6 +16,18 @@ function normalizeListing(listing) {
   if (listing.cost_keywords && !Array.isArray(listing.cost_keywords)) {
     listing.cost_keywords = ensureArray(listing.cost_keywords);
   }
+  if (listing.photo_urls != null) {
+    if (Array.isArray(listing.photo_urls)) {
+      listing.photo_urls = listing.photo_urls.filter(Boolean);
+    } else if (typeof listing.photo_urls === 'string') {
+      try {
+        const p = JSON.parse(listing.photo_urls);
+        listing.photo_urls = Array.isArray(p) ? p.filter(Boolean) : listing.photo_urls.split(',').map(s => s.trim()).filter(Boolean);
+      } catch {
+        listing.photo_urls = listing.photo_urls.split(',').map(s => s.trim()).filter(Boolean);
+      }
+    }
+  }
   return listing;
 }
 
