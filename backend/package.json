@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "nodemon server.js",
-    "startDebug": "NODE_ENV=debug nodemon server"
+    "startDebug": "NODE_ENV=debug nodemon server",
+    "enrich": "node scripts/enrich-from-web.js"
   },
   "keywords": [],
   "author": "",

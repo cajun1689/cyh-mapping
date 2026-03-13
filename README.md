@@ -887,6 +887,16 @@ Categories are defined in `backend/apiData/categories.json`. Each listing's `cat
 - Work & Employment
 - And more (see `categories.json` for the full list)
 
+### Data enrichment (optional)
+
+To fill in missing fields (email, phone, financial info, social links, etc.) by scraping organization websites:
+
+```bash
+cd backend && npm run enrich
+```
+
+This fetches all listings from the live API, scrapes each organization's website for form-mapped fields, and writes `cyh-resources-enriched.csv`. Review before uploading via admin panel. Use `LIMIT=10 npm run enrich` to test with 10 listings. See `docs/DATA_ENRICHMENT_RESEARCH.md` for details.
+
 ### Upload process
 
 1. Log into the admin panel at your backend URL

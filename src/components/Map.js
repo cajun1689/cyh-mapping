@@ -554,6 +554,9 @@ const MapCard = forwardRef(({ mapRef, listing, saved, handleSave, handleHide, in
 
           {image_url && <div style={{margin: '.75em 0', textAlign: 'center'}}>
             <img src={image_url} alt={`${full_name} building`} style={{maxWidth: '100%', maxHeight: '200px', borderRadius: '6px', objectFit: 'cover'}} />
+            {image_url?.includes('maps.googleapis.com') && (
+              <div style={{fontSize: '0.75rem', color: '#5e5e5e', marginTop: '4px'}} translate="no">© Google Maps</div>
+            )}
           </div>}
 
           {(office_entrance_image_url || internal_directions) && (

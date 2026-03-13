@@ -12,7 +12,7 @@
 #   make status           Show Terraform outputs (IPs, URLs)
 # ============================================================
 
-.PHONY: infra deploy deploy-frontend deploy-backend destroy ssh logs status
+.PHONY: infra deploy deploy-frontend deploy-backend destroy ssh logs status upload-csv
 
 # Read Terraform outputs without re-running plan
 TF_DIR := infra
@@ -83,3 +83,17 @@ ssh:
 
 logs:
 	ssh $(SSH_OPTS) ec2-user@$$($(TF_OUTPUT) ec2_ip) "pm2 logs"
+
+# -------------------------------------------------------------------
+# Upload enriched CSV directly to production (bypasses web admin)
+# Run deploy-backend first if you've added or changed scripts/upload-csv.js
+# -------------------------------------------------------------------
+
+UPLOAD_CSV ?= cyh-resources-enriched.csv
+
+upload-csv:
+	@echo "=== Uploading $(UPLOAD_CSV) to production ==="
+	scp $(SSH_OPTS) "$(UPLOAD_CSV)" ec2-user@$$($(TF_OUTPUT) ec2_ip):~/
+	ssh $(SSH_OPTS) ec2-user@$$($(TF_OUTPUT) ec2_ip) \
+		"cd ~/app && node scripts/upload-csv.js ~/$(UPLOAD_CSV)"
+	@echo "=== Done. Listings live at https://casperyouthhubmap.org ==="
