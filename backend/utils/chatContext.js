@@ -19,6 +19,7 @@ function condenseListing(listing) {
     phone: listing.phone_1 || '',
     crisis_line: listing.crisis_line_number || '',
     tags: Array.isArray(listing.keywords) ? listing.keywords.filter(k => k !== 'Hidden') : [],
+    services: Array.isArray(listing.services_provided) ? listing.services_provided.join(', ') : '',
   }
 }
 

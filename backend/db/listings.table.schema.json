@@ -42,12 +42,14 @@
       "instagram_link": { "type": "string", "format": "uri" },
       "covid_message": { "type": "string" },
       "city": { "type": "string" },
+      "age_group": { "type": "string" },
       "cost_keywords": { "type": "array", "items": { "type": "string" } },
       "agency_verified": { "type": "string" },
       "date_agency_verified": { "type": "string" },
       "image_url": { "type": "string", "format": "uri" },
       "office_entrance_image_url": { "type": "string", "format": "uri" },
-      "photo_urls": { "type": "array", "items": { "type": "string", "format": "uri" } }
+      "photo_urls": { "type": "array", "items": { "type": "string", "format": "uri" } },
+      "managed_by": { "type": "integer" }
     },
     "required": ["guid", "full_name", "category", "description"],
     "additionalProperties": true

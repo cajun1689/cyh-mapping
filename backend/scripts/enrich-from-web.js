@@ -329,19 +329,7 @@ async function main () {
     if (i < listings.length - 1) await sleep(delay)
   }
 
-  if (GOOGLE_API_KEY) {
-    const needStreetView = enriched.filter(l => !l.image_url && (l.full_address || (l.latitude && l.longitude)))
-    if (needStreetView.length > 0) {
-      console.log(`\nStreet View: checking ${needStreetView.length} listings...\n`)
-      for (let i = 0; i < enriched.length; i++) {
-        const updated = await addStreetView(enriched[i], i, enriched.length)
-        enriched[i] = updated
-        if (i < enriched.length - 1) await sleep(300)
-      }
-    }
-  } else {
-    console.log('\n(Set GOOGLE_API_KEY for Street View images)')
-  }
+  // Street View / Places auto-photos disabled – only show manually uploaded photos
 
   const rows = enriched.map(listingToCsvRow)
   const csv = unparse(rows, { header: true })

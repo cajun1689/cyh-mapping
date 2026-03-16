@@ -19,6 +19,7 @@ Built on the [Oregon Youth Resource Map](https://github.com/mapping-action-colle
 - [Project Structure](#project-structure)
 - [Configuration Reference](#configuration-reference)
 - [Deploying to AWS](#deploying-to-aws)
+- [Deployment Checklist](#deployment-checklist)
 - [Managing the Live Site](#managing-the-live-site)
 - [Updating Listings Data](#updating-listings-data)
 - [Contributing](#contributing)
@@ -149,18 +150,26 @@ Visit [casperyouthhubmap.org/#/embed-code](https://casperyouthhubmap.org/#/embed
 
 ## Sponsor Logos
 
-A "Made Possible By" section appears below the map displaying sponsor/partner logos. Sponsors are managed entirely from the admin panel.
+A "Made Possible By" section appears below the map displaying sponsor/partner logos.
 
-### Managing sponsors
+### Default sponsors (always in S3)
+
+**Casper Youth Hub** and **Unicorn Solutions** logos live in `public/sponsor-logos/` and are deployed with every frontend build. They cannot be deleted by `make deploy-frontend`. To replace with custom logos, overwrite `casper-youth-hub.svg` and `unicorn-solutions.svg` (same filenames) and redeploy.
+
+Seed the database with default sponsors (run if logos show as text):
+
+```bash
+make seed-sponsors
+```
+
+### Managing sponsors (admin panel)
 
 1. Log into the admin panel and click **Sponsors** in the nav bar
 2. **Add a sponsor:** Fill in the name, optional website URL, and upload a logo image (JPEG, PNG, WebP, or SVG, max 5 MB)
 3. **Reorder:** Use the up/down arrow buttons to change display order
 4. **Delete:** Click the trash icon and confirm
 
-Logos are stored in S3 under the `sponsor-logos/` prefix and served through CloudFront. The sponsor data is included in the `/api/meta` response, so the frontend picks it up automatically with no extra API call.
-
-The section renders on both the main site and embedded maps, and is hidden automatically when no sponsors exist.
+Admin-uploaded logos go to `sponsor-logos/uploads/` in S3 and are preserved across deploys. The sponsor data is included in the `/api/meta` response.
 
 ---
 
@@ -792,6 +801,20 @@ pbcopy < ~/.ssh/cyh-key.pem
 > **Security note:** Repository secrets are encrypted and only exposed to GitHub Actions workflows. They are not visible to collaborators, forks, or in logs. However, anyone with admin access to the repository can overwrite them. Consider creating a dedicated IAM user with limited permissions for CI/CD instead of reusing your admin credentials.
 
 These secrets can then be referenced in a GitHub Actions workflow (`.github/workflows/deploy.yml`) to automate deployments on push to `main`.
+
+---
+
+## Deployment Checklist
+
+**Always verify after deploy.** See [docs/DEPLOYMENT_CHECKLIST.md](docs/DEPLOYMENT_CHECKLIST.md) for the full checklist.
+
+| Check | If it fails |
+|-------|--------------|
+| Sponsor logos visible (not just text) | `make seed-sponsors` |
+| Manage Listings loads | Check backend logs: `make logs` |
+| Users page loads | Run `make add-admin-users` if needed |
+
+The Makefile **must** exclude `sponsor-logos/uploads/*` and `listing-images/*` from the S3 sync so admin-uploaded content is never deleted. Do not remove these excludes.
 
 ---
 

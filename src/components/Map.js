@@ -143,15 +143,21 @@ const sponsorRowStyle = { display: 'flex', justifyContent: 'center', alignItems:
 const sponsorLogoStyle = { maxHeight: '60px', width: 'auto', objectFit: 'contain' }
 
 function SponsorBar({ sponsors }) {
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
   return (
     <Segment basic vertical style={sponsorBarStyle}>
       <div style={sponsorLabelStyle}>Made Possible By</div>
       <div style={sponsorRowStyle}>
-        {sponsors.map((s, i) =>
-          s.website_url
-            ? <a key={i} href={s.website_url} target="_blank" rel="noreferrer"><img src={s.logo_url} alt={s.name} title={s.name} style={sponsorLogoStyle} /></a>
-            : <img key={i} src={s.logo_url} alt={s.name} title={s.name} style={sponsorLogoStyle} />
-        )}
+        {sponsors.map((s, i) => {
+          const logoUrl = s.logo_url?.startsWith('/') ? `${baseUrl}${s.logo_url}` : s.logo_url
+          const hasLogo = logoUrl && logoUrl.length > 0
+          if (hasLogo) {
+            return s.website_url
+              ? <a key={i} href={s.website_url} target="_blank" rel="noreferrer"><img src={logoUrl} alt={s.name} title={s.name} style={sponsorLogoStyle} /></a>
+              : <img key={i} src={logoUrl} alt={s.name} title={s.name} style={sponsorLogoStyle} />
+          }
+          return <span key={i} style={{ fontWeight: 600, color: '#555' }}>{s.name}</span>
+        })}
       </div>
     </Segment>
   )
@@ -494,7 +500,8 @@ const socialLinkStyle = { display: 'flex' }
 const MapCard = forwardRef(({ mapRef, listing, saved, handleSave, handleHide, index}, ref) => {
   const { guid, category, parent_organization, full_name, full_address, description, text_message_instructions, phone_1, phone_label_1, phone_1_ext, phone_2, phone_label_2, crisis_line_number, crisis_line_label, website, twitter_link, facebook_link, youtube_link, instagram_link, program_email, languages_offered, keywords, min_age, max_age, eligibility_requirements, covid_message, financial_information, intake_instructions, agency_verified, date_agency_verified, cost_keywords, image_url, photo_urls, office_entrance_image_url, internal_directions } = listing
 
-  const photos = (photo_urls && photo_urls.length > 0) ? photo_urls : (image_url ? [image_url] : [])
+  const rawPhotos = (photo_urls && photo_urls.length > 0) ? photo_urls : (image_url ? [image_url] : [])
+  const photos = rawPhotos.filter(url => url && !url.includes('maps.googleapis.com'))
   const [photoIndex, setPhotoIndex] = useState(0)
 
   const basePath = useBasePath()
@@ -555,59 +562,40 @@ const MapCard = forwardRef(({ mapRef, listing, saved, handleSave, handleHide, in
           </Segment>
           {(agency_verified && date_agency_verified) && <BlueCheck name={full_name} date={date_agency_verified} />}
 
-          {(photos.length > 0 || (full_address || (listing.latitude && listing.longitude))) && (
+          {!listing.keywords?.includes('Online Only') && photos.length > 0 && (
             <div style={{margin: '.75em 0', textAlign: 'center'}}>
-              {photos.length > 0 ? (
-                <>
-                  <div style={{position: 'relative'}}>
-                    <img src={photos[photoIndex]} alt={`${full_name} building`} style={{maxWidth: '100%', maxHeight: '200px', borderRadius: '6px', objectFit: 'cover'}} />
-                    {photos.length > 1 && (
-                      <>
-                        <Icon
-                          name="chevron left"
-                          link
-                          style={{position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'white', textShadow: '0 1px 2px rgba(0,0,0,0.8)', cursor: 'pointer'}}
-                          onClick={(e) => { e.preventDefault(); setPhotoIndex((i) => (i - 1 + photos.length) % photos.length) }}
+              <div style={{position: 'relative'}}>
+                <img src={photos[photoIndex]} alt={`${full_name} building`} style={{maxWidth: '100%', maxHeight: '200px', borderRadius: '6px', objectFit: 'cover'}} />
+                {photos.length > 1 && (
+                  <>
+                    <Icon
+                      name="chevron left"
+                      link
+                      style={{position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'white', textShadow: '0 1px 2px rgba(0,0,0,0.8)', cursor: 'pointer'}}
+                      onClick={(e) => { e.preventDefault(); setPhotoIndex((i) => (i - 1 + photos.length) % photos.length) }}
+                    />
+                    <Icon
+                      name="chevron right"
+                      link
+                      style={{position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', color: 'white', textShadow: '0 1px 2px rgba(0,0,0,0.8)', cursor: 'pointer'}}
+                      onClick={(e) => { e.preventDefault(); setPhotoIndex((i) => (i + 1) % photos.length) }}
+                    />
+                    <div style={{marginTop: '6px', display: 'flex', justifyContent: 'center', gap: '6px'}}>
+                      {photos.map((_, i) => (
+                        <span
+                          key={i}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setPhotoIndex(i)}
+                          onKeyDown={(e) => e.key === 'Enter' && setPhotoIndex(i)}
+                          style={{width: 8, height: 8, borderRadius: '50%', background: i === photoIndex ? '#666' : '#ccc', cursor: 'pointer'}}
+                          aria-label={`Photo ${i + 1} of ${photos.length}`}
                         />
-                        <Icon
-                          name="chevron right"
-                          link
-                          style={{position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', color: 'white', textShadow: '0 1px 2px rgba(0,0,0,0.8)', cursor: 'pointer'}}
-                          onClick={(e) => { e.preventDefault(); setPhotoIndex((i) => (i + 1) % photos.length) }}
-                        />
-                        <div style={{marginTop: '6px', display: 'flex', justifyContent: 'center', gap: '6px'}}>
-                          {photos.map((_, i) => (
-                            <span
-                              key={i}
-                              role="button"
-                              tabIndex={0}
-                              onClick={() => setPhotoIndex(i)}
-                              onKeyDown={(e) => e.key === 'Enter' && setPhotoIndex(i)}
-                              style={{width: 8, height: 8, borderRadius: '50%', background: i === photoIndex ? '#666' : '#ccc', cursor: 'pointer'}}
-                              aria-label={`Photo ${i + 1} of ${photos.length}`}
-                            />
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  {photos[photoIndex]?.includes('maps.googleapis.com') && (
-                    <div style={{fontSize: '0.75rem', color: '#5e5e5e', marginTop: '4px'}} translate="no">© Google Maps</div>
-                  )}
-                </>
-              ) : (
-                <a
-                  href={`https://www.google.com/maps/dir//${encodeURIComponent(full_address || '')}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{display: 'block', textDecoration: 'none', color: 'inherit'}}
-                >
-                  <div style={{maxWidth: '100%', height: '140px', borderRadius: '6px', background: 'linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '1px solid #ddd'}}>
-                    <Icon name="map marker alternate" size="huge" style={{color: '#999', marginBottom: '8px'}} />
-                    <span style={{fontSize: '0.85rem', color: '#666'}}>View location on map</span>
-                  </div>
-                </a>
-              )}
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           )}
 

@@ -43,7 +43,8 @@ deploy-frontend:
 	@echo "=== Building frontend ==="
 	CI=false NODE_OPTIONS=--openssl-legacy-provider npm run build
 	@echo "=== Syncing to S3 ==="
-	aws s3 sync build/ s3://$$($(TF_OUTPUT) frontend_bucket) --delete
+	aws s3 sync build/ s3://$$($(TF_OUTPUT) frontend_bucket) --delete \
+		--exclude "sponsor-logos/uploads/*" --exclude "listing-images/*"
 	@echo "=== Invalidating CloudFront cache ==="
 	aws cloudfront create-invalidation \
 		--distribution-id $$($(TF_OUTPUT) cloudfront_id) \
@@ -98,10 +99,40 @@ upload-csv:
 		"cd ~/app && node scripts/upload-csv.js ~/$(UPLOAD_CSV)"
 	@echo "=== Done. Listings live at https://casperyouthhubmap.org ==="
 
-# Backfill Street View images for listings without photos.
-# Requires GOOGLE_API_KEY: either in EC2 .env, or pass when running:
-#   GOOGLE_API_KEY=your_key make backfill-street-view
-backfill-street-view:
-	@echo "=== Backfilling Street View images ==="
-	scp $(SSH_OPTS) backend/scripts/backfill-street-view.js ec2-user@$$($(TF_OUTPUT) ec2_ip):~/app/scripts/
-	ssh $(SSH_OPTS) ec2-user@$$($(TF_OUTPUT) ec2_ip) "cd ~/app && GOOGLE_API_KEY='$(GOOGLE_API_KEY)' node scripts/backfill-street-view.js"
+# Update description for a listing. Usage: make update-desc GUID=137 DESC="New description"
+update-desc:
+	@echo "=== Updating description for guid $(GUID) ==="
+	scp $(SSH_OPTS) backend/scripts/update-listing-description.js ec2-user@$$($(TF_OUTPUT) ec2_ip):~/app/scripts/
+	ssh $(SSH_OPTS) ec2-user@$$($(TF_OUTPUT) ec2_ip) "cd ~/app && node scripts/update-listing-description.js $(GUID) '$(DESC)'"
+
+# Seed default sponsors (Casper Youth Hub, Unicorn Solutions) with bundled logos.
+# Run if sponsor logos show as text instead of images.
+seed-sponsors:
+	@echo "=== Seeding default sponsors ==="
+	scp $(SSH_OPTS) backend/scripts/seed-sponsors.js ec2-user@$$($(TF_OUTPUT) ec2_ip):~/app/scripts/
+	ssh $(SSH_OPTS) ec2-user@$$($(TF_OUTPUT) ec2_ip) "cd ~/app && node scripts/seed-sponsors.js"
+
+# Clear images for specific listings (bad/placeholder photos). Usage: make clear-images GUIDS="59 137"
+clear-images:
+	@echo "=== Clearing images for listings $(GUIDS) ==="
+	scp $(SSH_OPTS) backend/scripts/clear-listing-images.js ec2-user@$$($(TF_OUTPUT) ec2_ip):~/app/scripts/
+	ssh $(SSH_OPTS) ec2-user@$$($(TF_OUTPUT) ec2_ip) "cd ~/app && node scripts/clear-listing-images.js $(GUIDS)"
+
+# Create admin accounts for seth@casperyouthhub.org and elliottunicornsolutions@gmail.com.
+# Usage: make add-admin-users ADD_ADMIN_PASSWORD="YourTempPassword"
+add-admin-users:
+	@echo "=== Adding admin users ==="
+	scp $(SSH_OPTS) backend/scripts/add-admin-users.js ec2-user@$$($(TF_OUTPUT) ec2_ip):~/app/scripts/
+	ssh $(SSH_OPTS) ec2-user@$$($(TF_OUTPUT) ec2_ip) "cd ~/app && node scripts/add-admin-users.js '$(ADD_ADMIN_PASSWORD)'"
+
+# Export org spreadsheet (name, website, phone, description, tags, status, needs)
+export-spreadsheet:
+	@echo "=== Exporting org spreadsheet ==="
+	node backend/scripts/export-org-spreadsheet.js
+	@echo "Wrote org-data-spreadsheet.csv"
+
+# Update Living Well Counseling: services, remove free, add searchable terms for chat
+update-living-well:
+	@echo "=== Updating Living Well Counseling (guid 31) ==="
+	scp $(SSH_OPTS) backend/scripts/update-living-well.js ec2-user@$$($(TF_OUTPUT) ec2_ip):~/app/scripts/
+	ssh $(SSH_OPTS) ec2-user@$$($(TF_OUTPUT) ec2_ip) "cd ~/app && node scripts/update-living-well.js"

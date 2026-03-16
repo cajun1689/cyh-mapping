@@ -9,15 +9,24 @@ router.use(ensureOwner)
 
 router.get('/manage', async (req, res) => {
   try {
-    const usersResult = await pool.query(`
-      SELECT u.id, u.email, u.role,
-        COALESCE(json_agg(json_build_object('guid', l.guid, 'full_name', l.full_name, 'city', l.city))
-          FILTER (WHERE l.guid IS NOT NULL), '[]') AS assigned_listings
-      FROM staging_user u
-      LEFT JOIN listings l ON l.managed_by = u.id
-      GROUP BY u.id
-      ORDER BY u.role, u.email
-    `)
+    let usersResult
+    try {
+      usersResult = await pool.query(`
+        SELECT u.id, u.email, u.role,
+          COALESCE(json_agg(json_build_object('guid', l.guid, 'full_name', l.full_name, 'city', l.city))
+            FILTER (WHERE l.guid IS NOT NULL), '[]') AS assigned_listings
+        FROM staging_user u
+        LEFT JOIN listings l ON l.managed_by = u.id
+        GROUP BY u.id
+        ORDER BY u.role, u.email
+      `)
+    } catch (joinErr) {
+      usersResult = await pool.query(`
+        SELECT id, email, role, '[]'::json AS assigned_listings
+        FROM staging_user
+        ORDER BY role, email
+      `)
+    }
     const allListings = await pool.query('SELECT guid, full_name, city FROM listings ORDER BY full_name')
     res.render('users/manage', {
       props: {

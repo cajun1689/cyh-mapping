@@ -6,7 +6,7 @@ const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/cl
 
 const s3 = new S3Client({ region: process.env.AWS_REGION || 'us-west-2' })
 const S3_BUCKET = 'cyh-mapping-frontend'
-const S3_PREFIX = 'sponsor-logos'
+const S3_PREFIX = 'sponsor-logos/uploads'
 
 const imageUpload = multer({
   storage: multer.memoryStorage(),
@@ -31,8 +31,8 @@ async function uploadLogoToS3(file, id) {
 }
 
 async function deleteLogoFromS3(logoUrl) {
-  if (!logoUrl || !logoUrl.startsWith(`/${S3_PREFIX}/`)) return
-  const key = logoUrl.slice(1)
+  if (!logoUrl || !logoUrl.includes('/sponsor-logos/uploads/')) return
+  const key = logoUrl.startsWith('/') ? logoUrl.slice(1) : logoUrl
   try {
     await s3.send(new DeleteObjectCommand({ Bucket: S3_BUCKET, Key: key }))
   } catch (err) {
