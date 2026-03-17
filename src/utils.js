@@ -44,15 +44,52 @@ export const categoryHexColors = {
   'Violence & Justice': '#9C27B0',
 }
 
+export const normalizeCategories = (categoryValue) => {
+  if (!categoryValue) return []
+
+  if (Array.isArray(categoryValue)) {
+    return [...new Set(categoryValue.map(c => `${c}`.trim()).filter(Boolean))]
+  }
+
+  if (typeof categoryValue === 'string') {
+    const raw = categoryValue.trim()
+    if (!raw) return []
+    try {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) {
+        return [...new Set(parsed.map(c => `${c}`.trim()).filter(Boolean))]
+      }
+    } catch {}
+
+    const parts = raw.split(/\s*(?:\|\||;|\n)\s*/).map(c => c.trim()).filter(Boolean)
+    return [...new Set(parts.length > 0 ? parts : [raw])]
+  }
+
+  return []
+}
+
+const getPrimaryCategory = (categoryValue) => normalizeCategories(categoryValue)[0] || ''
+const categoryMatches = (listingCategoryValue, filterCategory) => {
+  if (!filterCategory) return true
+  const categories = normalizeCategories(listingCategoryValue)
+  if (filterCategory.endsWith(':')) {
+    const prefix = filterCategory.replace(/:$/, ': ')
+    return categories.some(cat => cat.startsWith(prefix))
+  }
+  return categories.includes(filterCategory)
+}
+
 export const getCategoryHexColor = (category) => {
-  if (!category) return '#4A90D9'
-  const parent = category.split(': ')[0]
+  const primaryCategory = getPrimaryCategory(category)
+  if (!primaryCategory) return '#4A90D9'
+  const parent = primaryCategory.split(': ')[0]
   return categoryHexColors[parent] || '#7F8C8D'
 }
 
 export const getCategoryColor = (category) => {
-  if (!category) return 'blue'
-  const parent = category.split(': ')[0]
+  const primaryCategory = getPrimaryCategory(category)
+  if (!primaryCategory) return 'blue'
+  const parent = primaryCategory.split(': ')[0]
   return categoryColorMap[parent] || 'blue'
 }
 export const formatSocialMediaUrl = url => url.includes('https://www.') ? url.split('https://www.')[1] : url.includes('https://') ? url.split('https://')[1] : url.includes('http://') ? url.split('http://')[1] : url
@@ -115,10 +152,13 @@ export const getCostCount = listings => {
 export const getCategoryCount = (listings) => {
   let listingCategories = {}
   listings.forEach((listing) => {
-    const [ parentCategory, subCategory ] = listing.category.split(`: `)
-    if (!listingCategories[`${parentCategory}`]) listingCategories[`${parentCategory}`] = {}
-    if (!listingCategories[`${parentCategory}`][`${subCategory}`]) listingCategories[`${parentCategory}`][`${subCategory}`] = 1
-    else listingCategories[`${parentCategory}`][`${subCategory}`] ++
+    normalizeCategories(listing.category).forEach((category) => {
+      const [ parentCategory, subCategory ] = category.split(`: `)
+      if (!parentCategory || !subCategory) return
+      if (!listingCategories[`${parentCategory}`]) listingCategories[`${parentCategory}`] = {}
+      if (!listingCategories[`${parentCategory}`][`${subCategory}`]) listingCategories[`${parentCategory}`][`${subCategory}`] = 1
+      else listingCategories[`${parentCategory}`][`${subCategory}`] ++
+    })
   })
   return listingCategories
 }
@@ -150,7 +190,7 @@ export function filterListings(listings = {}, searchParams, search = "", hidden=
 
     if (hideFaithBased) {
       if (listing.keywords && listing.keywords.includes('Faith-Based')) return false
-      if (listing.category && listing.category.startsWith('Faith Based')) return false
+      if (normalizeCategories(listing.category).some(category => category.startsWith('Faith Based'))) return false
     }
 
     if (listing.keywords && listing.keywords.includes('Hidden') && !search && !tag) return false
@@ -176,8 +216,8 @@ export function filterListings(listings = {}, searchParams, search = "", hidden=
 
     if (filters) {
       let hasFilters = Object.entries(filters).every(([ key, value ]) => {
-        if (key === 'category' && value.endsWith(':')) {
-          return listing.category && listing.category.startsWith(value.replace(/:$/, ': '))
+        if (key === 'category') {
+          return categoryMatches(listing.category, value)
         }
         return Array.isArray(listing[key]) ? listing[key].includes(value) : listing[key] === value
       })

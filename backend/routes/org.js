@@ -8,6 +8,7 @@ const axios = require('axios')
 const s3 = new S3Client({ region: process.env.AWS_REGION || 'us-west-2' })
 const S3_BUCKET = 'cyh-mapping-frontend'
 const S3_PREFIX = 'listing-images'
+const CATEGORY_DELIMITER = ' || '
 
 const imageUpload = multer({
   storage: multer.memoryStorage(),
@@ -30,6 +31,37 @@ async function uploadImageToS3(file, guid) {
     ContentType: file.mimetype, CacheControl: 'public, max-age=31536000',
   }))
   return `/${key}`
+}
+
+const normalizeCategories = (categoryValue) => {
+  if (!categoryValue) return []
+  if (Array.isArray(categoryValue)) {
+    return [...new Set(categoryValue.map(c => `${c}`.trim()).filter(Boolean))]
+  }
+  if (typeof categoryValue === 'string') {
+    const raw = categoryValue.trim()
+    if (!raw) return []
+    try {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) return [...new Set(parsed.map(c => `${c}`.trim()).filter(Boolean))]
+    } catch {}
+    return [...new Set(raw.split(/\s*(?:\|\||;|\n)\s*/).map(c => c.trim()).filter(Boolean))]
+  }
+  return []
+}
+
+const buildCategoryValue = (selectedCategories, customCategoriesText = '') => {
+  const selected = normalizeCategories(selectedCategories)
+  const custom = `${customCategoriesText || ''}`
+    .split(/[\n;]+/)
+    .map(c => c.trim())
+    .filter(Boolean)
+  return [...new Set([...selected, ...custom])].join(CATEGORY_DELIMITER)
+}
+
+async function getExistingCategories() {
+  const existingCategories = await pool.query('SELECT DISTINCT category FROM listings ORDER BY category')
+  return [...new Set(existingCategories.rows.flatMap(r => normalizeCategories(r.category)))].sort()
 }
 
 const geocodeAddress = async (address) => {
@@ -75,10 +107,10 @@ router.get('/edit/:guid', async (req, res) => {
       req.flash('message', 'Listing not found or you do not have permission to edit it.')
       return res.redirect('/org/dashboard')
     }
-    const existingCategories = await pool.query('SELECT DISTINCT category FROM listings ORDER BY category')
+    const existingCategories = await getExistingCategories()
     res.render('org/edit', {
       layout: 'layouts/orgLayout',
-      props: { activeNavTab: 'org-dashboard', listing: result.rows[0], categories: existingCategories.rows.map(r => r.category), success: false, error: null }
+      props: { activeNavTab: 'org-dashboard', listing: result.rows[0], categories: existingCategories, success: false, error: null }
     })
   } catch (error) {
     console.error('Org edit load error:', error.message)
@@ -97,8 +129,7 @@ router.post('/edit/:guid', imageUploadFields, async (req, res) => {
     }
 
     const body = req.body
-    let category = (body.category || '').trim()
-    if (category === '__custom') category = (body.custom_category || '').trim()
+    const category = buildCategoryValue(body.category, body.custom_categories)
 
     const updates = {
       full_name: (body.full_name || '').trim(),
@@ -169,18 +200,18 @@ router.post('/edit/:guid', imageUploadFields, async (req, res) => {
     console.info(`Org user ${req.user.email} updated listing [${guid}]`)
 
     const updated = await pool.query('SELECT * FROM listings WHERE guid = $1', [guid])
-    const existingCategories = await pool.query('SELECT DISTINCT category FROM listings ORDER BY category')
+    const existingCategories = await getExistingCategories()
     return res.render('org/edit', {
       layout: 'layouts/orgLayout',
-      props: { activeNavTab: 'org-dashboard', listing: updated.rows[0], categories: existingCategories.rows.map(r => r.category), success: true, error: null }
+      props: { activeNavTab: 'org-dashboard', listing: updated.rows[0], categories: existingCategories, success: true, error: null }
     })
   } catch (error) {
     console.error('Org edit error:', error.message)
     const result = await pool.query('SELECT * FROM listings WHERE guid = $1', [guid])
-    const existingCategories = await pool.query('SELECT DISTINCT category FROM listings ORDER BY category')
+    const existingCategories = await getExistingCategories()
     return res.render('org/edit', {
       layout: 'layouts/orgLayout',
-      props: { activeNavTab: 'org-dashboard', listing: result.rows[0] || {}, categories: existingCategories.rows.map(r => r.category), success: false, error: `Failed to save: ${error.message}` }
+      props: { activeNavTab: 'org-dashboard', listing: result.rows[0] || {}, categories: existingCategories, success: false, error: `Failed to save: ${error.message}` }
     })
   }
 })

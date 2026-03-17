@@ -193,12 +193,41 @@ router.post('/update', async (req, res) => {
 
 /* ----------- ADD SINGLE LISTING ----------- */
 
-const categories = require('../apiData/categories.json')
+const CATEGORY_DELIMITER = ' || '
+
+const normalizeCategories = (categoryValue) => {
+  if (!categoryValue) return []
+  if (Array.isArray(categoryValue)) {
+    return [...new Set(categoryValue.map(c => `${c}`.trim()).filter(Boolean))]
+  }
+  if (typeof categoryValue === 'string') {
+    const raw = categoryValue.trim()
+    if (!raw) return []
+    try {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) {
+        return [...new Set(parsed.map(c => `${c}`.trim()).filter(Boolean))]
+      }
+    } catch {}
+    return [...new Set(raw.split(/\s*(?:\|\||;|\n)\s*/).map(c => c.trim()).filter(Boolean))]
+  }
+  return []
+}
+
+const buildCategoryValue = (selectedCategories, customCategoriesText = '') => {
+  const selected = normalizeCategories(selectedCategories)
+  const custom = `${customCategoriesText || ''}`
+    .split(/[\n;]+/)
+    .map(c => c.trim())
+    .filter(Boolean)
+  const merged = [...new Set([...selected, ...custom])]
+  return merged.join(CATEGORY_DELIMITER)
+}
 
 const getExistingCategories = async () => {
   try {
     const result = await pool.query('SELECT DISTINCT category FROM listings ORDER BY category')
-    return result.rows.map(r => r.category)
+    return [...new Set(result.rows.flatMap(r => normalizeCategories(r.category)))].sort()
   } catch {
     return []
   }
@@ -240,16 +269,12 @@ router.post('/add', imageUploadFields, async (req, res) => {
     const existingCategories = await getExistingCategories()
 
     const full_name = (body.full_name || '').trim()
-    let category = (body.category || '').trim()
+    const category = buildCategoryValue(body.category, body.custom_categories)
     const description = (body.description || '').trim()
-
-    if (category === '__custom') {
-      category = (body.custom_category || '').trim()
-    }
 
     if (!full_name || !category || !description) {
       return res.render('listings/add', {
-        props: { activeNavTab: 'add-listing', categories: existingCategories, success: false, error: 'Name, category, and description are required.' }
+        props: { activeNavTab: 'add-listing', categories: existingCategories, success: false, error: 'Name, at least one category, and description are required.' }
       })
     }
 
@@ -387,10 +412,7 @@ router.post('/edit/:guid', imageUploadFields, async (req, res) => {
     const body = req.body
     const existingCategories = await getExistingCategories()
 
-    let category = (body.category || '').trim()
-    if (category === '__custom') {
-      category = (body.custom_category || '').trim()
-    }
+    const category = buildCategoryValue(body.category, body.custom_categories)
 
     const updates = {
       full_name: (body.full_name || '').trim(),

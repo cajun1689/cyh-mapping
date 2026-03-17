@@ -36,21 +36,25 @@
     </div>
 
     <div class="required field">
-      <label>Category</label>
-      <select name="category" required style="width:100%; padding:.67em 1em; border:1px solid rgba(34,36,38,.15); border-radius:.29em; font-size:1em;">
-        <option value="">-- Select a category --</option>
+      <label>Categories</label>
+      <select name="category" multiple required style="width:100%; min-height:160px; padding:.67em 1em; border:1px solid rgba(34,36,38,.15); border-radius:.29em; font-size:1em;">
         <% if (props.categories) { %>
           <% props.categories.forEach(function(cat) { %>
             <option value="<%= cat %>"><%= cat %></option>
           <% }) %>
         <% } %>
-        <option value="__custom">+ Add new category...</option>
       </select>
+      <small style="color:#888;">Hold Cmd/Ctrl to select multiple categories.</small>
     </div>
 
-    <div class="field" id="custom-category-field" style="display: none;">
-      <label>New Category (format: "Parent: Subcategory")</label>
-      <input type="text" name="custom_category" placeholder="e.g. Education: After School Programs">
+    <div class="field">
+      <label>Additional Categories (optional)</label>
+      <textarea name="custom_categories" rows="2" placeholder="Use semicolons or new lines. Example: Education &amp; Workforce: GED Prep; Basic Needs: Food"></textarea>
+    </div>
+    <div class="field">
+      <label>Selected Categories Preview</label>
+      <div id="category-preview" style="min-height: 2.5em;"></div>
+      <small style="color:#888;">This listing will appear in each category shown here.</small>
     </div>
 
     <div class="required field">
@@ -206,8 +210,43 @@
 </div>
 
 <script>
-  document.querySelector('select[name="category"]').addEventListener('change', function() {
-    var customField = document.getElementById('custom-category-field');
-    customField.style.display = this.value === '__custom' ? 'block' : 'none';
-  });
+  (function initCategoryPreview() {
+    const categorySelect = document.querySelector('select[name="category"]');
+    const customCategoriesInput = document.querySelector('textarea[name="custom_categories"]');
+    const preview = document.getElementById('category-preview');
+    if (!categorySelect || !preview) return;
+
+    const parseCustomCategories = (value) =>
+      (value || '')
+        .split(/[\n;]+/)
+        .map((entry) => entry.trim())
+        .filter(Boolean);
+
+    const renderPreview = () => {
+      const selected = Array.from(categorySelect.selectedOptions).map((option) => option.value).filter(Boolean);
+      const custom = parseCustomCategories(customCategoriesInput ? customCategoriesInput.value : '');
+      const merged = Array.from(new Set([...selected, ...custom]));
+
+      preview.innerHTML = '';
+      if (merged.length === 0) {
+        const emptyState = document.createElement('span');
+        emptyState.style.color = '#888';
+        emptyState.textContent = 'No categories selected yet.';
+        preview.appendChild(emptyState);
+        return;
+      }
+
+      merged.forEach((category) => {
+        const label = document.createElement('span');
+        label.className = 'ui label';
+        label.style.margin = '0 0.4em 0.4em 0';
+        label.textContent = category;
+        preview.appendChild(label);
+      });
+    };
+
+    categorySelect.addEventListener('change', renderPreview);
+    if (customCategoriesInput) customCategoriesInput.addEventListener('input', renderPreview);
+    renderPreview();
+  })();
 </script>

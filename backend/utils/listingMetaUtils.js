@@ -10,13 +10,35 @@ function ensureArray(val) {
   return [];
 }
 
+function normalizeCategories(categoryValue) {
+  if (!categoryValue) return []
+  if (Array.isArray(categoryValue)) {
+    return [...new Set(categoryValue.map(c => `${c}`.trim()).filter(Boolean))]
+  }
+  if (typeof categoryValue === 'string') {
+    const raw = categoryValue.trim()
+    if (!raw) return []
+    try {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) {
+        return [...new Set(parsed.map(c => `${c}`.trim()).filter(Boolean))]
+      }
+    } catch {}
+    return [...new Set(raw.split(/\s*(?:\|\||;|\n)\s*/).map(c => c.trim()).filter(Boolean))]
+  }
+  return []
+}
+
 const getCategoryCount = (listings) => {
   let listingCategories = {}
   listings.forEach((listing) => {
-    const [ parentCategory, subCategory ] = listing.category.split(`: `)
-    if (!listingCategories[`${parentCategory}`]) listingCategories[`${parentCategory}`] = {}
-    if (!listingCategories[`${parentCategory}`][`${subCategory}`]) listingCategories[`${parentCategory}`][`${subCategory}`] = 1
-    else listingCategories[`${parentCategory}`][`${subCategory}`] ++
+    normalizeCategories(listing.category).forEach((category) => {
+      const [ parentCategory, subCategory ] = category.split(`: `)
+      if (!parentCategory || !subCategory) return
+      if (!listingCategories[`${parentCategory}`]) listingCategories[`${parentCategory}`] = {}
+      if (!listingCategories[`${parentCategory}`][`${subCategory}`]) listingCategories[`${parentCategory}`][`${subCategory}`] = 1
+      else listingCategories[`${parentCategory}`][`${subCategory}`] ++
+    })
   })
   return listingCategories
 }

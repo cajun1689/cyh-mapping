@@ -7,7 +7,7 @@ import MarkerClusterGroup from 'react-leaflet-markercluster'
 import 'leaflet/dist/leaflet.css'
 import 'react-leaflet-markercluster/dist/styles.min.css'
 
-import { filterListings, getCityCount, getKeywordCount, getCostCount, getCategoryColor, getCategoryHexColor } from '../utils'
+import { filterListings, getCityCount, getKeywordCount, getCostCount, getCategoryColor, getCategoryHexColor, normalizeCategories } from '../utils'
 import { blueLMarker } from '../resources/mapIcons'
 import siteConfig from '../siteConfig.json'
 import './Map.css'
@@ -22,6 +22,7 @@ function EmbedMap({ listings, metadata }) {
   const [costFilter, setCostFilter] = useState('')
   const [cityFilter, setCityFilter] = useState('')
   const [showEmbedFilters, setShowEmbedFilters] = useState(false)
+  const showAgeSelect = searchParams.get('age_select') === '1'
   const showFaithToggle = searchParams.get('no_faith_toggle') !== '1'
   const prideGradient = 'linear-gradient(90deg, #E40303, #FF8C00, #FFED00, #008026, #004DFF, #750787)'
   const rawToolbar = searchParams.get('toolbar_color')
@@ -33,12 +34,14 @@ function EmbedMap({ listings, metadata }) {
   const localFilteredListings = useMemo(() => {
     let result = listings
     if (categoryFilter) {
-      if (categoryFilter.endsWith(':')) {
-        const prefix = categoryFilter.replace(/:$/, ': ')
-        result = result.filter(l => l.category && l.category.startsWith(prefix))
-      } else {
-        result = result.filter(l => l.category === categoryFilter)
-      }
+      result = result.filter((listing) => {
+        const categories = normalizeCategories(listing.category)
+        if (categoryFilter.endsWith(':')) {
+          const prefix = categoryFilter.replace(/:$/, ': ')
+          return categories.some(cat => cat.startsWith(prefix))
+        }
+        return categories.includes(categoryFilter)
+      })
     }
     if (tagFilter) result = result.filter(l => {
       const entries = Object.entries(l).join(' ').toLowerCase()
@@ -141,17 +144,19 @@ function EmbedMap({ listings, metadata }) {
               onChange={(e, { value }) => setCostFilter(value || '')}
             />
           )}
-          <Dropdown
-            options={[
-              { key: 'all', text: 'All Ages', value: 'all' },
-              { key: 'Youth', text: 'Youth', value: 'Youth' },
-              { key: 'Adult', text: 'Adult', value: 'Adult' },
-            ]}
-            selection compact
-            value={ageGroupFilter}
-            onChange={(e, { value }) => setAgeGroupFilter(value)}
-            style={{ flex: '0 0 auto', minWidth: '80px' }}
-          />
+          {showAgeSelect && (
+            <Dropdown
+              options={[
+                { key: 'all', text: 'All Ages', value: 'all' },
+                { key: 'Youth', text: 'Youth', value: 'Youth' },
+                { key: 'Adult', text: 'Adult', value: 'Adult' },
+              ]}
+              selection compact
+              value={ageGroupFilter}
+              onChange={(e, { value }) => setAgeGroupFilter(value)}
+              style={{ flex: '0 0 auto', minWidth: '80px' }}
+            />
+          )}
           {showFaithToggle && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0, flexShrink: 0 }}>
               <Form.Checkbox
@@ -235,6 +240,8 @@ function EmbedCards({ listings }) {
 
 function EmbedCard({ listing, index }) {
   const { full_name, parent_organization, full_address, phone_1, phone_label_1, crisis_line_number, crisis_line_label, website, program_email, description, category, min_age, max_age, keywords, cost_keywords, financial_information } = listing
+  const listingCategories = normalizeCategories(category)
+  const primaryCategory = listingCategories[0] || ''
   const color = getCategoryColor(category)
   return (
     <Card color={color} raised style={{ maxWidth: '100%' }}>
@@ -257,7 +264,12 @@ function EmbedCard({ listing, index }) {
         )}
         {(min_age && max_age) && <Card.Description><strong>Ages:</strong> {min_age}-{max_age}</Card.Description>}
         {financial_information && <Card.Description><strong>Cost:</strong> {financial_information}</Card.Description>}
-        <Card.Description><strong>{category.split(':')[0]}:</strong> {category.split(':')[1]}</Card.Description>
+        {primaryCategory && (
+          <Card.Description>
+            <strong>{primaryCategory.split(':')[0]}:</strong> {primaryCategory.split(':')[1]}
+            {listingCategories.length > 1 ? ` (+${listingCategories.length - 1} more)` : ''}
+          </Card.Description>
+        )}
       </Card.Content>
       {(keywords || cost_keywords) && (
         <Card.Content extra style={{ color: 'dimgrey' }}>

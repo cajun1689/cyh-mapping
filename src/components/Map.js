@@ -13,7 +13,7 @@ import 'react-leaflet-markercluster/dist/styles.min.css';
 import { filterListings, getKeywordCount, getCostCount } from '../utils'
 import './Map.css'
 import { greenLMarker } from '../resources/mapIcons'
-import { getCityCount, getCategoryColor, getCategoryHexColor, titleCaseKey } from '../utils'
+import { getCityCount, getCategoryColor, getCategoryHexColor, titleCaseKey, normalizeCategories } from '../utils'
 import siteConfig from '../siteConfig.json'
 
 export const EmbedContext = createContext('')
@@ -415,7 +415,8 @@ return (<>
               if (!value) return null
               let displayValue = value
               if (key === 'category') {
-                displayValue = value.endsWith(':') ? value.slice(0, -1) : value
+                const cleaned = value.endsWith(':') ? value.slice(0, -1) : value
+                displayValue = normalizeCategories(cleaned).join(', ')
               }
               return <Label key={key} basic color="blue"><strong>{titleCaseKey(key.replace(/_/ig,` `))}:</strong> {displayValue} <Icon name="delete" onClick={() => { searchParams.delete(key); setSearchParams(searchParams) }} /></Label>
             }) }
@@ -499,6 +500,8 @@ const socialLinkStyle = { display: 'flex' }
 
 const MapCard = forwardRef(({ mapRef, listing, saved, handleSave, handleHide, index}, ref) => {
   const { guid, category, parent_organization, full_name, full_address, description, text_message_instructions, phone_1, phone_label_1, phone_1_ext, phone_2, phone_label_2, crisis_line_number, crisis_line_label, website, twitter_link, facebook_link, youtube_link, instagram_link, program_email, languages_offered, keywords, min_age, max_age, eligibility_requirements, covid_message, financial_information, intake_instructions, agency_verified, date_agency_verified, cost_keywords, image_url, photo_urls, office_entrance_image_url, internal_directions } = listing
+  const listingCategories = normalizeCategories(category)
+  const primaryCategory = listingCategories[0] || ''
 
   const rawPhotos = (photo_urls && photo_urls.length > 0) ? photo_urls : (image_url ? [image_url] : [])
   const photos = rawPhotos.filter(url => url && !url.includes('maps.googleapis.com'))
@@ -624,14 +627,27 @@ const MapCard = forwardRef(({ mapRef, listing, saved, handleSave, handleHide, in
             : (min_age && !max_age) ? <Card.Description><Card.Header as="strong">Minimum age served:</Card.Header> {min_age}</Card.Description>
             : (!min_age && max_age) ? <Card.Description><Card.Header as="strong">Maximum age served:</Card.Header> {max_age}</Card.Description>
             : null }
-          <Card.Description><Card.Header as="strong">{category.split(':')[0]}:</Card.Header>    <NavLink to={`${basePath}/?category=${encodeURIComponent(category)}`}> {category.split(':')[1]}</NavLink>
+          {primaryCategory && (
+            <Card.Description>
+              <Card.Header as="strong">{primaryCategory.split(':')[0]}:</Card.Header>
+              <NavLink to={`${basePath}/?category=${encodeURIComponent(primaryCategory)}`}> {primaryCategory.split(':')[1]}</NavLink>
+              {listingCategories.slice(1).map((cat) => {
+                const sub = cat.split(': ')[1]
+                return sub ? (
+                  <span key={cat}>
+                    {', '}
+                    <NavLink to={`${basePath}/?category=${encodeURIComponent(cat)}`}>{sub}</NavLink>
+                  </span>
+                ) : null
+              })}
             </Card.Description>
+          )}
         </Card.Content>
         {/* Show keywords and/or cost_keywords if they exist. If not, show category so cards have consistent design */}
         <Card.Content extra>
           { (keywords && cost_keywords) ? <KeywordDisplay arr={[...keywords, ...cost_keywords]} /> 
           : keywords ? <KeywordDisplay arr={keywords} /> : cost_keywords ? <KeywordDisplay arr={cost_keywords} />
-          : <NavLink to={`${basePath}/?category=${encodeURIComponent(category)}`}># {category.split(':')[1]}</NavLink>}
+          : primaryCategory ? <NavLink to={`${basePath}/?category=${encodeURIComponent(primaryCategory)}`}># {primaryCategory.split(':')[1]}</NavLink> : null}
         </Card.Content>
       </Card>
     </Ref>
@@ -732,8 +748,9 @@ function MapMarkers ({listings, cardRefs}) {
       {mappedListings.map(listing => {
         const isSelected = markerId === `${listing.guid}`
         const hexColor = getCategoryHexColor(listing.category)
+        const markerCategory = normalizeCategories(listing.category)[0] || listing.category
         return (
-          <Marker key={listing.guid} position={listing.coords} icon={isSelected ? greenLMarker : createDotIcon(hexColor, false)} category={listing.category} eventHandlers={{ click: ({latlng}) => map.setView(latlng) }}>
+          <Marker key={listing.guid} position={listing.coords} icon={isSelected ? greenLMarker : createDotIcon(hexColor, false)} category={markerCategory} eventHandlers={{ click: ({latlng}) => map.setView(latlng) }}>
             <Tooltip>{listing.full_name}</Tooltip>
             <Popup>
               <Card style={{ border: `none`, boxShadow: `none` }}>
