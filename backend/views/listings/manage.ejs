@@ -18,8 +18,9 @@
 
   <div style="margin-bottom: 1em; display: flex; gap: .5em; flex-wrap: wrap; align-items: center;">
     <a href="/listings/add" class="ui button teal small"><i class="plus icon"></i>Add New</a>
-    <div class="ui small input" style="flex: 1; min-width: 200px;">
-      <input type="text" id="listing-search" placeholder="Search by name, category, or city..." oninput="filterTable(this.value)">
+    <div class="ui icon input small" style="flex: 1; min-width: 200px;">
+      <input type="text" id="listing-search" placeholder="Search by name, category, or city..." autocomplete="off">
+      <i class="search icon"></i>
     </div>
     <small id="listing-search-count" style="color:#666; min-width: 130px; text-align: right;"></small>
   </div>
@@ -97,22 +98,24 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
 <script>
   function filterTable(query) {
-    var rows = document.querySelectorAll('#listings-table tbody tr');
-    var q = query.toLowerCase();
+    var table = document.getElementById('listings-table');
+    if (!table) return;
+    var rows = table.querySelectorAll('tbody tr');
+    var q = (query || '').toLowerCase().trim();
     var visibleCount = 0;
-    rows.forEach(function(row) {
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
       var cells = row.querySelectorAll('td');
       var searchableText = [
-        cells[0] ? cells[0].textContent : '', // guid
-        cells[1] ? cells[1].textContent : '', // name / parent org
-        cells[2] ? cells[2].textContent : '', // category
-        cells[3] ? cells[3].textContent : ''  // city
+        cells[0] ? cells[0].textContent : '',
+        cells[1] ? cells[1].textContent : '',
+        cells[2] ? cells[2].textContent : '',
+        cells[3] ? cells[3].textContent : ''
       ].join(' ').toLowerCase();
-      var showRow = searchableText.includes(q);
+      var showRow = q === '' || searchableText.indexOf(q) !== -1;
       row.style.display = showRow ? '' : 'none';
       if (showRow) visibleCount += 1;
-    });
-
+    }
     var countEl = document.getElementById('listing-search-count');
     if (countEl) countEl.textContent = visibleCount + ' shown';
   }
@@ -123,5 +126,17 @@
     $('.ui.modal').modal('show');
   }
 
-  filterTable(document.getElementById('listing-search')?.value || '');
+  function initSearch() {
+    var input = document.getElementById('listing-search');
+    if (input) {
+      input.addEventListener('input', function() { filterTable(this.value); });
+      input.addEventListener('keyup', function() { filterTable(this.value); });
+      filterTable(input.value);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSearch);
+  } else {
+    initSearch();
+  }
 </script>
