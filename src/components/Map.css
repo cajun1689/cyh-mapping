@@ -72,7 +72,15 @@
   margin-bottom: 4px;
 }
 
-#map-page { display: grid; grid: 'cards map-right' / 1fr 1fr; gap: 1em; }
+/* Desktop: reduce side padding by 25%, make map 50% wider than cards */
+#map-page.ui.container {
+  max-width: 97% !important;
+  margin-left: 1.5% !important;
+  margin-right: 1.5% !important;
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
+}
+#map-page { display: grid; grid: 'cards map-right' / 1fr 3fr; gap: 1em; }
 #map-page > .cards { grid-area: cards; width: auto; margin-top: 1rem; }
 #map-page > .cards > .card:first-child { margin-top: 0; }
 #map-page > .map-right-col { grid-area: map-right; position: sticky; top: 72px; z-index: 1; align-self: start; }
