@@ -21,6 +21,7 @@
     <div class="ui small input" style="flex: 1; min-width: 200px;">
       <input type="text" id="listing-search" placeholder="Search by name, category, or city..." oninput="filterTable(this.value)">
     </div>
+    <small id="listing-search-count" style="color:#666; min-width: 130px; text-align: right;"></small>
   </div>
 
   <table class="ui celled striped compact table" id="listings-table">
@@ -98,10 +99,22 @@
   function filterTable(query) {
     var rows = document.querySelectorAll('#listings-table tbody tr');
     var q = query.toLowerCase();
+    var visibleCount = 0;
     rows.forEach(function(row) {
-      var text = row.textContent.toLowerCase();
-      row.style.display = text.includes(q) ? '' : 'none';
+      var cells = row.querySelectorAll('td');
+      var searchableText = [
+        cells[0] ? cells[0].textContent : '', // guid
+        cells[1] ? cells[1].textContent : '', // name / parent org
+        cells[2] ? cells[2].textContent : '', // category
+        cells[3] ? cells[3].textContent : ''  // city
+      ].join(' ').toLowerCase();
+      var showRow = searchableText.includes(q);
+      row.style.display = showRow ? '' : 'none';
+      if (showRow) visibleCount += 1;
     });
+
+    var countEl = document.getElementById('listing-search-count');
+    if (countEl) countEl.textContent = visibleCount + ' shown';
   }
 
   function confirmDelete(guid, name) {
@@ -109,4 +122,6 @@
     document.getElementById('delete-form').action = '/listings/delete/' + guid;
     $('.ui.modal').modal('show');
   }
+
+  filterTable(document.getElementById('listing-search')?.value || '');
 </script>
