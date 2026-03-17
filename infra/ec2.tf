@@ -11,18 +11,19 @@ resource "aws_instance" "backend" {
   }
 
   user_data = templatefile("${path.module}/scripts/user-data.sh", {
-    db_host         = aws_db_instance.main.address
-    db_port         = aws_db_instance.main.port
-    db_name         = var.db_name
-    db_password     = var.db_password
-    admin_email     = var.admin_email
-    admin_password  = var.admin_password
-    session_secret  = var.session_secret
-    google_api_key  = var.google_api_key
-    github_repo_url = var.github_repo_url
-    project_name    = var.project_name
-    backend_port    = 5050
-    domain_name     = var.domain_name
+    db_host          = aws_db_instance.main.address
+    db_port          = aws_db_instance.main.port
+    db_name          = var.db_name
+    db_password      = var.db_password
+    admin_email      = var.admin_email
+    admin_password   = var.admin_password
+    session_secret   = var.session_secret
+    google_api_key   = var.google_api_key
+    openai_api_key   = var.openai_api_key
+    github_repo_url  = var.github_repo_url
+    project_name     = var.project_name
+    backend_port     = 5050
+    domain_name      = var.domain_name
   })
 
   user_data_replace_on_change = true

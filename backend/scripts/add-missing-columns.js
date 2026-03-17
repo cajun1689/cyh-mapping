@@ -11,6 +11,11 @@ const { pool } = require('../db')
 const COLUMNS = [
   ['age_group', 'TEXT DEFAULT \'Youth and Adult\''],
   ['managed_by', 'INTEGER'],
+  ['contact_name', 'TEXT'],
+  ['contact_email', 'TEXT'],
+  ['contact_phone', 'TEXT'],
+  ['office_entrance_image_url', 'TEXT'],
+  ['internal_directions', 'TEXT'],
 ]
 
 async function main () {

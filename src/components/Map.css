@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Yanone+Kaffeesatz&display=swap');
 
 /* Disable scroll snapping when the map is active — prevents category clicks from scrolling the page */
-#app.map-active { scroll-snap-type: none !important; }
+#app.map-active .page-scroll-area { scroll-snap-type: none !important; }
 
 #map-nav { background-color: #1B3A5C !important; }
 #map-nav > form > .labels { padding: 0; margin: 0; }
@@ -73,12 +73,22 @@
 }
 
 /* Desktop: reduce side padding by 25%, make map 50% wider than cards */
-#map-page.ui.container {
-  max-width: 97% !important;
-  margin-left: 1.5% !important;
-  margin-right: 1.5% !important;
-  padding-left: 0.75rem !important;
-  padding-right: 0.75rem !important;
+/* align-self: center needed — #app uses flex with align-items: stretch, which overrides width */
+@media only screen and (min-width: 768px) {
+  .page-scroll-area > header .ui.container,
+  #map-nav .ui.container,
+  .page-scroll-area main#map-page {
+    width: 92% !important;
+    max-width: none !important;
+    margin-left: 4% !important;
+    margin-right: 4% !important;
+    box-sizing: border-box !important;
+  }
+  .page-scroll-area main#map-page {
+    align-self: center;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
 }
 #map-page { display: grid; grid: 'cards map-right' / 1fr 3fr; gap: 1em; }
 #map-page > .cards { grid-area: cards; width: auto; margin-top: 1rem; }
@@ -186,8 +196,8 @@
   .fixed.sticky { position: absolute !important; }
 }
 @media only screen and (max-width: 767px) {
-  #app > header > nav.menu { min-height: 0; }
-  #app > header > nav.menu > .item.mac-logo { display: none; }
+  .page-scroll-area > header > nav.menu { min-height: 0; }
+  .page-scroll-area > header > nav.menu > .item.mac-logo { display: none; }
 
   /* Lock viewport when map is active — class set by React, no :has() needed */
   #app.map-active {
@@ -206,7 +216,7 @@
   }
 
   /* Map page: full bleed, fill remaining height */
-  #map-page.ui.container {
+  #map-page {
     width: 100% !important;
     max-width: 100% !important;
     margin-left: 0 !important;
@@ -303,8 +313,8 @@
     padding: 0 4px;
   }
 
-  /* Disable scroll snap on #app — the card panel handles its own scroll */
-  #app { scroll-snap-type: none; }
+  /* Disable scroll snap — the card panel handles its own scroll */
+  .page-scroll-area { scroll-snap-type: none; }
 
   /* Filter drawer 2-col grid on mobile */
   .filter-drawer .filter-grid {

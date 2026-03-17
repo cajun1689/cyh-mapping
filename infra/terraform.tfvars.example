@@ -32,11 +32,17 @@ session_secret = "generate-a-random-string-here"
 # Get one at: https://console.cloud.google.com/apis/credentials
 google_api_key = ""
 
-# Custom domain name (optional — leave empty to use CloudFront default URL)
-# If set, Terraform will create Route 53 zone + ACM certificate.
-# You will need to update your domain registrar's nameservers to the
-# Route 53 nameservers shown in `terraform output route53_nameservers`.
-domain_name = ""
+# OpenAI API key for chat feature (optional — leave empty to disable chat)
+# Get one at: https://platform.openai.com/api-keys
+openai_api_key = ""
+
+# Primary custom domain (e.g. casperyouthhubmap.org)
+# Leave empty to use the CloudFront default URL.
+domain_name = "casperyouthhubmap.org"
+
+# Additional domains that serve the same site (no redirect — visitors stay on whichever URL they used)
+# For each domain, update its registrar to use the nameservers from `terraform output route53_nameservers_additional`
+additional_domain_names = ["wyomingyouthresourcemap.com"]
 
 # RDS instance class (db.t4g.micro is the smallest/cheapest option)
 db_instance_class = "db.t4g.micro"

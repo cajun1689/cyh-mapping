@@ -1,20 +1,40 @@
 html, body { overflow: hidden; }
-#app { height: 100vh; height: 100dvh; display: flex; flex-flow: column nowrap; scroll-padding-top: 72px; overflow-y: auto; scroll-behavior: smooth; scroll-snap-type: y proximity; }
+#app { height: 100vh; height: 100dvh; display: flex; flex-flow: column nowrap; overflow: hidden; }
+.page-scroll-area { flex: 1 1 0%; min-height: 0; overflow-y: auto; scroll-padding-top: 72px; scroll-behavior: smooth; scroll-snap-type: y proximity; }
 
-#app > header { position: sticky; top: 0px; z-index: 3; padding: 0; background-color: #1B3A5C; }
-#app > header > nav.menu { font-family: 'Yanone Kaffeesatz', sans-serif; letter-spacing: 0.5px; text-transform: uppercase; }
-#app > header > nav.menu > .item { padding: 2px 0.25em 0; font-size: larger; line-height: 2.5; color: rgba(255,255,255,0.85); }
-#app > header > nav.menu > .item:hover { color: #F5C518; }
-#app > header > nav.menu > .item.active { color: #F5C518 !important; border-color: #F5C518 !important; }
+.page-scroll-area > header { position: sticky; top: 0px; z-index: 3; padding: 0; background-color: #1B3A5C; }
+.page-scroll-area > header > nav.menu { font-family: 'Yanone Kaffeesatz', sans-serif; letter-spacing: 0.5px; text-transform: uppercase; }
+.page-scroll-area > header > nav.menu > .item { padding: 2px 0.25em 0; font-size: larger; line-height: 2.5; color: rgba(255,255,255,0.85); }
+.page-scroll-area > header > nav.menu > .item:hover { color: #F5C518; }
+.page-scroll-area > header > nav.menu > .item.active { color: #F5C518 !important; border-color: #F5C518 !important; }
 
-#app > footer { position: sticky; bottom: 0px; z-index: 2; padding: 0;
+#app > footer {
+  z-index: 2;
+  padding: 0.75em 1em;
   background-color: #F3F4F5;
-  border-radius: 0; color: 'dimgrey';
+  border-radius: 0;
+  color: #666;
+  font-size: 0.9em;
+  text-align: center;
+  flex-shrink: 0;
 }
 
-#app > footer > p { color: 'grey'; }
+#app > footer > p {
+  margin: 0.25em 0;
+  color: #666;
+}
 
-#app > main { flex: 1 1 0%; min-height: 0; }
+#app > footer a {
+  color: #1B3A5C;
+  text-decoration: none;
+}
+
+#app > footer a:hover {
+  text-decoration: underline;
+}
+
+.page-scroll-area > main,
+.page-scroll-area main { flex: 1 1 0%; min-height: 0; }
 
 .site-brand { text-transform: uppercase !important; white-space: pre; color: #F5C518 !important; font-weight: bold; letter-spacing: 1px; }
 
@@ -61,8 +81,8 @@ html, body { overflow: hidden; }
 
 @media only screen and (max-width: 767px) {
   .hamburger-btn { display: flex; }
-  #app > header > nav.menu > .item.nav-link { display: none; }
-  #app > header > nav.menu { min-height: 0; align-items: center; }
+  .page-scroll-area > header > nav.menu > .item.nav-link { display: none; }
+  .page-scroll-area > header > nav.menu { min-height: 0; align-items: center; }
   .site-brand { font-size: 0.95em !important; }
 }
 @media only screen and (min-width: 768px) {

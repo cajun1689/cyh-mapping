@@ -1,7 +1,7 @@
 import React, { createContext, createRef, forwardRef, useContext, useEffect, useMemo, useState } from "react";
 import { debounce } from "lodash"
 import { Link, useParams, useNavigate, useLocation, useSearchParams, NavLink } from "react-router-dom";
-import { Container, Segment, Card, Label, Ref, Form, Icon, Input, Dropdown, Button } from "semantic-ui-react";
+import { Segment, Card, Label, Ref, Form, Icon, Input, Dropdown, Button } from "semantic-ui-react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from "react-leaflet";
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import L from 'leaflet';
@@ -95,7 +95,7 @@ function MapPage({ listings, metadata, ageGroupFilter, setAgeGroupFilter }) {
 
   const content = (<>
     <MapSearch listingCategories={listingCategories} listingCategoryIcons={listingCategoryIcons} debouncedSearch={debouncedSearch} listingCities={listingCities} keywordCount={keywordCount} costCount={costCount} saved={saved} handleSave={handleSave} handleHide={handleHide} hidden={hidden} showSaved={showSaved} handleShowSaved={handleShowSaved} hideFaithBased={hideFaithBased} setHideFaithBased={setHideFaithBased} ageGroupFilter={ageGroupFilter} setAgeGroupFilter={setAgeGroupFilter} />
-    <Container as="main" id="map-page">
+    <main id="map-page">
       {chatRecGuids && chatRecGuids.length > 0 && (
         <div className="chat-rec-banner">
           <Icon name="chat" />
@@ -118,7 +118,7 @@ function MapPage({ listings, metadata, ageGroupFilter, setAgeGroupFilter }) {
         <MapMap listings={filteredListings} cardRefs={cardRefs} ref={mapRef} />
         {sponsors.length > 0 && <SponsorBar sponsors={sponsors} />}
       </div>
-    </Container>
+    </main>
   </>)
 
   if (isEmbed) {

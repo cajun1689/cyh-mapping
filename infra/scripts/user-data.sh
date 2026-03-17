@@ -15,6 +15,7 @@ ADMIN_EMAIL="${admin_email}"
 ADMIN_PASSWORD="${admin_password}"
 SESSION_SECRET="${session_secret}"
 GOOGLE_API_KEY="${google_api_key}"
+OPENAI_API_KEY="${openai_api_key}"
 GITHUB_REPO_URL="${github_repo_url}"
 PROJECT_NAME="${project_name}"
 BACKEND_PORT="${backend_port}"
@@ -196,6 +197,7 @@ cat > "$APP_DIR/.env" <<EOF
 DATABASE_URL=$DATABASE_URL
 SESSION_SECRET=$SESSION_SECRET
 GOOGLE_API_KEY=$GOOGLE_API_KEY
+OPENAI_API_KEY=$OPENAI_API_KEY
 OWNER_EMAIL=$ADMIN_EMAIL
 FRONTEND_URL=*
 BACKEND_URL=http://localhost:$BACKEND_PORT

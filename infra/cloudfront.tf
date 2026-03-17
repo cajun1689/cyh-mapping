@@ -6,9 +6,10 @@ resource "aws_cloudfront_origin_access_control" "frontend" {
 }
 
 locals {
-  s3_origin_id      = "${var.project_name}-s3-origin"
-  backend_origin_id = "${var.project_name}-backend-origin"
-  use_custom_domain = var.domain_name != ""
+  s3_origin_id       = "${var.project_name}-s3-origin"
+  backend_origin_id  = "${var.project_name}-backend-origin"
+  use_custom_domain  = var.domain_name != ""
+  all_domain_aliases = local.use_custom_domain ? concat([var.domain_name], var.additional_domain_names) : []
 }
 
 resource "aws_cloudfront_distribution" "frontend" {
@@ -18,7 +19,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   price_class         = "PriceClass_100"
   comment             = "Wyoming Youth Resource Map"
 
-  aliases = local.use_custom_domain ? [var.domain_name] : []
+  aliases = local.all_domain_aliases
 
   # S3 origin for static frontend
   origin {

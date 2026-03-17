@@ -370,8 +370,9 @@ router.get('/edit/:guid', async (req, res) => {
       return res.redirect('/listings/manage')
     }
     const existingCategories = await getExistingCategories()
+    const editSuccess = req.flash('editSuccess')
     res.render('listings/edit', {
-      props: { activeNavTab: 'manage', listing: result.rows[0], categories: existingCategories, success: false, error: null }
+      props: { activeNavTab: 'manage', listing: result.rows[0], categories: existingCategories, success: editSuccess.length > 0, error: null }
     })
   } catch (error) {
     console.error('Error loading listing:', error.message)
@@ -466,12 +467,11 @@ router.post('/edit/:guid', imageUploadFields, async (req, res) => {
     const updateQuery = `UPDATE listings SET ${setClauses.join(', ')} WHERE guid = $${paramIdx}`
     await pool.query(updateQuery, values)
 
-    console.info(`Listing updated: [${guid}] ${updates.full_name}`)
+    const updatedCols = setClauses.map(c => c.split(' = ')[0])
+    console.info(`Listing updated: [${guid}] ${updates.full_name} — columns: ${updatedCols.join(', ')}`)
 
-    const updated = await pool.query('SELECT * FROM listings WHERE guid = $1', [guid])
-    return res.render('listings/edit', {
-      props: { activeNavTab: 'manage', listing: updated.rows[0], categories: await getExistingCategories(), success: true, error: null }
-    })
+    req.flash('editSuccess', '1')
+    return res.redirect(`/listings/edit/${guid}`)
   } catch (error) {
     console.error('Error updating listing:', error.message)
     const result = await pool.query('SELECT * FROM listings WHERE guid = $1', [guid])

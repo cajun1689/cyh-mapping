@@ -39,6 +39,11 @@ output "backend_url" {
 }
 
 output "route53_nameservers" {
-  description = "Nameservers to configure at your domain registrar (only if using custom domain)"
+  description = "Nameservers for primary domain — configure at your domain registrar"
   value       = local.use_custom_domain ? aws_route53_zone.main[0].name_servers : []
+}
+
+output "route53_nameservers_additional" {
+  description = "Nameservers for each additional domain — configure at each domain's registrar"
+  value       = local.use_custom_domain ? { for d in var.additional_domain_names : d => aws_route53_zone.additional[d].name_servers } : {}
 }

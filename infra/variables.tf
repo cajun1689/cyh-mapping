@@ -57,10 +57,23 @@ variable "google_api_key" {
   sensitive   = true
 }
 
-variable "domain_name" {
-  description = "Custom domain name (optional). Leave empty to use the CloudFront URL."
+variable "openai_api_key" {
+  description = "OpenAI API key for the chat feature (optional, leave empty to disable chat)"
   type        = string
   default     = ""
+  sensitive   = true
+}
+
+variable "domain_name" {
+  description = "Primary custom domain (e.g. casperyouthhubmap.org). Leave empty to use the CloudFront URL."
+  type        = string
+  default     = ""
+}
+
+variable "additional_domain_names" {
+  description = "Additional domains that serve the same site (e.g. wyomingyouthresourcemap.com). No redirect — visitors stay on whichever domain they used."
+  type        = list(string)
+  default     = []
 }
 
 variable "github_repo_url" {
