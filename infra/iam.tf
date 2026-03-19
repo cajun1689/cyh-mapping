@@ -34,6 +34,20 @@ resource "aws_iam_role_policy" "backend_s3" {
   })
 }
 
+resource "aws_iam_role_policy" "backend_ses" {
+  name = "${var.project_name}-ses-send"
+  role = aws_iam_role.backend.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["ses:SendEmail", "ses:SendRawEmail"]
+      Resource = "*"
+    }]
+  })
+}
+
 resource "aws_iam_instance_profile" "backend" {
   name = "${var.project_name}-backend-profile"
   role = aws_iam_role.backend.name

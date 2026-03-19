@@ -201,7 +201,14 @@ function EmbedMarkers({ listings }) {
   const map = useMap()
   const mappedListings = useMemo(() => listings.filter(({ coords: [lat, lon] }) => lat && lon), [listings])
   const bounds = useMemo(() => mappedListings.map(({ coords }) => coords), [mappedListings])
-  useEffect(() => bounds.length && map.fitBounds(bounds), [map, bounds])
+  useEffect(() => {
+    if (!bounds.length) return
+    if (bounds.length === 1) {
+      map.setView(bounds[0], 14)
+    } else {
+      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 })
+    }
+  }, [map, bounds])
 
   return (
     <MarkerClusterGroup>

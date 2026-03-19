@@ -193,14 +193,26 @@ PGPASSWORD="$DB_PASSWORD" psql -U cyh_app -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NA
 # -------------------------------------------------------------------
 # 6. Write backend .env file
 # -------------------------------------------------------------------
+# Build URLs from domain (empty domain = localhost)
+if [ -n "$DOMAIN_NAME" ]; then
+  FRONTEND_URL="https://${DOMAIN_NAME}"
+  BACKEND_URL="https://api.${DOMAIN_NAME}"
+  SERVER_URL="https://api.${DOMAIN_NAME}/"
+else
+  FRONTEND_URL="http://localhost:3000"
+  BACKEND_URL="http://localhost:$BACKEND_PORT"
+  SERVER_URL="http://localhost:$BACKEND_PORT/"
+fi
+
 cat > "$APP_DIR/.env" <<EOF
 DATABASE_URL=$DATABASE_URL
 SESSION_SECRET=$SESSION_SECRET
 GOOGLE_API_KEY=$GOOGLE_API_KEY
 OPENAI_API_KEY=$OPENAI_API_KEY
 OWNER_EMAIL=$ADMIN_EMAIL
-FRONTEND_URL=*
-BACKEND_URL=http://localhost:$BACKEND_PORT
+FRONTEND_URL=$FRONTEND_URL
+BACKEND_URL=$BACKEND_URL
+SERVER_URL=$SERVER_URL
 PORT=$BACKEND_PORT
 NODE_ENV=production
 EOF

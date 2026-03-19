@@ -23,7 +23,9 @@ const initiatePasswordReset = async (email) => {
       // Save token and set require_password_reset to true
       await db.query(updateQuery, [hashedToken, email])
 
-      const link = `${process.env.SERVER_URL}auth/reset-password?token=${resetToken}&email=${email}`
+      const baseUrl = (process.env.SERVER_URL || process.env.BACKEND_URL || '').replace(/\/?$/, '/')
+      if (!baseUrl) console.warn('initiatePasswordReset: SERVER_URL and BACKEND_URL not set; password reset links will be broken')
+      const link = `${baseUrl}auth/reset-password?token=${resetToken}&email=${email}`
 
       const emailOptions = {
         subject: "Password Reset",
@@ -31,9 +33,8 @@ const initiatePasswordReset = async (email) => {
         to: email,
         from: process.env.OWNER_EMAIL
       }
-      // Contains an array of successful emails on success
       const sentMail = await sendEmail(emailOptions)
-      return sentMail.accepted[0] ? true : false
+      return sentMail && (sentMail.messageId || (sentMail.accepted && sentMail.accepted[0])) ? true : false
     }
   } catch (error) {
     console.log(error)

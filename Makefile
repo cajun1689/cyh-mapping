@@ -131,6 +131,11 @@ export-spreadsheet:
 	node backend/scripts/export-org-spreadsheet.js
 	@echo "Wrote org-data-spreadsheet.csv"
 
+# Resend welcome emails to all org users (tests SES delivery)
+resend-welcome-emails:
+	scp $(SSH_OPTS) backend/scripts/resend-welcome-emails.js ec2-user@$$($(TF_OUTPUT) ec2_ip):~/app/scripts/
+	ssh $(SSH_OPTS) ec2-user@$$($(TF_OUTPUT) ec2_ip) "cd ~/app && node scripts/resend-welcome-emails.js"
+
 # Update Living Well Counseling: services, remove free, add searchable terms for chat
 update-living-well:
 	@echo "=== Updating Living Well Counseling (guid 31) ==="

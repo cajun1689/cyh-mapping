@@ -738,7 +738,11 @@ function MapMarkers ({listings, cardRefs}) {
     if (!bounds.length) return
     const el = document.getElementById('app')
     const scrollTop = el?.scrollTop || 0
-    map.fitBounds(bounds)
+    if (bounds.length === 1) {
+      map.setView(bounds[0], 14)
+    } else {
+      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 })
+    }
     requestAnimationFrame(() => { if (el) el.scrollTop = scrollTop })
   }, [map, bounds])
   useEffect(() => currentCoords && currentCoords[0] && currentCoords[1] && map.setView(currentCoords, 18), [map, currentCoords])

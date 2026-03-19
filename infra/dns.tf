@@ -98,3 +98,20 @@ resource "aws_route53_record" "backend" {
   ttl     = 300
   records = [aws_eip.backend.public_ip]
 }
+
+# SES DKIM records for email sending (mail@casperyouthhubmap.org, etc.)
+# Identity created in SES us-west-2; these records complete domain verification.
+resource "aws_route53_record" "ses_dkim" {
+  allow_overwrite = true
+  for_each = local.use_custom_domain && var.domain_name == "casperyouthhubmap.org" ? toset([
+    "a32ubfovwmxoieom4mj5fn427ejbiduk",
+    "fycycv6so4hr7ywq2oparew7xdx76nlq",
+    "3ouoqnqr3bpn4ihcodctc7vjhtoa4h5m"
+  ]) : toset([])
+
+  zone_id = aws_route53_zone.main[0].zone_id
+  name    = "${each.value}._domainkey.${var.domain_name}"
+  type    = "CNAME"
+  ttl     = 300
+  records = ["${each.value}.dkim.amazonses.com"]
+}

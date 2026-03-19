@@ -140,7 +140,7 @@ export const getCostCount = listings => {
   let costCount = {}
   listings.forEach((listing) => {
     if (listing.cost_keywords) {
-      listing.cost_keywords.forEach((keyword) => {
+      ensureArray(listing.cost_keywords).forEach((keyword) => {
         if (!costCount[`${keyword}`]) costCount[`${keyword}`] = 1
         else costCount[`${keyword}`] ++
       })

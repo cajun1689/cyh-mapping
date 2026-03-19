@@ -120,12 +120,13 @@ router.post('/resend-welcome/:id', async (req, res) => {
     const user = result.rows[0]
     console.log(`Sending welcome email to ${user.email}...`)
     const emailResult = await sendWelcomeEmail({ to: user.email })
-    console.log(`Welcome email result:`, emailResult ? 'sent' : 'failed (no result)')
+    const ok = emailResult && (emailResult.messageId || (emailResult.accepted && emailResult.accepted[0]))
+    console.log(`Welcome email result:`, ok ? 'sent' : 'failed (no result)')
     req.flash('message', `Welcome email resent to ${user.email}.`)
     res.redirect('/users/manage')
   } catch (error) {
     console.error('Error resending welcome email:', error.message)
-    req.flash('message', 'Failed to send email. Check SendGrid configuration.')
+    req.flash('message', 'Failed to send email. Check SES configuration.')
     res.redirect('/users/manage')
   }
 })

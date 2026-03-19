@@ -1,49 +1,28 @@
 require('dotenv').config()
 const nodemailer = require('nodemailer')
+const { SESClient, SendRawEmailCommand } = require('@aws-sdk/client-ses')
 
-const createTransporter = async () => {
-  try {
-    
-    const transporter = nodemailer.createTransport({
-      service: 'Sendgrid',
-      host: 'smtp.sendgrid.net',
-      auth: {
-        // Sendgrid default username. Do not change. Docs: https://devcenter.heroku.com/articles/sendgrid#api-keys
-        user: 'apikey', 
-        pass: process.env.SENDGRID_API_KEY
-      }
-    })
+const region = process.env.AWS_REGION || 'us-west-2'
+const sesClient = new SESClient({ region })
 
-    return transporter
-
-  } catch (error) {
-    console.info(error)
-    return   
-  }
+const createTransporter = () => {
+  return nodemailer.createTransport({
+    SES: {
+      ses: sesClient,
+      aws: { SendRawEmailCommand }
+    }
+  })
 }
 
 const sendEmail = async (options) => {
   try {
-    let emailTransporter = await createTransporter()
-    const email = await emailTransporter.sendMail(options)
+    const transporter = createTransporter()
+    const email = await transporter.sendMail(options)
     return email
   } catch (error) {
-    console.info(error)
-    return   
+    console.error('sendEmail error:', error.message)
+    return null
   }
 }
 
-/* ------------------------- SAMPLE USAGE ------------------ 
-
-  const sampleOptions = {
-    subject: "HT Test",
-    text: "TEST",
-    to: "amandarunion@gmail.com",
-    from: process.env.OWNER_EMAIL
-  }
-
-  sendEmail(sampleOptions)
-  
-------------------------------------------------------------*/
-
-module.exports =  sendEmail
+module.exports = sendEmail
