@@ -60,7 +60,7 @@ router.post('/reset-password', async (req, res) => {
   const email = req.cookies['email']
 
   /* TODO: add regex validation check to make sure it's a secure password */
-  if (password.length < 8) {
+  if (!password || typeof password !== 'string' || password.length < 8) {
     return res.render(template, { layout, props: { message: 'New password must be longer than 8 characters' }})
   }
 
@@ -76,8 +76,7 @@ router.post('/reset-password', async (req, res) => {
     req.flash('message', 'Password successfully changed. Please log in.')
     res.redirect('/auth/login')
   } else {
-    res.render(template, { layout, props: { message: userFriendlyError }
-  })
+    res.render(template, { layout, props: { message: userFriendlyError }})
   }
 })
 

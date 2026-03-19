@@ -40,8 +40,8 @@ const createUser = async ({ email, password, role = 'user' }) => {
       return { success: true, user: user.rows[0] }
     }
   } catch (error) {
-    console.log(error)
-    return error.message
+    console.error('createUser error:', error)
+    return { success: false, message: error.message || 'Failed to create user' }
   }
 }
 
@@ -51,9 +51,11 @@ const updatePassword = async ({ email, password }) => {
     const response = await db.query(
       `UPDATE staging_user SET password=$1, require_password_reset=false WHERE email=$2 RETURNING *`,
       [hashedPassword, email])
-    if (response) return response.rows[0]
+    if (response && response.rows?.length > 0) return response.rows[0]
+    return null
   } catch (error) {
-    return (error.message)
+    console.error('updatePassword error:', error)
+    return null
   }
 }
 
@@ -62,9 +64,11 @@ const resetPassword = async ({ email, password }) => {
     const hashedPassword = await hashPassword(password)
     const queryString = `UPDATE staging_user SET password=$1, refresh_token = null, require_password_reset = false WHERE email=$2 RETURNING *`
     const response = await db.query(queryString, [hashedPassword, email])
-    if (response) return response.rows[0]
+    if (response && response.rows?.length > 0) return response.rows[0]
+    return null
   } catch (error) {
-    return (error.message)
+    console.error('resetPassword error:', error)
+    return null
   }
 }
 

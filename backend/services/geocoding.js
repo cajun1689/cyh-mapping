@@ -4,20 +4,23 @@ const wyoming = require('../utils/stateBoundaries.json').Wyoming
 const isInState = (lat, long) => ((lat >= wyoming.min_lat && lat <= wyoming.max_lat) && (long >= wyoming.min_long && long <= wyoming.max_long))
 
 const geocodeListing = async (address) => {
+  if (!address || !API_KEY) return null
   try {
     const queryString = encodeURIComponent(address)
-
-    axios.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${queryString}&key=${API_KEY}`).then(res => {
-      const results = res.data.results[0]
-      const latitude = results.geometry?.location?.lat
-      const longitude = results.geometry?.location?.lng
-
-      if (isInState(latitude, longitude)) return listing
-    }).catch(err => console.log(err))
-
+    const res = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${queryString}&key=${API_KEY}`)
+    const results = res.data?.results
+    if (!results || results.length === 0) return null
+    const first = results[0]
+    const latitude = first.geometry?.location?.lat
+    const longitude = first.geometry?.location?.lng
+    if (latitude == null || longitude == null) return null
+    if (isInState(latitude, longitude)) {
+      return { latitude, longitude }
+    }
+    return null
   } catch (error) {
-    console.log(error.message)
-    return
+    console.error('geocodeListing error:', error.message)
+    return null
   }
 }
 

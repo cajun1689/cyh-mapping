@@ -29,8 +29,9 @@ function sortByDistance(listings) {
 
 export function addDistanceToListings(listings, userCoords) {
   listings = listings.map(listing => {
-    if (listing.coords[0] !== null && listing.coords?.[1] !== null) {
-      const userDistance = getDistance(listing.coords[0], listing.coords[1], userCoords.latitude, userCoords.longitude)
+    const [lat, lon] = listing.coords || []
+    if (lat != null && lon != null) {
+      const userDistance = getDistance(lat, lon, userCoords.latitude, userCoords.longitude)
       listing.userDistance = userDistance
     } else {
 			// Sort of a wonky work-around, but this forces the sort function to put listings with no addresses at the end of the result list
