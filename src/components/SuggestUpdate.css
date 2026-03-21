@@ -179,3 +179,25 @@
   border: 1px solid #e0e4e8;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
+
+/* Fix stray box in Categories multi-select — Semantic UI search dropdown quirks */
+#suggest-update-page .categories-select.ui.multiple.search.selection.dropdown > .sizer {
+  display: none !important;
+}
+
+/* When closed, hide search input so it doesn't show as a box overlapping the placeholder */
+#suggest-update-page .categories-select.ui.multiple.search.selection.dropdown:not(.active) input.search {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px !important;
+  min-width: 0 !important;
+  opacity: 0 !important;
+}
+
+#suggest-update-page .categories-select.ui.multiple.search.selection.dropdown.active input.search {
+  position: static !important;
+  left: auto !important;
+  width: 100% !important;
+  opacity: 1 !important;
+  padding-left: 0.5rem !important;
+}

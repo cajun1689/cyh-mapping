@@ -132,6 +132,7 @@ function SubmitResourceForm({ apiUrl, metadata }) {
         />
 
         <Form.Select
+          className="categories-select"
           label="Categories"
           placeholder="Select categories"
           options={categories.map((c) => ({ key: c, value: c, text: c }))}

@@ -180,6 +180,53 @@ CREATE TABLE IF NOT EXISTS sponsors (
   website_url TEXT,
   display_order INT DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS pending_submissions (
+  id SERIAL PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  status VARCHAR(20) DEFAULT 'pending',
+  submitted_by_email TEXT,
+  full_name TEXT,
+  parent_organization TEXT,
+  category TEXT,
+  description TEXT,
+  contact_name TEXT,
+  contact_email TEXT,
+  contact_phone TEXT,
+  phone_1 TEXT,
+  crisis_line_number TEXT,
+  website TEXT,
+  program_email TEXT,
+  full_address TEXT,
+  city TEXT,
+  service_type TEXT,
+  age_group TEXT,
+  keywords TEXT,
+  service_delivery TEXT,
+  min_age INTEGER,
+  max_age INTEGER,
+  eligibility_requirements TEXT,
+  financial_information TEXT,
+  intake_instructions TEXT,
+  languages_offered TEXT,
+  internal_directions TEXT,
+  image_url TEXT,
+  office_entrance_image_url TEXT,
+  faith_based BOOLEAN DEFAULT false,
+  raw_payload JSONB
+);
+
+CREATE TABLE IF NOT EXISTS feedback_responses (
+  id SERIAL PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  intent VARCHAR(64),
+  listing_ref TEXT,
+  message TEXT,
+  bug_details TEXT,
+  resource_name_url TEXT,
+  resource_additional TEXT,
+  raw_payload JSONB
+);
 EOSQL
 
 # Seed admin user (bcrypt hash via Node)

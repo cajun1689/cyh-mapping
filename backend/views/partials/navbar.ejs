@@ -35,6 +35,16 @@
     <div class="ui pointing dropdown link item" id="main-nav-dropdown" tabindex="0">
      <span style="color: #ccc">More <i class="dropdown icon grey"></i></span> 
       <div class="menu">
+        <a href="/listings/pending"
+          class="item <%= props?.activeNavTab === 'pending' ? 'active' : '' %>">
+          <i class="ui icon hourglass half"></i>
+          Pending Submissions
+        </a>
+        <a href="/feedback"
+          class="item <%= props?.activeNavTab === 'feedback' ? 'active' : '' %>">
+          <i class="ui icon comment alternate"></i>
+          View Feedback
+        </a>
         <a href="/settings"
           id="settings"
           class="item right custom-right <%= props?.ownerEmail ? 'active' : '' %>">

@@ -118,11 +118,12 @@ clear-images:
 	scp $(SSH_OPTS) backend/scripts/clear-listing-images.js ec2-user@$$($(TF_OUTPUT) ec2_ip):~/app/scripts/
 	ssh $(SSH_OPTS) ec2-user@$$($(TF_OUTPUT) ec2_ip) "cd ~/app && node scripts/clear-listing-images.js $(GUIDS)"
 
-# Add pending_submissions and feedback_responses tables.
-# Run after: make deploy-backend
+# Add pending_submissions and feedback_responses tables on EC2.
+# Run after: make deploy-backend (or if tables don't exist on production)
 migrate-pending-feedback:
-	@echo "=== Running pending & feedback migration ==="
-	cd backend && node scripts/migrate-pending-and-feedback.js
+	@echo "=== Running pending & feedback migration on EC2 ==="
+	scp $(SSH_OPTS) backend/scripts/migrate-pending-and-feedback.js ec2-user@$$($(TF_OUTPUT) ec2_ip):~/app/scripts/
+	ssh $(SSH_OPTS) ec2-user@$$($(TF_OUTPUT) ec2_ip) "cd ~/app && node scripts/migrate-pending-and-feedback.js"
 	@echo "=== Migration complete ==="
 
 # Run migration to add service_delivery, insurance_keywords, parental_consent_required columns.
