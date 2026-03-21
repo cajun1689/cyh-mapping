@@ -16,8 +16,8 @@ function SuggestUpdate({ forms, metadata, apiUrl, listings }) {
     {
       menuItem: 'General Feedback',
       render: () => (
-        <Tab.Pane>
-          <h3>Give feedback on the site, comment on a listing, or report a bug</h3>
+        <Tab.Pane className="suggest-tab-pane">
+          <p className="suggest-subtitle">Give feedback on the site, comment on a listing, or report a bug</p>
           <FeedbackForm apiUrl={apiBase} initialListingRef={listingRef} />
         </Tab.Pane>
       ),
@@ -25,8 +25,8 @@ function SuggestUpdate({ forms, metadata, apiUrl, listings }) {
     {
       menuItem: 'Submit a Resource',
       render: () => (
-        <Tab.Pane>
-          <h3>For providers: add your organization to the map</h3>
+        <Tab.Pane className="suggest-tab-pane">
+          <p className="suggest-subtitle">For providers: add your organization to the map</p>
           <SubmitResourceForm apiUrl={apiBase} metadata={metadata} />
         </Tab.Pane>
       ),

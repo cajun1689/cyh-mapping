@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Form, Button, Segment, Message } from 'semantic-ui-react'
+import { Form, Button, Message } from 'semantic-ui-react'
 import './SuggestUpdate.css'
 
 const INTENT_OPTIONS = [
@@ -77,7 +77,7 @@ function FeedbackForm({ apiUrl, onSuccess, initialListingRef }) {
   }
 
   return (
-    <Segment>
+    <div className="suggest-form">
       <Form onSubmit={handleSubmit}>
         <Form.Select
           label="I want to..."
@@ -140,11 +140,11 @@ function FeedbackForm({ apiUrl, onSuccess, initialListingRef }) {
         {error && <Message negative>{error}</Message>}
         {result && <Message positive>{result}</Message>}
 
-        <Button type="submit" primary loading={loading} disabled={loading}>
+        <Button type="submit" primary loading={loading} disabled={loading} className="suggest-submit">
           Submit
         </Button>
       </Form>
-    </Segment>
+    </div>
   )
 }
 

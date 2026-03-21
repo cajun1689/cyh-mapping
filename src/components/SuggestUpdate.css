@@ -1,4 +1,181 @@
-#suggest-update-page { display: flex; flex-flow: column nowrap; }
-#suggest-update-page .embed { flex: 1 1 100%; margin: 1rem 0; display: flex; flex-flow: column nowrap; }
-#suggest-update-page .tab { flex: 1 1 100%; display: flex; padding: 0; }
-#suggest-update-page iframe { flex: 1 0 100%; }
+/* Suggest Update — modern, native-style forms (no box) */
+
+#suggest-update-page {
+  display: flex;
+  flex-flow: column nowrap;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+#suggest-update-page .embed {
+  flex: 1 1 100%;
+  margin: 1rem 0;
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+#suggest-update-page .tab {
+  flex: 1 1 100%;
+  display: flex;
+  padding: 0;
+}
+
+#suggest-update-page iframe {
+  flex: 1 0 100%;
+}
+
+/* Tabs — cleaner, more modern */
+#suggest-update-page .ui.secondary.pointing.menu {
+  border: none;
+  margin-bottom: 1.5rem;
+  gap: 0.5rem;
+}
+
+#suggest-update-page .ui.secondary.pointing.menu .item {
+  border: none;
+  color: #666;
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
+}
+
+#suggest-update-page .ui.secondary.pointing.menu .item:hover {
+  color: #1B3A4B;
+  background: #f0f4f8;
+}
+
+#suggest-update-page .ui.secondary.pointing.menu .active.item {
+  color: #1B3A4B;
+  background: #e8eef4;
+  border-bottom: none;
+}
+
+#suggest-update-page .ui.tab {
+  padding: 0;
+}
+
+.suggest-tab-pane {
+  padding: 0 !important;
+}
+
+/* Subtitle — lighter, more airy */
+.suggest-subtitle {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+/* Form container — no box, flat layout */
+.suggest-form {
+  width: 100%;
+}
+
+.suggest-intro {
+  font-size: 0.95rem;
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+/* Inputs — modern, rounded, subtle */
+#suggest-update-page .suggest-form .ui.form input,
+#suggest-update-page .suggest-form .ui.form textarea,
+#suggest-update-page .suggest-form .ui.form .ui.selection.dropdown {
+  border-radius: 10px !important;
+  border: 1px solid #e0e4e8 !important;
+  padding: 0.65rem 1rem !important;
+  font-size: 0.95rem !important;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#suggest-update-page .suggest-form .ui.form input:focus,
+#suggest-update-page .suggest-form .ui.form textarea:focus,
+#suggest-update-page .suggest-form .ui.form .ui.selection.dropdown.visible {
+  border-color: #1B3A4B !important;
+  box-shadow: 0 0 0 2px rgba(27, 58, 75, 0.12) !important;
+}
+
+#suggest-update-page .suggest-form .ui.form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Labels */
+#suggest-update-page .suggest-form .ui.form label {
+  font-weight: 600 !important;
+  color: #333 !important;
+  font-size: 0.9rem !important;
+  margin-bottom: 0.4rem !important;
+}
+
+/* Field spacing */
+#suggest-update-page .suggest-form .ui.form .field {
+  margin-bottom: 1.25rem !important;
+}
+
+#suggest-update-page .suggest-form .ui.form .fields {
+  margin-bottom: 1.25rem !important;
+}
+
+#suggest-update-page .suggest-form .ui.form .fields .field {
+  margin-bottom: 0 !important;
+}
+
+/* Checkbox — modern toggle feel */
+#suggest-update-page .suggest-form .ui.checkbox label {
+  font-weight: 500 !important;
+}
+
+#suggest-update-page .suggest-form .ui.checkbox input:checked ~ .box,
+#suggest-update-page .suggest-form .ui.checkbox input:checked ~ label:before {
+  border-color: #1B3A4B !important;
+  background: #1B3A4B !important;
+}
+
+/* File inputs */
+#suggest-update-page .suggest-form .ui.form input[type="file"] {
+  padding: 0.5rem 0 !important;
+  border: 1px dashed #c8ccd0 !important;
+  background: #fafbfc !important;
+}
+
+/* Submit button */
+.suggest-submit.ui.primary.button {
+  border-radius: 10px !important;
+  padding: 0.75rem 1.75rem !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+  background: #1B3A4B !important;
+  margin-top: 0.5rem;
+}
+
+.suggest-submit.ui.primary.button:hover {
+  background: #253d4d !important;
+}
+
+/* Messages — clean, modern alerts */
+#suggest-update-page .suggest-form .ui.message {
+  border-radius: 10px;
+  border: none;
+  padding: 1rem 1.25rem;
+}
+
+#suggest-update-page .suggest-form .ui.negative.message {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+#suggest-update-page .suggest-form .ui.positive.message {
+  background: #f0fdf4;
+  color: #166534;
+}
+
+/* Dropdown menu */
+#suggest-update-page .suggest-form .ui.dropdown .menu {
+  border-radius: 10px;
+  border: 1px solid #e0e4e8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Form, Button, Segment, Message } from 'semantic-ui-react'
+import { Form, Button, Message } from 'semantic-ui-react'
 import './SuggestUpdate.css'
 
 const CATEGORY_DELIMITER = ' || '
@@ -118,8 +118,8 @@ function SubmitResourceForm({ apiUrl, metadata }) {
   }
 
   return (
-    <Segment>
-      <p style={{ marginBottom: '1em', color: '#666' }}>
+    <div className="suggest-form">
+      <p className="suggest-intro">
         For social service providers: submit your organization or resource to be considered for the map. Your submission will be reviewed before it appears.
       </p>
       <Form onSubmit={handleSubmit}>
@@ -294,11 +294,11 @@ function SubmitResourceForm({ apiUrl, metadata }) {
         {error && <Message negative>{error}</Message>}
         {result && <Message positive>{result}</Message>}
 
-        <Button type="submit" primary loading={loading} disabled={loading}>
+        <Button type="submit" primary loading={loading} disabled={loading} className="suggest-submit">
           Submit for Review
         </Button>
       </Form>
-    </Segment>
+    </div>
   )
 }
 
