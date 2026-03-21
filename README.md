@@ -79,6 +79,12 @@ The project has three main components:
 
 *React version will be upgraded to 18 as part of the modernization roadmap.
 
+### Mobile App (React Native / Expo)
+
+The **CYH Mapping Mobile** app is a separate React Native project (Expo) that provides the same resource map for iOS and Android. It lives in a sibling directory: `CYH Mapping Mobile/`.
+
+**To view both the web project and mobile app in Cursor:** Open `CYH-Mapping.code-workspace` (File → Open Workspace from File). This adds both projects to the same workspace while keeping them separate.
+
 ---
 
 ## Embedding the Map

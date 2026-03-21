@@ -130,12 +130,20 @@
       </div>
       <div class="field">
         <label>Service Type</label>
-        <% var kw = Array.isArray(l.keywords) ? l.keywords.join(',') : (l.keywords || 'In-Person'); %>
+        <% 
+          var delivery = [];
+          if (Array.isArray(l.service_delivery)) { delivery = l.service_delivery; }
+          else if (typeof l.service_delivery === 'string' && l.service_delivery) { try { delivery = JSON.parse(l.service_delivery); } catch(e) {} }
+          var kw = Array.isArray(l.keywords) ? l.keywords.join(',') : (l.keywords || '');
+          var hasInPerson = delivery.includes('In-Person') || kw.includes('In-Person');
+          var hasOnline = delivery.includes('Online') || kw.includes('Online Only');
+          var hasTelehealth = delivery.includes('Telehealth') || kw.includes('Telehealth');
+        %>
         <select class="ui dropdown" name="service_type">
-          <option value="In-Person" <%= kw.includes('In-Person') && !kw.includes('Telehealth') ? 'selected' : '' %>>In-Person</option>
-          <option value="Online Only" <%= kw.includes('Online Only') ? 'selected' : '' %>>Online Only</option>
-          <option value="In-Person,Telehealth" <%= kw.includes('In-Person') && kw.includes('Telehealth') ? 'selected' : '' %>>In-Person + Telehealth</option>
-          <option value="Telehealth" <%= kw === 'Telehealth' ? 'selected' : '' %>>Telehealth Only</option>
+          <option value="In-Person" <%= hasInPerson && !hasTelehealth ? 'selected' : '' %>>In-Person</option>
+          <option value="Online Only" <%= hasOnline && !hasInPerson && !hasTelehealth ? 'selected' : '' %>>Online Only</option>
+          <option value="In-Person,Telehealth" <%= hasInPerson && hasTelehealth ? 'selected' : '' %>>In-Person + Telehealth</option>
+          <option value="Telehealth" <%= hasTelehealth && !hasInPerson ? 'selected' : '' %>>Telehealth Only</option>
         </select>
       </div>
     </div>

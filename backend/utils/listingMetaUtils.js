@@ -49,11 +49,35 @@ const getKeywordCount = listings => {
     if (listing.keywords) {
       ensureArray(listing.keywords).forEach((keyword) => {
         if (!keywordCount[`${keyword}`]) keywordCount[`${keyword}`] = 1
-        else keywordCount[`${keyword}`] ++
+        else keywordCount[`${keyword}`]++
       })
     }
   })
   return keywordCount
+}
+
+/** Count by service_delivery (In-Person, Online, Telehealth) for filter dropdown */
+const getServiceDeliveryCount = (listings) => {
+  const count = {}
+  listings.forEach((listing) => {
+    const arr = ensureArray(listing.service_delivery)
+    arr.forEach((val) => {
+      count[val] = (count[val] || 0) + 1
+    })
+  })
+  return count
+}
+
+/** Count by insurance_keywords for filter dropdown */
+const getInsuranceCount = (listings) => {
+  const count = {}
+  listings.forEach((listing) => {
+    const arr = ensureArray(listing.insurance_keywords)
+    arr.forEach((val) => {
+      count[val] = (count[val] || 0) + 1
+    })
+  })
+  return count
 }
 
 const getParentAgencies = listings => {
@@ -403,8 +427,9 @@ const createResourcePreviewEntry = async ({email, payload}) => {
 // test()
 // getListingMeta()
 
-module.exports = { 
-  getCityCount, getCategoryCount, getKeywordCount, getParentAgencies, addCostToListing, getResources,
+module.exports = {
+  getCityCount, getCategoryCount, getKeywordCount, getParentAgencies, addCostToListing,
+  getServiceDeliveryCount, getInsuranceCount, getResources,
   getPreviewListing, getPreviewListingMeta, getListingMeta, getListing, writeToPreviewListing, writeToListing, getSiteMeta, writeToSiteMeta,
   createResourcePreviewEntry, createResourceEntry, getPreviewResources
 }

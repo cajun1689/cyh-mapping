@@ -10,6 +10,7 @@
   "mapZoom": 7,
   "state": "Wyoming",
   "ageRange": { "min": 11, "max": 20 },
+  "cities": ["Casper", "Cheyenne", "Laramie", "Gillette", "Rock Springs", "Sheridan", "Green River", "Evanston", "Riverton", "Jackson", "Cody", "Rawlins", "Lander", "Torrington", "Powell", "Douglas", "Worland", "Buffalo", "Wheatland", "Newcastle", "Thermopolis", "Lovell", "Lyman", "Kemmerer", "Afton", "Mills", "Bar Nunn", "Glenrock", "Wright", "Evansville", "Mountain View", "Pinedale", "Basin", "Greybull", "Sundance", "Saratoga", "Pine Bluffs", "Dubois", "Star Valley Ranch", "Diamondville", "Moorcroft", "Upton", "Guernsey", "Frannie", "La Barge", "Midwest", "Edgerton"],
 
   "aboutText": [
     "The Wyoming Youth Resource Map, developed by Casper Youth Hub, in partnership with Unicorn Solutions, is designed to help young people ages 11-20 and their allies connect to youth-serving resources, organizations, and leadership opportunities across Wyoming.",

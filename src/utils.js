@@ -1,5 +1,7 @@
 /* Display utilities */
 
+import siteConfig from './siteConfig.json'
+
 export const getColor = index => [ "green", "teal", "blue", "violet", "purple", "pink", "red", "orange", "yellow", "olive", ][ index % 10 ]
 
 export const categoryColorMap = {
@@ -97,12 +99,23 @@ export const titleCaseKey = key => key.charAt(0).toUpperCase() + key.slice(1)
 
 /* Calculations used by the dropdown menus in MapSearch */
 
-export const getCityCount = listings => {
+const getListingCity = (listing, cities) => {
+  if (listing.city?.trim()) return listing.city.trim()
+  const addr = (listing.full_address || '').toLowerCase()
+  if (!addr) return null
+  for (const city of cities) {
+    if (addr.includes(city.toLowerCase())) return city
+  }
+  return null
+}
+
+export const getCityCount = (listings, cities = []) => {
+  const cityList = cities.length ? cities : (siteConfig.cities || [])
   let cityCount = {}
   for (let i = 0; i < listings.length; i++) {
-    if (listings[i].city) {
-      let city = listings[i].city
-      if (cityCount[city]) cityCount[city] ++
+    const city = getListingCity(listings[i], cityList)
+    if (city) {
+      if (cityCount[city]) cityCount[city]++
       else cityCount[city] = 1
     }
   }
@@ -115,9 +128,20 @@ function ensureArray(val) {
   if (Array.isArray(val)) return val
   if (typeof val === 'string') {
     try { const p = JSON.parse(val); if (Array.isArray(p)) return p } catch {}
-    return [val]
+    const cleaned = val.replace(/^\{|\}$/g, '').trim()
+    if (cleaned) return cleaned.split(',').map((s) => s.replace(/^"|"$/g, '').trim()).filter(Boolean)
+    return []
   }
   return []
+}
+
+export const getServiceDeliveryCount = (listings) => {
+  const count = {}
+  ;(listings || []).forEach((l) => {
+    const arr = ensureArray(l.service_delivery)
+    arr.forEach((v) => { count[v] = (count[v] || 0) + 1 })
+  })
+  return count
 }
 
 export const getKeywordCount = listings => {
@@ -183,9 +207,9 @@ export function filterListings(listings = {}, searchParams, search = "", hidden=
     return listings.filter(listing => savedGuids.includes(listing.guid.toString()))
   }
 
-  const { age, tag, age_group, ...filters } = Object.fromEntries(searchParams) 
+  const { age, tag, age_group, service_delivery: serviceDeliveryFilter, ...filters } = Object.fromEntries(searchParams)
   const searchFunction = (listing) => {
-    const isHidden = (hidden.includes(listing.guid)) 
+    const isHidden = (hidden.includes(listing.guid))
     if (isHidden) return false
 
     if (hideFaithBased) {
@@ -201,10 +225,19 @@ export function filterListings(listings = {}, searchParams, search = "", hidden=
       if (ageGroupFilter === 'Adult' && group === 'Youth') return false
     }
 
-    const listingEntries = Object.entries(listing).join(" ").toLowerCase()
+    const listingEntries = Object.entries(listing).join(' ').toLowerCase()
+
+    if (serviceDeliveryFilter) {
+      const delivery = ensureArray(listing.service_delivery)
+      const legacyKw = ensureArray(listing.keywords)
+      const hasDelivery = delivery.includes(serviceDeliveryFilter) ||
+        (serviceDeliveryFilter === 'Online' && legacyKw.some(k => /online/i.test(k))) ||
+        (serviceDeliveryFilter === 'Telehealth' && legacyKw.some(k => /telehealth/i.test(k))) ||
+        (serviceDeliveryFilter === 'In-Person' && legacyKw.some(k => /in-?person/i.test(k)))
+      if (!hasDelivery) return false
+    }
 
     if (tag) {
-      // the Object.entries bit just means we're joining all the text fields before searching on them
       let hasTag = listingEntries.includes(tag.toLowerCase())
       if (!hasTag) return false
     }
@@ -218,6 +251,10 @@ export function filterListings(listings = {}, searchParams, search = "", hidden=
       let hasFilters = Object.entries(filters).every(([ key, value ]) => {
         if (key === 'category') {
           return categoryMatches(listing.category, value)
+        }
+        if (key === 'city') {
+          const listingCity = getListingCity(listing, siteConfig.cities || [])
+          return listingCity === value
         }
         return Array.isArray(listing[key]) ? listing[key].includes(value) : listing[key] === value
       })

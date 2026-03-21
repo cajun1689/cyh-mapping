@@ -11,7 +11,7 @@ const { GEOCODER, PAPA_PARSE } = require('../utils/constants')
 const sendEmail = require('../services/sendEmail')
 const { addCostToListing } = require('../utils/listingMetaUtils')
 const wyoming = require('../utils/stateBoundaries.json').Wyoming
-const { TABLE_LISTINGS_COLUMNS, DROP_TABLE_PREVIEW_LISTINGS, CREATE_TABLE_PREVIEW_LISTINGS, INSERT_INTO_PREVIEW_LISTINGS, promotePreviewListingsToProd, createBackupListingTable, createMetaEntry, splitCategory, addCity } = require('../utils/listingUtils')
+const { TABLE_LISTINGS_COLUMNS, DROP_TABLE_PREVIEW_LISTINGS, CREATE_TABLE_PREVIEW_LISTINGS, INSERT_INTO_PREVIEW_LISTINGS, promotePreviewListingsToProd, createBackupListingTable, createMetaEntry, splitCategory, addStructuredFilters, getInsertValues } = require('../utils/listingUtils')
 const { geocodeFromExisting, recreateGeocodingTable } = require('../utils/geocodingUtils')
 const upload = multer()
 const imageUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: (req, file, cb) => {
@@ -28,6 +28,7 @@ const S3_BUCKET = 'cyh-mapping-frontend'
 const S3_PREFIX = 'listing-images'
 const { ensureLogin, checkRequirePasswordChange, ensureNotOrg } = require('../middleware/routeProtection')
 const { geocodeListing } = require('../services/geocoding')
+const { suggestTagsFromDescription } = require('../services/aiTagging')
 const axios = require('axios')
 const API_KEY = process.env.GOOGLE_API_KEY
 
@@ -121,13 +122,13 @@ router.post('/upload', upload.single('listings'),
       const writeToDatabase = async listing => {
         if (listing.latitude && listing.longitude) {
           if (isInState(listing.latitude, listing.longitude)) {
-            addCity(listing)
-            await client.query(INSERT_INTO_PREVIEW_LISTINGS, TABLE_LISTINGS_COLUMNS.map(column => listing[column]))
+            addStructuredFilters(listing)
+            await client.query(INSERT_INTO_PREVIEW_LISTINGS, getInsertValues(listing))
             return
           }
         } else {
-          addCity(listing)
-          await client.query(INSERT_INTO_PREVIEW_LISTINGS, TABLE_LISTINGS_COLUMNS.map(column => listing[column]))
+          addStructuredFilters(listing)
+          await client.query(INSERT_INTO_PREVIEW_LISTINGS, getInsertValues(listing))
           return
         }
       }
@@ -308,6 +309,16 @@ router.post('/add', imageUploadFields, async (req, res) => {
     if (body.faith_based) kwParts.push('Faith-Based')
     listing.keywords = `{${kwParts.join(',')}}`
 
+    // service_delivery: map form values to canonical In-Person, Online, Telehealth
+    const serviceTypeToDelivery = (v) => {
+      const s = (v || '').trim()
+      if (/online/i.test(s) && !/telehealth/i.test(s)) return ['Online']
+      if (/telehealth/i.test(s) && !/in-?person/i.test(s)) return ['Telehealth']
+      if (/in-?person/i.test(s) && /telehealth/i.test(s)) return ['In-Person', 'Telehealth']
+      return ['In-Person']
+    }
+    listing.service_delivery = JSON.stringify(serviceTypeToDelivery(body.service_type))
+
     // Age group
     listing.age_group = (body.age_group || 'Youth and Adult').trim()
 
@@ -370,7 +381,117 @@ router.post('/add', imageUploadFields, async (req, res) => {
   }
 })
 
+/* ----------- PENDING SUBMISSIONS ----------- */
+
+router.get('/pending', async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM pending_submissions WHERE status = 'pending' ORDER BY created_at DESC"
+    )
+    res.render('listings/pending', {
+      props: { activeNavTab: 'pending', submissions: result.rows, message: req.flash('message')[0] || null }
+    })
+  } catch (error) {
+    console.error('Error loading pending:', error.message)
+    res.render('listings/pending', {
+      props: { activeNavTab: 'pending', submissions: [], message: null },
+      error: 'Failed to load pending submissions'
+    })
+  }
+})
+
+router.post('/pending/:id/approve', async (req, res) => {
+  const id = parseInt(req.params.id, 10)
+  try {
+    const sub = await pool.query('SELECT * FROM pending_submissions WHERE id = $1 AND status = $2', [id, 'pending'])
+    if (!sub.rows.length) {
+      req.flash('message', 'Submission not found or already processed.')
+      return res.redirect('/listings/pending')
+    }
+    const s = sub.rows[0]
+    const maxGuid = await pool.query('SELECT COALESCE(MAX(guid), 0) + 1 AS next_guid FROM listings')
+    const guid = maxGuid.rows[0].next_guid
+
+    const keywords = s.keywords || '{}'
+    const service_delivery = s.service_delivery || JSON.stringify(['In-Person'])
+
+    let latitude = null
+    let longitude = null
+    if (s.full_address) {
+      const coords = await geocodeAddress(s.full_address)
+      if (coords) {
+        latitude = coords.latitude
+        longitude = coords.longitude
+      }
+    }
+
+    const colInfo = await pool.query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'listings' ORDER BY ordinal_position`)
+    const cols = colInfo.rows.map((r) => r.column_name)
+    const inserts = {
+      guid, full_name: s.full_name, parent_organization: s.parent_organization, category: s.category, description: s.description,
+      phone_1: s.phone_1, crisis_line_number: s.crisis_line_number, website: s.website, program_email: s.program_email,
+      full_address: s.full_address, city: s.city, age_group: s.age_group, keywords, service_delivery,
+      min_age: s.min_age, max_age: s.max_age, eligibility_requirements: s.eligibility_requirements,
+      financial_information: s.financial_information, intake_instructions: s.intake_instructions,
+      languages_offered: s.languages_offered, internal_directions: s.internal_directions,
+      image_url: s.image_url, office_entrance_image_url: s.office_entrance_image_url,
+      latitude, longitude,
+    }
+    const insertCols = []
+    const insertVals = []
+    const insertPlaces = []
+    let idx = 1
+    for (const c of cols) {
+      if (inserts[c] !== undefined && inserts[c] !== null) {
+        insertCols.push(c)
+        insertVals.push(inserts[c])
+        insertPlaces.push(`$${idx++}`)
+      }
+    }
+    await pool.query(
+      `INSERT INTO listings (${insertCols.join(', ')}) VALUES (${insertPlaces.join(', ')})`,
+      insertVals
+    )
+    await pool.query('UPDATE pending_submissions SET status = $1 WHERE id = $2', ['approved', id])
+    req.flash('message', `"${s.full_name}" has been approved and added to the map.`)
+    return res.redirect('/listings/pending')
+  } catch (error) {
+    console.error('Approve error:', error.message)
+    req.flash('message', `Failed to approve: ${error.message}`)
+    return res.redirect('/listings/pending')
+  }
+})
+
+router.post('/pending/:id/reject', async (req, res) => {
+  const id = parseInt(req.params.id, 10)
+  try {
+    const sub = await pool.query('SELECT full_name FROM pending_submissions WHERE id = $1 AND status = $2', [id, 'pending'])
+    if (!sub.rows.length) {
+      req.flash('message', 'Submission not found or already processed.')
+      return res.redirect('/listings/pending')
+    }
+    await pool.query('UPDATE pending_submissions SET status = $1 WHERE id = $2', ['rejected', id])
+    req.flash('message', `"${sub.rows[0].full_name}" has been rejected.`)
+    return res.redirect('/listings/pending')
+  } catch (error) {
+    console.error('Reject error:', error.message)
+    req.flash('message', `Failed to reject: ${error.message}`)
+    return res.redirect('/listings/pending')
+  }
+})
+
 /* ----------- MANAGE / EDIT / DELETE LISTINGS ----------- */
+
+router.post('/suggest-tags', async (req, res) => {
+  try {
+    const { description } = req.body || {}
+    const suggested = await suggestTagsFromDescription(description)
+    return res.json(suggested)
+  } catch (error) {
+    console.error('Suggest tags error:', error.message)
+    return res.status(500).json({ error: error.message || 'Failed to suggest tags' })
+  }
+})
 
 router.get('/manage', async (req, res) => {
   try {
@@ -438,6 +559,15 @@ router.post('/edit/:guid', imageUploadFields, async (req, res) => {
     const kwParts = (body.service_type || 'In-Person').trim().split(',')
     if (body.faith_based) kwParts.push('Faith-Based')
     updates.keywords = `{${kwParts.join(',')}}`
+
+    const serviceTypeToDelivery = (v) => {
+      const s = (v || '').trim()
+      if (/online/i.test(s) && !/telehealth/i.test(s)) return ['Online']
+      if (/telehealth/i.test(s) && !/in-?person/i.test(s)) return ['Telehealth']
+      if (/in-?person/i.test(s) && /telehealth/i.test(s)) return ['In-Person', 'Telehealth']
+      return ['In-Person']
+    }
+    updates.service_delivery = JSON.stringify(serviceTypeToDelivery(body.service_type))
 
     updates.age_group = (body.age_group || 'Youth and Adult').trim()
 

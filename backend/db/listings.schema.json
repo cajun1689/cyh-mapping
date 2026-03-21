@@ -41,6 +41,9 @@
       "covid_message": { "type": "string" },
       "city": { "type": "string" },
       "cost_keywords": { "type": "array", "items": { "type": "string" } },
+      "service_delivery": { "type": "array", "items": { "type": "string" } },
+      "insurance_keywords": { "type": "array", "items": { "type": "string" } },
+      "parental_consent_required": { "type": "boolean" },
       "agency_verified": { "type": "string" },
       "date_agency_verified": { "type": "string" }
     },

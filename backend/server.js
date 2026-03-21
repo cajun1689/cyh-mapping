@@ -53,6 +53,7 @@ app.use('/api/chat', chatRateLimit)
 /* Routes */
 app.use('/api/chat', require('./routes/chat'))
 app.use('/api', require('./routes/api'))
+// Submissions (submit-resource, feedback) are mounted under /api via api.js
 app.use('/api-preview', require('./routes/api-preview'))
 app.use('/listings', require('./routes/listings'))
 app.use('/sponsors', require('./routes/sponsors'))

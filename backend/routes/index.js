@@ -37,6 +37,26 @@ router.get('/guide', (req, res) => {
   }})
 })
 
+router.get('/feedback', (req, res, next) => {
+  if (req.user?.role === 'org') return res.redirect('/org/dashboard')
+  next()
+}, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM feedback_responses ORDER BY created_at DESC LIMIT 200'
+    )
+    res.render('feedback/list', {
+      props: { activeNavTab: 'feedback', responses: result.rows, message: req.flash('message')[0] || null }
+    })
+  } catch (error) {
+    console.error('Error loading feedback:', error.message)
+    res.render('feedback/list', {
+      props: { activeNavTab: 'feedback', responses: [], message: null },
+      error: 'Failed to load feedback'
+    })
+  }
+})
+
 router.get('/settings', (req, res) => {
   if (req.user.role === 'owner') return res.redirect('/add-user')
   if (req.user.role === 'org') return res.redirect('/change-password')

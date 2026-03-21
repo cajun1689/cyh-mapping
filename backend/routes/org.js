@@ -83,7 +83,7 @@ router.use(ensureOrgRole)
 router.get('/dashboard', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT guid, full_name, parent_organization, category, city, latitude, longitude, age_group FROM listings WHERE managed_by = $1 ORDER BY full_name',
+      'SELECT guid, full_name, parent_organization, category, city, latitude, longitude, age_group, service_delivery, keywords FROM listings WHERE managed_by = $1 ORDER BY full_name',
       [req.user.id]
     )
     res.render('org/dashboard', {
@@ -155,6 +155,14 @@ router.post('/edit/:guid', imageUploadFields, async (req, res) => {
     const kwParts = (body.service_type || 'In-Person').trim().split(',')
     if (body.faith_based) kwParts.push('Faith-Based')
     updates.keywords = `{${kwParts.join(',')}}`
+    const serviceTypeToDelivery = (v) => {
+      const s = (v || '').trim()
+      if (/online/i.test(s) && !/telehealth/i.test(s)) return ['Online']
+      if (/telehealth/i.test(s) && !/in-?person/i.test(s)) return ['Telehealth']
+      if (/in-?person/i.test(s) && /telehealth/i.test(s)) return ['In-Person', 'Telehealth']
+      return ['In-Person']
+    }
+    updates.service_delivery = JSON.stringify(serviceTypeToDelivery(body.service_type))
     updates.age_group = (body.age_group || 'Youth and Adult').trim()
     const langs = (body.languages_offered || '').trim()
     updates.languages_offered = langs ? `{${langs}}` : null

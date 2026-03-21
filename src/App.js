@@ -15,7 +15,7 @@ import Resources from './components/Resources'
 import SuggestUpdate from './components/SuggestUpdate'
 import Chat from './components/Chat'
 
-function App({listings, metadata}) {
+function App({listings, metadata, apiUrl}) {
   const {ABOUT_TEXT, DISCLAIMER, VIDEO_TUTORIAL_LINK, RUBRIC_TEXT, CONTRIBUTORS, FORMS } = CONTENT 
   const resources = metadata.resources ?? null
   if (!metadata?.categoryCount) metadata.categoryCount = getCategoryCount(listings)
@@ -45,8 +45,8 @@ function App({listings, metadata}) {
           {resources && <Route path="/resources" element={<Resources resources={resources} />} />}
           <Route path="/chat" element={<Chat listings={listings} />} />
           <Route path="/embed-code" element={<EmbedCode />} />
-          <Route path="/suggest" element={<SuggestUpdate forms={FORMS} />} />
-          <Route path="/suggest/:listingId" element={<SuggestUpdate />} />
+          <Route path="/suggest" element={<SuggestUpdate forms={FORMS} metadata={metadata} apiUrl={apiUrl} listings={listings} />} />
+          <Route path="/suggest/:listingId" element={<SuggestUpdate forms={FORMS} metadata={metadata} apiUrl={apiUrl} listings={listings} />} />
           <Route path="/" element={<Map listings={listings} metadata={metadata} ageGroupFilter={ageGroupFilter} setAgeGroupFilter={setAgeGroupFilter} />} />
           <Route path=":markerId" element={<Map listings={listings} metadata={metadata} ageGroupFilter={ageGroupFilter} setAgeGroupFilter={setAgeGroupFilter} />} />
         </Routes>

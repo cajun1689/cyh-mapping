@@ -12,7 +12,7 @@
 #   make status           Show Terraform outputs (IPs, URLs)
 # ============================================================
 
-.PHONY: infra deploy deploy-frontend deploy-backend destroy ssh logs status upload-csv
+.PHONY: infra deploy deploy-frontend deploy-backend destroy ssh logs status upload-csv migrate-structured-filters
 
 # Read Terraform outputs without re-running plan
 TF_DIR := infra
@@ -117,6 +117,21 @@ clear-images:
 	@echo "=== Clearing images for listings $(GUIDS) ==="
 	scp $(SSH_OPTS) backend/scripts/clear-listing-images.js ec2-user@$$($(TF_OUTPUT) ec2_ip):~/app/scripts/
 	ssh $(SSH_OPTS) ec2-user@$$($(TF_OUTPUT) ec2_ip) "cd ~/app && node scripts/clear-listing-images.js $(GUIDS)"
+
+# Add pending_submissions and feedback_responses tables.
+# Run after: make deploy-backend
+migrate-pending-feedback:
+	@echo "=== Running pending & feedback migration ==="
+	cd backend && node scripts/migrate-pending-and-feedback.js
+	@echo "=== Migration complete ==="
+
+# Run migration to add service_delivery, insurance_keywords, parental_consent_required columns.
+# Run after: make deploy-backend
+migrate-structured-filters:
+	@echo "=== Running structured filters migration ==="
+	scp $(SSH_OPTS) backend/scripts/migrate-structured-filters.js ec2-user@$$($(TF_OUTPUT) ec2_ip):~/app/scripts/
+	ssh $(SSH_OPTS) ec2-user@$$($(TF_OUTPUT) ec2_ip) "cd ~/app && node scripts/migrate-structured-filters.js"
+	@echo "=== Migration complete ==="
 
 # Create admin accounts for seth@casperyouthhub.org and elliottunicornsolutions@gmail.com.
 # Usage: make add-admin-users ADD_ADMIN_PASSWORD="YourTempPassword"

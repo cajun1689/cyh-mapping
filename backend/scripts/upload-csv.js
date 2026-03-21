@@ -23,14 +23,14 @@ const bareBonesListingsSchema = require('../db/listings.basic.schema.json')
 const { PAPA_PARSE } = require('../utils/constants')
 const wyoming = require('../utils/stateBoundaries.json').Wyoming
 const {
-  TABLE_LISTINGS_COLUMNS,
   DROP_TABLE_PREVIEW_LISTINGS,
   CREATE_TABLE_PREVIEW_LISTINGS,
   INSERT_INTO_PREVIEW_LISTINGS,
   promotePreviewListingsToProd,
   createBackupListingTable,
   createMetaEntry,
-  addCity,
+  addStructuredFilters,
+  getInsertValues,
 } = require('../utils/listingUtils')
 const { recreateGeocodingTable } = require('../utils/geocodingUtils')
 
@@ -105,11 +105,8 @@ async function main() {
           continue // Skip out-of-state (matches web upload behavior)
         }
       }
-      addCity(listing)
-      await client.query(
-        INSERT_INTO_PREVIEW_LISTINGS,
-        TABLE_LISTINGS_COLUMNS.map((col) => listing[col])
-      )
+      addStructuredFilters(listing)
+      await client.query(INSERT_INTO_PREVIEW_LISTINGS, getInsertValues(listing))
     }
     console.log(`Inserted ${listings.length} rows into preview_listings`)
 

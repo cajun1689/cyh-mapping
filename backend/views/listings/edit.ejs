@@ -62,7 +62,13 @@
 
     <div class="required field">
       <label>Description</label>
-      <textarea name="description" rows="3" placeholder="Describe the program or services your organization provides" required><%= l.description || '' %></textarea>
+      <div style="display: flex; gap: .5em; align-items: flex-start;">
+        <textarea name="description" id="description-field" rows="3" placeholder="Describe the program or services your organization provides" required><%= l.description || '' %></textarea>
+        <button type="button" id="suggest-tags-btn" class="ui button basic teal" title="Use AI to suggest Service Type and tags from the description">
+          <i class="magic icon"></i> Suggest tags
+        </button>
+      </div>
+      <small id="suggest-tags-status" style="color:#888; display:none;"></small>
     </div>
 
     <h3 class="ui dividing header">Point Person (Internal Only)</h3>
@@ -130,12 +136,20 @@
       </div>
       <div class="field">
         <label>Service Type</label>
-        <% var kw = Array.isArray(l.keywords) ? l.keywords.join(',') : (l.keywords || 'In-Person'); %>
+        <% 
+          var delivery = [];
+          if (Array.isArray(l.service_delivery)) { delivery = l.service_delivery; }
+          else if (typeof l.service_delivery === 'string' && l.service_delivery) { try { delivery = JSON.parse(l.service_delivery); } catch(e) {} }
+          var kw = Array.isArray(l.keywords) ? l.keywords.join(',') : (l.keywords || '');
+          var hasInPerson = delivery.includes('In-Person') || kw.includes('In-Person');
+          var hasOnline = delivery.includes('Online') || kw.includes('Online Only');
+          var hasTelehealth = delivery.includes('Telehealth') || kw.includes('Telehealth');
+        %>
         <select class="ui dropdown" name="service_type">
-          <option value="In-Person" <%= kw.includes('In-Person') && !kw.includes('Telehealth') ? 'selected' : '' %>>In-Person</option>
-          <option value="Online Only" <%= kw.includes('Online Only') ? 'selected' : '' %>>Online Only</option>
-          <option value="In-Person,Telehealth" <%= kw.includes('In-Person') && kw.includes('Telehealth') ? 'selected' : '' %>>In-Person + Telehealth</option>
-          <option value="Telehealth" <%= kw === 'Telehealth' ? 'selected' : '' %>>Telehealth Only</option>
+          <option value="In-Person" <%= hasInPerson && !hasTelehealth ? 'selected' : '' %>>In-Person</option>
+          <option value="Online Only" <%= hasOnline && !hasInPerson && !hasTelehealth ? 'selected' : '' %>>Online Only</option>
+          <option value="In-Person,Telehealth" <%= hasInPerson && hasTelehealth ? 'selected' : '' %>>In-Person + Telehealth</option>
+          <option value="Telehealth" <%= hasTelehealth && !hasInPerson ? 'selected' : '' %>>Telehealth Only</option>
         </select>
       </div>
     </div>
@@ -285,5 +299,65 @@
     categorySelect.addEventListener('change', renderPreview);
     if (customCategoriesInput) customCategoriesInput.addEventListener('input', renderPreview);
     renderPreview();
+  })();
+
+  (function initSuggestTags() {
+    const btn = document.getElementById('suggest-tags-btn');
+    const descField = document.getElementById('description-field');
+    const statusEl = document.getElementById('suggest-tags-status');
+    const serviceTypeSelect = document.querySelector('select[name="service_type"]');
+    const faithBasedCheckbox = document.getElementById('faith_based_edit');
+    if (!btn || !descField) return;
+
+    btn.addEventListener('click', async function() {
+      const desc = (descField.value || '').trim();
+      if (!desc) {
+        statusEl.textContent = 'Enter a description first.';
+        statusEl.style.display = 'block';
+        statusEl.style.color = '#c0392b';
+        return;
+      }
+      btn.disabled = true;
+      statusEl.textContent = 'Analyzing...';
+      statusEl.style.display = 'block';
+      statusEl.style.color = '#888';
+      try {
+        const res = await fetch('/listings/suggest-tags', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ description: desc }),
+          credentials: 'same-origin'
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Request failed');
+
+        var serviceTypeVal = 'In-Person';
+        if (data.service_delivery && data.service_delivery.length) {
+          var sd = data.service_delivery;
+          if (sd.includes('Online') && !sd.includes('In-Person') && !sd.includes('Telehealth')) serviceTypeVal = 'Online Only';
+          else if (sd.includes('Telehealth') && !sd.includes('In-Person')) serviceTypeVal = 'Telehealth';
+          else if (sd.includes('In-Person') && sd.includes('Telehealth')) serviceTypeVal = 'In-Person,Telehealth';
+          else if (sd.includes('In-Person')) serviceTypeVal = 'In-Person';
+        }
+        if (serviceTypeSelect) {
+          serviceTypeSelect.value = serviceTypeVal;
+        }
+        if (faithBasedCheckbox && data.keywords && data.keywords.includes('Faith-Based')) {
+          faithBasedCheckbox.checked = true;
+        }
+        var extra = [];
+        if (data.insurance_keywords && data.insurance_keywords.length) extra.push('Insurance: ' + data.insurance_keywords.join(', '));
+        if (data.keywords && data.keywords.length) {
+          var other = data.keywords.filter(function(k) { return k !== 'Faith-Based'; });
+          if (other.length) extra.push('Other: ' + other.join(', '));
+        }
+        statusEl.textContent = 'Tags applied.' + (extra.length ? ' ' + extra.join(' | ') : '');
+        statusEl.style.color = '#16a085';
+      } catch (e) {
+        statusEl.textContent = 'Error: ' + (e.message || 'Could not suggest tags');
+        statusEl.style.color = '#c0392b';
+      }
+      btn.disabled = false;
+    });
   })();
 </script>

@@ -1,0 +1,51 @@
+<div class="ui segment" style="max-width: 1100px; margin: 1.5em auto; padding: 1.5em;">
+  <header style="text-align: center; margin-bottom: 1em;">
+    <h1 class="ui header dark-teal-text">
+      <i class="ui icon hourglass half"></i>
+      <div class="content">
+        Pending Submissions
+        <div class="sub header"><%= props.submissions.length %> awaiting review</div>
+      </div>
+    </h1>
+  </header>
+
+  <% if (props.message) { %>
+  <div class="ui success icon message">
+    <i class="large check middle aligned icon"></i>
+    <div class="content"><div class="header"><%= props.message %></div></div>
+  </div>
+  <% } %>
+
+  <div style="margin-bottom: 1em;">
+    <a href="/listings/manage" class="ui button teal small"><i class="arrow left icon"></i>Back to Manage Listings</a>
+  </div>
+
+  <% if (props.submissions.length === 0) { %>
+  <div class="ui info message">No pending submissions.</div>
+  <% } else { %>
+  <div class="ui stacked segments">
+    <% props.submissions.forEach(function(s) { %>
+    <div class="ui segment">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1em;">
+        <div>
+          <h3 class="ui header"><%= s.full_name %></h3>
+          <% if (s.parent_organization) { %><p><%= s.parent_organization %></p><% } %>
+          <p><strong>Category:</strong> <%= s.category %></p>
+          <p><%= (s.description || '').substring(0, 200) %><%= (s.description && s.description.length > 200) ? '...' : '' %></p>
+          <p><strong>Contact:</strong> <%= s.contact_email || s.program_email || s.phone_1 || '—' %></p>
+          <p><strong>Submitted:</strong> <%= new Date(s.created_at).toLocaleString() %></p>
+        </div>
+        <div style="display: flex; gap: .5em;">
+          <form method="POST" action="/listings/pending/<%= s.id %>/approve" style="display:inline">
+            <button type="submit" class="ui green button"><i class="check icon"></i>Approve</button>
+          </form>
+          <form method="POST" action="/listings/pending/<%= s.id %>/reject" style="display:inline">
+            <button type="submit" class="ui red button" onclick="return confirm('Reject this submission?')"><i class="close icon"></i>Reject</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <% }) %>
+  </div>
+  <% } %>
+</div>

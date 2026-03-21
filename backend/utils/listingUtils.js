@@ -1,6 +1,7 @@
 const { items: SCHEMA } = require('../db/listings.table.schema.json')
 const db = require('../db')
 const cities = require('./cities')
+const { SERVICE_DELIVERY_KEYWORDS, INSURANCE_KEYWORDS } = require('./filterConstants')
 
 /*
  * SQL statements and helper objects
@@ -12,7 +13,7 @@ const JSON_TO_SQL_TYPE_MAP = {
   number: 'NUMERIC',
   integer: 'INTEGER',
   array: 'TEXT',
-  boolean: 'BOOLEAN'
+  boolean: 'BOOLEAN',
 }
 
 const TABLE_LISTINGS_COLUMNS = Object.keys(SCHEMA.properties)
@@ -35,6 +36,15 @@ CREATE TABLE preview_listings (
 const INSERT_INTO_PREVIEW_LISTINGS = `
 INSERT INTO preview_listings (${TABLE_LISTINGS_COLUMNS.join(', ')}) VALUES (${TABLE_LISTINGS_PARAMETERS.join(', ')});
 `
+
+/** Prepare listing values for INSERT - stringify arrays for TEXT columns */
+const getInsertValues = (listing) =>
+  TABLE_LISTINGS_COLUMNS.map((col) => {
+    const val = listing[col]
+    const schemaType = SCHEMA.properties[col]?.type
+    if (schemaType === 'array' && Array.isArray(val)) return JSON.stringify(val)
+    return val
+  })
 
 const promotePreviewListingsToProd = async (pool) => {
   try {
@@ -139,17 +149,67 @@ const splitCategory = (listing) => {
 
 // Programatically add "city" column to each listing. Tested [X]
 const addCity = (listing) => {
-  // I tried to do this programatically with Regex, but there are too many variables with the ways our addresses are formatted. This was the only reasonably sure way to proceed.
-  let listingCity;
-  cities.forEach((city) => { 
+  let listingCity
+  cities.forEach((city) => {
     if (listing.full_address?.includes(city)) { listingCity = city }
   })
   listing.city = listingCity ?? null
   return listing
 }
 
+function ensureArray(val) {
+  if (Array.isArray(val)) return val
+  if (typeof val === 'string') {
+    try { const p = JSON.parse(val); if (Array.isArray(p)) return p } catch {}
+    // PostgreSQL array format {val1,val2} or comma/semicolon separated
+    const cleaned = val.replace(/^\{|\}$/g, '').trim()
+    if (cleaned) return cleaned.split(/[,;]/).map((s) => s.replace(/^"|"$/g, '').trim()).filter(Boolean)
+    return []
+  }
+  return []
+}
 
-module.exports = { 
+// Extract service_delivery (In-Person, Online, Telehealth) from keywords
+const addServiceDelivery = (listing) => {
+  const kw = ensureArray(listing.keywords)
+  const found = []
+  for (const [canonical, variants] of Object.entries(SERVICE_DELIVERY_KEYWORDS)) {
+    if (variants.some(v => kw.some(k => k.toLowerCase() === v.toLowerCase()))) {
+      found.push(canonical)
+    }
+  }
+  listing.service_delivery = found.length ? found : null
+  return listing
+}
+
+// Extract insurance_keywords from keywords
+const addInsuranceKeywords = (listing) => {
+  const kw = ensureArray(listing.keywords)
+  const found = kw.filter(k => INSURANCE_KEYWORDS.some(ins => k.toLowerCase().includes(ins.toLowerCase())))
+  listing.insurance_keywords = found.length ? [...new Set(found)] : null
+  return listing
+}
+
+// Placeholder for parental consent - extract from description/keywords when data exists
+const addParentalConsent = (listing) => {
+  if (listing.parental_consent_required != null) return listing
+  const text = [listing.description, ...ensureArray(listing.keywords)].filter(Boolean).join(' ').toLowerCase()
+  const hasConsent = /parental consent|parent.?consent|consent required|guardian consent/i.test(text)
+  listing.parental_consent_required = hasConsent || null
+  return listing
+}
+
+// Run all structured filter extractions (call after addCity during CSV import)
+const addStructuredFilters = (listing) => {
+  addCity(listing)
+  addServiceDelivery(listing)
+  addInsuranceKeywords(listing)
+  addParentalConsent(listing)
+  return listing
+}
+
+module.exports = {
   promotePreviewListingsToProd, createBackupListingTable, createMetaEntry, getLastUpdate, splitCategory, addCity,
-  TABLE_LISTINGS_COLUMNS, DROP_TABLE_PREVIEW_LISTINGS, CREATE_TABLE_PREVIEW_LISTINGS, INSERT_INTO_PREVIEW_LISTINGS 
+  addServiceDelivery, addInsuranceKeywords, addParentalConsent, addStructuredFilters, getInsertValues,
+  TABLE_LISTINGS_COLUMNS, DROP_TABLE_PREVIEW_LISTINGS, CREATE_TABLE_PREVIEW_LISTINGS, INSERT_INTO_PREVIEW_LISTINGS,
 }

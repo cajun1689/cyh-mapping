@@ -30,6 +30,9 @@ const FIELDS_TO_TRACK = [
   'services_provided',
   'keywords',
   'cost_keywords',
+  'service_delivery',
+  'insurance_keywords',
+  'parental_consent_required',
   'financial_information',
   'eligibility_requirements',
   'intake_instructions',
@@ -77,6 +80,9 @@ function buildRow(listing) {
     keywords: toDisplay(r.keywords),
     services_provided: toDisplay(r.services_provided),
     cost_keywords: toDisplay(r.cost_keywords),
+    service_delivery: toDisplay(r.service_delivery),
+    insurance_keywords: toDisplay(r.insurance_keywords),
+    parental_consent_required: toDisplay(r.parental_consent_required),
     financial_information: toDisplay(r.financial_information),
     eligibility_requirements: toDisplay(r.eligibility_requirements),
     intake_instructions: toDisplay(r.intake_instructions),
@@ -124,7 +130,7 @@ async function fetchFromCsv() {
     transform: (value, col) => {
       const t = (value || '').trim()
       if (t === '') return undefined
-      if (col === 'keywords' || col === 'services_provided' || col === 'cost_keywords' || col === 'languages_offered') {
+      if (col === 'keywords' || col === 'services_provided' || col === 'cost_keywords' || col === 'service_delivery' || col === 'insurance_keywords' || col === 'languages_offered') {
         return t.split(',').map(s => s.trim()).filter(Boolean)
       }
       return t

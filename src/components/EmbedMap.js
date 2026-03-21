@@ -7,7 +7,7 @@ import MarkerClusterGroup from 'react-leaflet-markercluster'
 import 'leaflet/dist/leaflet.css'
 import 'react-leaflet-markercluster/dist/styles.min.css'
 
-import { filterListings, getCityCount, getKeywordCount, getCostCount, getCategoryColor, getCategoryHexColor, normalizeCategories } from '../utils'
+import { filterListings, getCityCount, getServiceDeliveryCount, getCostCount, getCategoryColor, getCategoryHexColor, normalizeCategories } from '../utils'
 import { blueLMarker } from '../resources/mapIcons'
 import siteConfig from '../siteConfig.json'
 import './Map.css'
@@ -18,7 +18,7 @@ function EmbedMap({ listings, metadata }) {
   const [hideFaithBased, setHideFaithBased] = useState(searchParams.get('hide_faith') === '1')
   const [ageGroupFilter, setAgeGroupFilter] = useState(searchParams.get('age_group') || 'Youth')
   const [categoryFilter, setCategoryFilter] = useState('')
-  const [tagFilter, setTagFilter] = useState('')
+  const [serviceDeliveryFilter, setServiceDeliveryFilter] = useState('')
   const [costFilter, setCostFilter] = useState('')
   const [cityFilter, setCityFilter] = useState('')
   const [showEmbedFilters, setShowEmbedFilters] = useState(false)
@@ -43,14 +43,28 @@ function EmbedMap({ listings, metadata }) {
         return categories.includes(categoryFilter)
       })
     }
-    if (tagFilter) result = result.filter(l => {
-      const entries = Object.entries(l).join(' ').toLowerCase()
-      return entries.includes(tagFilter.toLowerCase())
-    })
+    if (serviceDeliveryFilter) {
+      result = result.filter((l) => {
+        const delivery = Array.isArray(l.service_delivery) ? l.service_delivery : (l.service_delivery ? String(l.service_delivery).split(',') : [])
+        const kw = Array.isArray(l.keywords) ? l.keywords : []
+        return delivery.includes(serviceDeliveryFilter) ||
+          (serviceDeliveryFilter === 'Online' && kw.some((k) => /online/i.test(k))) ||
+          (serviceDeliveryFilter === 'Telehealth' && kw.some((k) => /telehealth/i.test(k))) ||
+          (serviceDeliveryFilter === 'In-Person' && kw.some((k) => /in-?person/i.test(k)))
+      })
+    }
     if (costFilter) result = result.filter(l => l.cost_keywords && l.cost_keywords.includes(costFilter))
-    if (cityFilter) result = result.filter(l => l.city === cityFilter)
+    if (cityFilter) {
+      const cityLower = cityFilter.toLowerCase()
+      result = result.filter(l => {
+        const city = l.city?.trim() || null
+        if (city) return city === cityFilter
+        const addr = (l.full_address || '').toLowerCase()
+        return addr.includes(cityLower)
+      })
+    }
     return result
-  }, [listings, categoryFilter, tagFilter, costFilter, cityFilter])
+  }, [listings, categoryFilter, serviceDeliveryFilter, costFilter, cityFilter])
 
   const cleanParams = useMemo(() => {
     const clean = new URLSearchParams(searchParams)
@@ -64,10 +78,10 @@ function EmbedMap({ listings, metadata }) {
   )
 
   const listingCities = useMemo(() => getCityCount(localFilteredListings ?? []), [localFilteredListings])
-  const keywordCount = useMemo(() => getKeywordCount(localFilteredListings ?? []), [localFilteredListings])
+  const serviceDeliveryCount = useMemo(() => getServiceDeliveryCount(localFilteredListings ?? []) || metadata?.listingServiceDelivery || {}, [localFilteredListings, metadata?.listingServiceDelivery])
   const costCount = useMemo(() => getCostCount(localFilteredListings ?? []), [localFilteredListings])
 
-  const keywordOptions = Object.entries(keywordCount).map(([k, n]) => ({ key: k, text: `${k} (${n})`, value: k }))
+  const serviceDeliveryOptions = Object.entries(serviceDeliveryCount).map(([k, n]) => ({ key: k, text: `${k} (${n})`, value: k }))
   const costOptions = Object.entries(costCount).map(([k, n]) => ({ key: k, text: `${k} (${n})`, value: k }))
   const cityOptions = Object.entries(listingCities).map(([c, n]) => ({ key: c, text: `${c} (${n})`, value: c }))
 
@@ -122,15 +136,15 @@ function EmbedMap({ listings, metadata }) {
               onChange={(e, { value }) => setCityFilter(value || '')}
             />
           )}
-          {keywordOptions.length > 0 && (
+          {serviceDeliveryOptions.length > 0 && (
             <Dropdown
-              options={keywordOptions}
+              options={serviceDeliveryOptions}
               search selection clearable compact
               placeholder="Service Type"
               selectOnBlur={false}
               style={{ flex: '1 1 100px', minWidth: 0 }}
-              value={tagFilter}
-              onChange={(e, { value }) => setTagFilter(value || '')}
+              value={serviceDeliveryFilter}
+              onChange={(e, { value }) => setServiceDeliveryFilter(value || '')}
             />
           )}
           {costOptions.length > 0 && (

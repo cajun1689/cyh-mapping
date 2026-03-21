@@ -1,0 +1,56 @@
+<div class="ui segment" style="max-width: 1100px; margin: 1.5em auto; padding: 1.5em;">
+  <header style="text-align: center; margin-bottom: 1em;">
+    <h1 class="ui header dark-teal-text">
+      <i class="ui icon comment alternate"></i>
+      <div class="content">
+        Feedback Responses
+        <div class="sub header">Recent feedback from the site</div>
+      </div>
+    </h1>
+  </header>
+
+  <% if (props.message) { %>
+  <div class="ui success icon message">
+    <i class="large check middle aligned icon"></i>
+    <div class="content"><div class="header"><%= props.message %></div></div>
+  </div>
+  <% } %>
+
+  <div style="margin-bottom: 1em;">
+    <a href="/home" class="ui button teal small"><i class="arrow left icon"></i>Back to Home</a>
+  </div>
+
+  <% if (props.responses.length === 0) { %>
+  <div class="ui info message">No feedback yet.</div>
+  <% } else { %>
+  <table class="ui celled striped compact table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Intent</th>
+        <th>Listing / Resource</th>
+        <th>Message / Details</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% props.responses.forEach(function(r) { %>
+      <tr>
+        <td style="white-space: nowrap;"><%= new Date(r.created_at).toLocaleString() %></td>
+        <td><%= r.intent || '—' %></td>
+        <td>
+          <% if (r.listing_ref) { %><div><strong>Listing:</strong> <%= r.listing_ref %></div><% } %>
+          <% if (r.resource_name_url) { %><div><strong>Resource:</strong> <%= r.resource_name_url %></div><% } %>
+          <% if (!r.listing_ref && !r.resource_name_url) { %>—<% } %>
+        </td>
+        <td>
+          <% if (r.message) { %><div><%= r.message %></div><% } %>
+          <% if (r.bug_details) { %><div><em>Bug details:</em> <%= r.bug_details %></div><% } %>
+          <% if (r.resource_additional) { %><div><em>Additional:</em> <%= r.resource_additional %></div><% } %>
+          <% if (!r.message && !r.bug_details && !r.resource_additional) { %>—<% } %>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>

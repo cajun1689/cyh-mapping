@@ -34,6 +34,7 @@
         <th>City</th>
         <th style="width:60px">Map</th>
         <th style="width:80px">Age</th>
+        <th style="width:100px">Service Type</th>
         <th style="width:40px" title="Faith-Based"><i class="church icon"></i></th>
         <th style="width:120px">Actions</th>
       </tr>
@@ -65,8 +66,17 @@
             <span style="color:#00b5ad" title="Youth and Adult">Both</span>
           <% } %>
         </td>
+        <td style="text-align:center; font-size:.85em">
+          <% 
+            var delivery = [];
+            if (Array.isArray(listing.service_delivery)) { delivery = listing.service_delivery; }
+            else if (typeof listing.service_delivery === 'string' && listing.service_delivery) { try { delivery = JSON.parse(listing.service_delivery); } catch(e) {} }
+            var kwStr = Array.isArray(listing.keywords) ? listing.keywords.join(',') : (listing.keywords || '');
+            var sdLabel = delivery.length ? delivery.join(', ') : (kwStr.includes('Telehealth') ? 'Telehealth' : (kwStr.includes('Online Only') ? 'Online' : 'In-Person'));
+          %>
+          <span title="<%= sdLabel %>"><%= sdLabel %></span>
+        </td>
         <td style="text-align:center">
-          <% var kwStr = Array.isArray(listing.keywords) ? listing.keywords.join(',') : (listing.keywords || ''); %>
           <% if (kwStr.includes('Faith-Based')) { %>
             <i class="church icon" title="Faith-Based" style="color:#6435c9"></i>
           <% } %>

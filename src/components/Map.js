@@ -10,10 +10,10 @@ import { useSessionStorage } from './../hooks/useSessionStorage'
 import 'leaflet/dist/leaflet.css';
 import 'react-leaflet-markercluster/dist/styles.min.css';
 
-import { filterListings, getKeywordCount, getCostCount } from '../utils'
+import { filterListings,  getCostCount } from '../utils'
 import './Map.css'
 import { greenLMarker } from '../resources/mapIcons'
-import { getCityCount, getCategoryColor, getCategoryHexColor, titleCaseKey, normalizeCategories } from '../utils'
+import { getCityCount, getCategoryColor, getCategoryHexColor, getServiceDeliveryCount, titleCaseKey, normalizeCategories } from '../utils'
 import siteConfig from '../siteConfig.json'
 
 export const EmbedContext = createContext('')
@@ -74,9 +74,8 @@ function MapPage({ listings, metadata, ageGroupFilter, setAgeGroupFilter }) {
     return filterListings(listings, searchParams, search, hidden, { hideFaithBased, ageGroupFilter })
   }, [listings, searchParams, search, hidden, hideFaithBased, ageGroupFilter, chatRecGuids])
   
-  // If you don't want to recalculate the two lines below on every search, just use metadata.listingCities and metadata.listingKeywords, respectively. That would be faster, but also a less rich user experience
   let listingCities = useMemo(() => getCityCount(filteredListings ?? {}), [filteredListings])
-  const keywordCount = useMemo(() => getKeywordCount(filteredListings ?? {}), [filteredListings])
+  const serviceDeliveryCount = useMemo(() => getServiceDeliveryCount(filteredListings ?? {}) || metadata?.listingServiceDelivery || {}, [filteredListings, metadata?.listingServiceDelivery])
   const costCount = useMemo(() => getCostCount(filteredListings ?? {}), [filteredListings])
   
   const cardRefs = listings.reduce((cardRefs, listing) => ({...cardRefs, [listing.guid]: createRef()}), {})
@@ -94,7 +93,7 @@ function MapPage({ listings, metadata, ageGroupFilter, setAgeGroupFilter }) {
   }, [])
 
   const content = (<>
-    <MapSearch listingCategories={listingCategories} listingCategoryIcons={listingCategoryIcons} debouncedSearch={debouncedSearch} listingCities={listingCities} keywordCount={keywordCount} costCount={costCount} saved={saved} handleSave={handleSave} handleHide={handleHide} hidden={hidden} showSaved={showSaved} handleShowSaved={handleShowSaved} hideFaithBased={hideFaithBased} setHideFaithBased={setHideFaithBased} ageGroupFilter={ageGroupFilter} setAgeGroupFilter={setAgeGroupFilter} />
+    <MapSearch listingCategories={listingCategories} listingCategoryIcons={listingCategoryIcons} debouncedSearch={debouncedSearch} listingCities={listingCities} serviceDeliveryCount={serviceDeliveryCount} costCount={costCount} saved={saved} handleSave={handleSave} handleHide={handleHide} hidden={hidden} showSaved={showSaved} handleShowSaved={handleShowSaved} hideFaithBased={hideFaithBased} setHideFaithBased={setHideFaithBased} ageGroupFilter={ageGroupFilter} setAgeGroupFilter={setAgeGroupFilter} />
     <main id="map-page">
       {chatRecGuids && chatRecGuids.length > 0 && (
         <div className="chat-rec-banner">
@@ -117,6 +116,7 @@ function MapPage({ listings, metadata, ageGroupFilter, setAgeGroupFilter }) {
       <div className="map-right-col">
         <MapMap listings={filteredListings} cardRefs={cardRefs} ref={mapRef} />
         {sponsors.length > 0 && <SponsorBar sponsors={sponsors} />}
+        <AppStoreLink />
       </div>
     </main>
   </>)
@@ -163,7 +163,35 @@ function SponsorBar({ sponsors }) {
   )
 }
 
-function MapSearch({ listingCategories, listingCategoryIcons, debouncedSearch, listingCities, saved, handleShowSaved, keywordCount, costCount, hideFaithBased, setHideFaithBased, ageGroupFilter, setAgeGroupFilter }) {
+const APP_STORE_URL = 'https://apps.apple.com/us/app/wy-youth-resource-map/id6760038717'
+
+function AppStoreLink() {
+  return (
+    <Segment basic vertical style={{ textAlign: 'center', padding: '1em 1em 1.5em', marginTop: 0 }}>
+      <a
+        href={APP_STORE_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: 'inline-block',
+          padding: '10px 20px',
+          backgroundColor: '#000',
+          color: '#fff',
+          borderRadius: 6,
+          fontSize: 14,
+          fontWeight: 600,
+          textDecoration: 'none',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        }}
+        aria-label="Download WY Youth Resource Map on the App Store"
+      >
+        Download on the App Store
+      </a>
+    </Segment>
+  )
+}
+
+function MapSearch({ listingCategories, listingCategoryIcons, debouncedSearch, listingCities, saved, handleShowSaved, serviceDeliveryCount, costCount, hideFaithBased, setHideFaithBased, ageGroupFilter, setAgeGroupFilter }) {
   const basePath = useBasePath()
   const isEmbed = basePath !== ''
   const navigate = useNavigate()
@@ -249,16 +277,16 @@ function MapSearch({ listingCategories, listingCategoryIcons, debouncedSearch, l
     return { key: cityName,  text: `${cityName} (${count})`, value: cityName }
   })
 
-  const keywordDropdownOptions = Object.entries(keywordCount ?? {}).map(([keyword, count]) => {
-    return { key: keyword,  text: `${keyword} (${count})`, value: keyword }
-  })
+  const serviceDeliveryOptions = Object.entries(serviceDeliveryCount ?? {}).map(([delivery, count]) => ({
+    key: delivery, text: `${delivery} (${count})`, value: delivery,
+  }))
 
   const costDropdownOptions = Object.entries(costCount ?? {}).map(([cost, count]) => {
     return { key: cost,  text: `${cost} (${count})`, value: cost }
   })
 
   const locationDropdown = locationDropdownOptions.length > 0
-  const keywords = keywordDropdownOptions.length > 0
+  const serviceDelivery = serviceDeliveryOptions.length > 0
   const cost = costDropdownOptions.length > 0
 
   const activeFilterCount = [...searchParams].filter(([k]) => k !== 'age_group' && k !== 'saved').length
@@ -358,17 +386,17 @@ return (<>
               onFocus={() => navigate(`${basePath}/?${searchParams.toString()}`)} 
               onChange={(e, {value}) => handleDropdownClick(e.type, value, 'city')}
             />}
-          {keywords && 
-            <Dropdown id='keyword-input'
-              options={keywordDropdownOptions} 
-              search selection clearable 
+          {serviceDelivery &&
+            <Dropdown id='service-delivery-input'
+              options={serviceDeliveryOptions}
+              search selection clearable
               button
-              placeholder={<div><i className="ui icon tag" id="keyword-icon"></i><span id="keyword-label">  Service Type</span></div>}
+              placeholder={<div><i className="ui icon video" id="service-delivery-icon"></i><span id="service-delivery-label">  Service Type</span></div>}
               selectOnBlur={false}
-              inverted fluid 
-              value={searchParams.get('tag') || ``} 
-              onFocus={() => navigate(`${basePath}/?${searchParams.toString()}`)} 
-              onChange={(e, {value}) => handleDropdownClick(e.type, value, 'tag')}
+              inverted fluid
+              value={searchParams.get('service_delivery') || ``}
+              onFocus={() => navigate(`${basePath}/?${searchParams.toString()}`)}
+              onChange={(e, { value }) => handleDropdownClick(e.type, value, 'service_delivery')}
             />}
           {cost && 
             <Dropdown id='keyword-input'
